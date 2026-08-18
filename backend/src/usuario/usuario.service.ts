@@ -22,4 +22,8 @@ export class UsuarioService {
     const usuario = this.usuarioRepo.create(datos);
     return this.usuarioRepo.save(usuario);
   }
+
+  async marcarVerificado(id: number) {
+    await this.usuarioRepo.update(id, { verificado: true });
+  }
 }
