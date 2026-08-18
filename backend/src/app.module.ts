@@ -7,6 +7,9 @@ import { AuthModule } from './auth/auth.module';
 import { ZonaModule } from './zona/zona.module';
 import { AnuncioModule } from './anuncio/anuncio.module';
 import { VerificacionModule } from './verificacion/verificacion.module';
+import { ReporteModule } from './reporte/reporte.module';
+import { ContactoModule } from './contacto/contacto.module';
+import { RiesgoModule } from './riesgo/riesgo.module';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import { VerificacionModule } from './verificacion/verificacion.module';
     ZonaModule,
     AnuncioModule,
     VerificacionModule,
+    ReporteModule,
+    ContactoModule,
+    RiesgoModule,
   ],
 })
 export class AppModule {}
