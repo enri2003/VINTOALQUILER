@@ -1,13 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Anuncio, TipoAnuncio } from './anuncio.entity';
+import { SuscripcionService } from '../suscripcion/suscripcion.service';
 
 @Injectable()
 export class AnuncioService {
   constructor(
     @InjectRepository(Anuncio)
     private readonly anuncioRepo: Repository<Anuncio>,
+    private readonly suscripcionService: SuscripcionService,
   ) {}
 
   listar(filtros: { zonaId?: number; tipo?: TipoAnuncio; precioMax?: number }) {
@@ -41,7 +43,17 @@ export class AnuncioService {
     return anuncio;
   }
 
-  crear(publicadorId: number, datos: Partial<Anuncio>) {
+  async crear(publicadorId: number, datos: Partial<Anuncio>) {
+    const plan = await this.suscripcionService.planActual(publicadorId);
+    const limites = this.suscripcionService.limites(plan);
+    const activos = await this.anuncioRepo.count({
+      where: { publicador: { id: publicadorId } as any, estado: 'disponible' },
+    });
+    if (activos >= limites.anunciosActivos) {
+      throw new BadRequestException(
+        `Tu plan ${plan} permite hasta ${limites.anunciosActivos} anuncios activos`,
+      );
+    }
     const anuncio = this.anuncioRepo.create({
       ...datos,
       publicador: { id: publicadorId } as any,

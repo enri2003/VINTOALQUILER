@@ -13,6 +13,7 @@ import { RiesgoModule } from './riesgo/riesgo.module';
 import { FavoritoModule } from './favorito/favorito.module';
 import { AlertaModule } from './alerta/alerta.module';
 import { RecomendacionModule } from './recomendacion/recomendacion.module';
+import { SuscripcionModule } from './suscripcion/suscripcion.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RecomendacionModule } from './recomendacion/recomendacion.module';
     UsuarioModule,
     AuthModule,
     ZonaModule,
+    SuscripcionModule,
     AnuncioModule,
     VerificacionModule,
     ReporteModule,

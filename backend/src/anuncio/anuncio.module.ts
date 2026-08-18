@@ -5,9 +5,10 @@ import { Foto } from './foto.entity';
 import { AnuncioService } from './anuncio.service';
 import { AnuncioController } from './anuncio.controller';
 import { UsuarioModule } from '../usuario/usuario.module';
+import { SuscripcionModule } from '../suscripcion/suscripcion.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Anuncio, Foto]), UsuarioModule],
+  imports: [TypeOrmModule.forFeature([Anuncio, Foto]), UsuarioModule, SuscripcionModule],
   controllers: [AnuncioController],
   providers: [AnuncioService],
   exports: [AnuncioService],
