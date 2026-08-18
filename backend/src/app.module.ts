@@ -14,6 +14,7 @@ import { FavoritoModule } from './favorito/favorito.module';
 import { AlertaModule } from './alerta/alerta.module';
 import { RecomendacionModule } from './recomendacion/recomendacion.module';
 import { SuscripcionModule } from './suscripcion/suscripcion.module';
+import { ObservatorioModule } from './observatorio/observatorio.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SuscripcionModule } from './suscripcion/suscripcion.module';
     FavoritoModule,
     AlertaModule,
     RecomendacionModule,
+    ObservatorioModule,
   ],
 })
 export class AppModule {}
