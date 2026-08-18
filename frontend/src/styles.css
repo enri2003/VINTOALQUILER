@@ -45,3 +45,41 @@ body {
 h1, h2, .precio {
   font-family: 'Bricolage Grotesque', sans-serif;
 }
+
+section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 40px 64px;
+}
+
+.acciones {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.boton-principal {
+  background: var(--plomo-oscuro);
+  color: #F2F5F8;
+  border: none;
+  border-radius: var(--radio-boton);
+  padding: 16px 24px;
+  font: 700 15px 'Manrope', sans-serif;
+  text-decoration: none;
+}
+.boton-principal:hover {
+  background: var(--carbon);
+}
+
+.boton-secundario {
+  background: #fff;
+  color: var(--plomo-oscuro);
+  border: 1.5px solid var(--borde-fuerte);
+  border-radius: var(--radio-boton);
+  padding: 14.5px 24px;
+  font: 700 13.5px 'Manrope', sans-serif;
+  text-decoration: none;
+}
+.boton-secundario:hover {
+  border-color: var(--plomo-oscuro);
+}

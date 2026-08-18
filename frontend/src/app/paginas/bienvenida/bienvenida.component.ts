@@ -9,8 +9,10 @@ import { RouterLink } from '@angular/router';
     <section class="bienvenida">
       <h1>Alquileres Vinto</h1>
       <p>Encuentra cuartos, garzoniers y departamentos cerca de la UAB.</p>
-      <a routerLink="/login">Iniciar sesion</a>
-      <a routerLink="/registro">Crear cuenta</a>
+      <div class="acciones">
+        <a routerLink="/login" class="boton-secundario">Iniciar sesion</a>
+        <a routerLink="/registro" class="boton-principal">Crear cuenta</a>
+      </div>
     </section>
   `,
 })
