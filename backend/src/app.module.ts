@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseConfig } from './config/database.config';
 import { UsuarioModule } from './usuario/usuario.module';
 import { AuthModule } from './auth/auth.module';
+import { ZonaModule } from './zona/zona.module';
+import { AnuncioModule } from './anuncio/anuncio.module';
 
 @Module({
   imports: [
@@ -11,6 +13,8 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forRoot(databaseConfig),
     UsuarioModule,
     AuthModule,
+    ZonaModule,
+    AnuncioModule,
   ],
 })
 export class AppModule {}
