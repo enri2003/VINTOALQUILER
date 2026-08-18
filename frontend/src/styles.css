@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;600;700&display=swap');
+
+:root {
+  --carbon: #0F1317;
+  --plomo-oscuro: #1E242A;
+  --plomo-medio: #333D45;
+  --plomo-claro: #4E5A64;
+
+  --texto: #1E242A;
+  --texto-suave: #67717B;
+  --texto-tenue: #8A939C;
+
+  --fondo: #F1F3F5;
+  --superficie: #FFFFFF;
+  --superficie-alt: #F7F8F9;
+
+  --borde: #E2E6EA;
+  --borde-fuerte: #D3D9DF;
+
+  --verde-fondo: #EEF3EE;
+  --verde-borde: #D6E2D6;
+  --verde-texto: #3F4B3F;
+  --rojo: #A34848;
+  --rojo-borde: #E2C9C9;
+
+  --radio-chip: 99px;
+  --radio-boton: 12px;
+  --radio-campo: 12px;
+  --radio-tarjeta: 18px;
+  --radio-panel: 20px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: 'Manrope', sans-serif;
+}
+
+h1, h2, .precio {
+  font-family: 'Bricolage Grotesque', sans-serif;
+}

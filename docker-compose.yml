@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: alquileres-vinto-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: Alquileres-Vinto
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Alquileres1033
+    ports:
+      - "1033:5432"
+    volumes:
+      - alquileres_vinto_data:/var/lib/postgresql/data
+
+volumes:
+  alquileres_vinto_data:
