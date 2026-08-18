@@ -12,6 +12,7 @@ import { ContactoComponent } from './paginas/contacto/contacto.component';
 import { FavoritosComponent } from './paginas/favoritos/favoritos.component';
 import { ComparacionComponent } from './paginas/comparacion/comparacion.component';
 import { AlertasComponent } from './paginas/alertas/alertas.component';
+import { MapaComponent } from './paginas/mapa/mapa.component';
 import { authGuard } from './guardias/auth.guard';
 
 export const routes: Routes = [
@@ -28,4 +29,5 @@ export const routes: Routes = [
   { path: 'favoritos', component: FavoritosComponent, canActivate: [authGuard] },
   { path: 'comparacion', component: ComparacionComponent, canActivate: [authGuard] },
   { path: 'alertas', component: AlertasComponent, canActivate: [authGuard] },
+  { path: 'mapa', component: MapaComponent },
 ];
