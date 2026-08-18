@@ -10,6 +10,9 @@ import { VerificacionModule } from './verificacion/verificacion.module';
 import { ReporteModule } from './reporte/reporte.module';
 import { ContactoModule } from './contacto/contacto.module';
 import { RiesgoModule } from './riesgo/riesgo.module';
+import { FavoritoModule } from './favorito/favorito.module';
+import { AlertaModule } from './alerta/alerta.module';
+import { RecomendacionModule } from './recomendacion/recomendacion.module';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import { RiesgoModule } from './riesgo/riesgo.module';
     ReporteModule,
     ContactoModule,
     RiesgoModule,
+    FavoritoModule,
+    AlertaModule,
+    RecomendacionModule,
   ],
 })
 export class AppModule {}

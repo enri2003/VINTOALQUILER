@@ -9,6 +9,9 @@ import { MisAnunciosComponent } from './paginas/mis-anuncios/mis-anuncios.compon
 import { VerificacionComponent } from './paginas/verificacion/verificacion.component';
 import { ReportarComponent } from './paginas/reportar/reportar.component';
 import { ContactoComponent } from './paginas/contacto/contacto.component';
+import { FavoritosComponent } from './paginas/favoritos/favoritos.component';
+import { ComparacionComponent } from './paginas/comparacion/comparacion.component';
+import { AlertasComponent } from './paginas/alertas/alertas.component';
 import { authGuard } from './guardias/auth.guard';
 
 export const routes: Routes = [
@@ -22,4 +25,7 @@ export const routes: Routes = [
   { path: 'verificacion', component: VerificacionComponent, canActivate: [authGuard] },
   { path: 'anuncio/:id/reportar', component: ReportarComponent },
   { path: 'anuncio/:id/contacto', component: ContactoComponent, canActivate: [authGuard] },
+  { path: 'favoritos', component: FavoritosComponent, canActivate: [authGuard] },
+  { path: 'comparacion', component: ComparacionComponent, canActivate: [authGuard] },
+  { path: 'alertas', component: AlertasComponent, canActivate: [authGuard] },
 ];
