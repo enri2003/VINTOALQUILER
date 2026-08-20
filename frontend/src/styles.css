@@ -908,9 +908,27 @@ main {
   .buscador {
     flex-direction: column;
     border-radius: var(--radio-tarjeta);
+    gap: 8px;
+    padding: 10px;
+  }
+  .buscador input,
+  .buscador select {
+    border: 1.5px solid var(--borde);
+    border-radius: var(--radio-campo);
+    background: var(--superficie-alt);
+    width: 100%;
   }
   .buscador select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2367717B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+  }
+  .buscador .boton-principal {
     width: 100%;
+    text-align: center;
   }
   .grilla-estadisticas {
     grid-template-columns: repeat(3, 1fr);
