@@ -482,12 +482,16 @@ input:focus, select:focus, textarea:focus {
   height: 64px;
   border-radius: var(--radio-boton);
   background: linear-gradient(168deg, #0F1317 0%, #1E242A 34%, #333D45 66%, #4E5A64 100%);
-  color: #fff;
-  font-size: 28px;
+  color: #EAF0F6;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
+  flex-shrink: 0;
+}
+.icono-marca svg {
+  width: 30px;
+  height: 30px;
 }
 .tarjeta-bienvenida h1 {
   font-size: 26px;

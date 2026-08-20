@@ -11,7 +11,13 @@ import { AuthService } from '../../servicios/auth.service';
   template: `
     <section class="pagina-dividida">
       <div class="panel-marca">
-        <div class="icono-marca">⌁</div>
+        <div class="icono-marca">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8.5" cy="8.5" r="4.5" />
+            <path d="M11.8 11.8 21 21" />
+            <path d="M17.5 21 21 17.5" />
+          </svg>
+        </div>
         <h2>Alquileres Vinto</h2>
         <p>Cuartos, garzoniers y departamentos del municipio de Vinto, con contacto seguro y anuncios verificados.</p>
       </div>
