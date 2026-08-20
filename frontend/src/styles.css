@@ -460,22 +460,29 @@ input:focus, select:focus, textarea:focus {
 
 /* Pantalla de bienvenida */
 .pantalla-bienvenida {
-  padding: 64px 40px;
+  max-width: none;
+  min-height: 100vh;
+  padding: 40px;
+  background: linear-gradient(168deg, #0F1317 0%, #1E242A 34%, #333D45 66%, #4E5A64 100%);
+  color: #F2F5F8;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
-}
-.tarjeta-bienvenida {
-  width: 100%;
-  max-width: 440px;
-  background: var(--superficie);
-  border-radius: var(--radio-panel);
-  padding: 40px 32px;
+  justify-content: center;
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  gap: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.pantalla-bienvenida::before {
+  content: '';
+  position: absolute;
+  width: 640px;
+  height: 640px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 70%);
+  top: -220px;
+  right: -160px;
 }
 .icono-marca {
   width: 64px;
@@ -488,60 +495,84 @@ input:focus, select:focus, textarea:focus {
   justify-content: center;
   margin-bottom: 20px;
   flex-shrink: 0;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.06);
 }
 .icono-marca svg {
   width: 30px;
   height: 30px;
 }
-.tarjeta-bienvenida h1 {
-  font-size: 26px;
-  margin: 0 0 8px;
+.pantalla-bienvenida h1 {
+  font-size: 42px;
+  margin: 0;
+  letter-spacing: -0.02em;
 }
-.tarjeta-bienvenida > p {
-  color: var(--texto-suave);
-  font-size: 14px;
-  margin: 0 0 28px;
+.pantalla-bienvenida > p {
+  color: #C7CFD6;
+  font-size: 16px;
+  margin: 0;
+  max-width: 380px;
 }
-.tarjeta-bienvenida .boton-principal {
-  text-align: center;
-}
-.acciones-secundarias {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+.acciones-bienvenida {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
   width: 100%;
-  margin-top: 10px;
+  max-width: 320px;
+  margin-top: 8px;
+  position: relative;
 }
-.acciones-secundarias .boton-secundario {
+.acciones-bienvenida .boton-principal {
+  width: 100%;
   text-align: center;
+  background: #fff;
+  color: var(--plomo-oscuro);
 }
-.nota-bienvenida {
-  color: var(--texto-tenue);
-  font-size: 12px;
-  margin: 24px 0 0;
+.acciones-bienvenida .boton-principal:hover {
+  background: #E2E6EA;
+}
+.boton-fantasma {
+  width: 100%;
+  text-align: center;
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radio-boton);
+  padding: 15.5px 24px;
+  font: 700 14px 'Manrope', sans-serif;
+  text-decoration: none;
+}
+.boton-fantasma:hover {
+  border-color: #fff;
+}
+.enlace-visitante {
+  color: #9AA6B0;
+  font: 600 13px 'Manrope', sans-serif;
+  text-decoration: underline;
+}
+.enlace-visitante:hover {
+  color: #fff;
 }
 
-.grilla-info {
-  width: 100%;
-  max-width: 440px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+.rasgos-bienvenida {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 24px;
+  position: relative;
 }
-.tarjeta-info {
-  background: var(--superficie);
-  border-radius: var(--radio-tarjeta);
-  padding: 20px;
+.rasgo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #9AA6B0;
+  font: 600 12px 'Manrope', sans-serif;
 }
-.tarjeta-info h2 {
-  font-size: 15px;
-  margin: 0 0 6px;
-}
-.tarjeta-info p {
-  color: var(--texto-suave);
-  font-size: 12.5px;
-  margin: 0;
-  line-height: 1.4;
+.rasgo svg {
+  width: 22px;
+  height: 22px;
 }
 
 /* Navegacion movil */
@@ -586,6 +617,17 @@ main {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+
+  .pantalla-bienvenida {
+    padding: 32px 24px;
+    gap: 22px;
+  }
+  .pantalla-bienvenida h1 {
+    font-size: 32px;
+  }
+  .rasgos-bienvenida {
+    gap: 20px;
   }
 
   .pagina-dividida {
