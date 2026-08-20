@@ -132,7 +132,7 @@ export class RegistroComponent {
         perfilHogar: this.rol === 'interesado' ? this.perfilHogar || undefined : undefined,
       })
       .subscribe({
-        next: () => this.router.navigate(['/explorar']),
+        next: () => this.router.navigate(['/verificacion']),
         error: (err) => {
           this.cargando = false;
           this.error =

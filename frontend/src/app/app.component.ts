@@ -13,15 +13,21 @@ const RUTAS_SIN_NAV = ['/', '/login', '/registro'];
   template: `
     <header class="cabecera" *ngIf="!ocultarNav">
       <a routerLink="/" class="marca">Alquileres Vinto</a>
-      <nav class="nav-escritorio">
+
+      <nav class="nav-principal">
         <a routerLink="/explorar" routerLinkActive="activo">Explorar</a>
         <a routerLink="/mapa" routerLinkActive="activo">Mapa</a>
         <a routerLink="/observatorio" routerLinkActive="activo">Datos</a>
-        <ng-container *ngIf="authService.estaAutenticado(); else invitado">
+        <ng-container *ngIf="authService.estaAutenticado()">
           <a routerLink="/favoritos" routerLinkActive="activo">Favoritos</a>
           <a routerLink="/alertas" routerLinkActive="activo">Alertas</a>
-          <a routerLink="/publicar" routerLinkActive="activo">Publicar</a>
           <a routerLink="/mis-anuncios" routerLinkActive="activo">Mis anuncios</a>
+        </ng-container>
+      </nav>
+
+      <div class="acciones-cabecera">
+        <ng-container *ngIf="authService.estaAutenticado(); else invitado">
+          <a routerLink="/publicar" routerLinkActive="activo" class="boton-secundario boton-cabecera">Publicar</a>
           <a routerLink="/verificacion" class="insignia-verificacion">Identidad sin verificar</a>
           <button class="boton-salir" (click)="salir()">Salir</button>
         </ng-container>
@@ -29,7 +35,7 @@ const RUTAS_SIN_NAV = ['/', '/login', '/registro'];
           <a routerLink="/login">Iniciar sesion</a>
           <a routerLink="/registro" class="cta-registro">Crear cuenta</a>
         </ng-template>
-      </nav>
+      </div>
     </header>
 
     <main>
