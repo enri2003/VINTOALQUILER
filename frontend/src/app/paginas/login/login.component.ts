@@ -9,27 +9,34 @@ import { AuthService } from '../../servicios/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
-    <section class="pagina-angosta">
-      <div class="panel">
-        <h1>Iniciar sesion</h1>
-        <p class="subtitulo">Ingresa para publicar, contactar o guardar favoritos.</p>
-        <form (ngSubmit)="enviar()">
-          <label>
-            <span class="etiqueta">Correo</span>
-            <input type="email" name="correo" placeholder="tucorreo@ejemplo.com" [(ngModel)]="correo" required />
-          </label>
-          <label>
-            <span class="etiqueta">Contrasena</span>
-            <input type="password" name="clave" placeholder="Tu contrasena" [(ngModel)]="clave" required />
-          </label>
-          <button type="submit" class="boton-principal boton-ancho" [disabled]="cargando">
-            {{ cargando ? 'Ingresando...' : 'Ingresar' }}
-          </button>
-        </form>
-        <p class="mensaje-error" *ngIf="error">{{ error }}</p>
-        <p class="pie">
-          ¿No tienes cuenta? <a routerLink="/registro">Crea una</a>
-        </p>
+    <section class="pagina-dividida">
+      <div class="panel-marca">
+        <div class="icono-marca">⌁</div>
+        <h2>Alquileres Vinto</h2>
+        <p>Cuartos, garzoniers y departamentos del municipio de Vinto, con contacto seguro y anuncios verificados.</p>
+      </div>
+      <div class="panel-formulario">
+        <div class="contenido-formulario">
+          <h1>Iniciar sesion</h1>
+          <p class="subtitulo">Ingresa para publicar, contactar o guardar favoritos.</p>
+          <form (ngSubmit)="enviar()">
+            <label>
+              <span class="etiqueta">Correo</span>
+              <input type="email" name="correo" placeholder="tucorreo@ejemplo.com" [(ngModel)]="correo" required />
+            </label>
+            <label>
+              <span class="etiqueta">Contrasena</span>
+              <input type="password" name="clave" placeholder="Tu contrasena" [(ngModel)]="clave" required />
+            </label>
+            <button type="submit" class="boton-principal boton-ancho" [disabled]="cargando">
+              {{ cargando ? 'Ingresando...' : 'Ingresar' }}
+            </button>
+          </form>
+          <p class="mensaje-error" *ngIf="error">{{ error }}</p>
+          <p class="pie">
+            ¿No tienes cuenta? <a routerLink="/registro">Crea una</a>
+          </p>
+        </div>
       </div>
     </section>
   `,

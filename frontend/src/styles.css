@@ -325,10 +325,52 @@ section {
   font-size: 14px;
   margin: 0 0 24px;
 }
-.panel form {
+.panel form, .contenido-formulario form {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Login/registro en dos columnas */
+.pagina-dividida {
+  max-width: none;
+  padding: 0;
+  min-height: calc(100vh - 76px);
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.1fr);
+}
+.panel-marca {
+  background: linear-gradient(168deg, #0F1317 0%, #1E242A 34%, #333D45 66%, #4E5A64 100%);
+  color: #F2F5F8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 64px 56px;
+}
+.panel-marca h2 {
+  font-size: 30px;
+  margin: 0 0 12px;
+}
+.panel-marca p {
+  color: #C7CFD6;
+  font-size: 15px;
+  max-width: 360px;
+  margin: 0;
+  line-height: 1.6;
+}
+.panel-formulario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.contenido-formulario {
+  width: 100%;
+  max-width: 380px;
+}
+.contenido-formulario h1 {
+  font-size: 26px;
+  margin: 0 0 6px;
 }
 label {
   display: flex;
@@ -540,6 +582,22 @@ main {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+
+  .pagina-dividida {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .panel-marca {
+    padding: 40px 24px 32px;
+    align-items: center;
+    text-align: center;
+  }
+  .panel-marca p {
+    max-width: none;
+  }
+  .panel-formulario {
+    padding: 32px 20px 96px;
   }
 
   .cabecera {
