@@ -335,7 +335,7 @@ section {
 .pagina-dividida {
   max-width: none;
   padding: 0;
-  min-height: calc(100vh - 76px);
+  min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.1fr);
 }
