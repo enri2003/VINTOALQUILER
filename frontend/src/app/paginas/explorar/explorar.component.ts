@@ -17,7 +17,6 @@ interface Indicadores {
   template: `
     <section class="hero-ancho">
       <div class="hero">
-        <span class="insignia">Funcionando en Vinto</span>
         <h1>Encuentra donde vivir en Vinto</h1>
         <p>Cuartos, garzoniers y departamentos con precio en bolivianos, ubicacion clara y publicadores verificados.</p>
         <form class="buscador" (ngSubmit)="buscar()">

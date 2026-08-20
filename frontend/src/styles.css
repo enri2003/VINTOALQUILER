@@ -366,19 +366,44 @@ section {
   color: #F2F5F8;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
+  text-align: center;
   padding: 64px 56px;
+  position: relative;
+  overflow: hidden;
+}
+.panel-marca::before {
+  content: '';
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 70%);
+}
+.panel-marca .icono-marca {
+  width: 92px;
+  height: 92px;
+  margin-bottom: 28px;
+  position: relative;
+  box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.06);
+}
+.panel-marca .icono-marca svg {
+  width: 40px;
+  height: 40px;
 }
 .panel-marca h2 {
-  font-size: 30px;
-  margin: 0 0 12px;
+  font-size: 32px;
+  margin: 0 0 14px;
+  position: relative;
 }
 .panel-marca p {
   color: #C7CFD6;
-  font-size: 15px;
+  font-size: 15.5px;
   max-width: 360px;
-  margin: 0;
-  line-height: 1.6;
+  margin: 0 auto;
+  line-height: 1.7;
+  position: relative;
 }
 .panel-formulario {
   display: flex;

@@ -72,7 +72,7 @@ const PERFILES = ['Estudiante', 'Trabajador', 'Ejecutivo', 'Pareja', 'Familia', 
                   *ngFor="let perfil of perfiles"
                   class="chip-seleccionable"
                   [class.activo]="perfilHogar === perfil"
-                  (click)="perfilHogar = perfil"
+                  (click)="elegirPerfil(perfil)"
                 >
                   {{ perfil }}
                 </button>
@@ -119,8 +119,16 @@ export class RegistroComponent {
     private readonly router: Router,
   ) {}
 
+  elegirPerfil(perfil: string): void {
+    this.perfilHogar = this.perfilHogar === perfil ? '' : perfil;
+  }
+
   enviar(): void {
     this.error = '';
+    if (!this.aceptaTerminos) {
+      this.error = 'Debes aceptar los terminos de uso y la politica de privacidad.';
+      return;
+    }
     this.cargando = true;
     this.authService
       .registrar({
