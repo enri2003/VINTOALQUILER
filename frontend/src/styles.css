@@ -1025,22 +1025,29 @@ input:focus, select:focus, textarea:focus {
 
 .marco-guia {
   position: absolute;
-  inset: 10% 8%;
-  border-radius: 18px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 84%;
+  aspect-ratio: 1.586 / 1;
+  border-radius: 14px;
   border: 2px solid rgba(110, 139, 255, 0.6);
   box-shadow: 0 0 24px rgba(110, 139, 255, 0.35);
   pointer-events: none;
   animation: respirar-marco 2.4s ease-in-out infinite;
 }
 .marco-guia.rostro {
-  inset: 14%;
+  top: 50%;
+  left: 50%;
+  width: 72%;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   border-color: rgba(77, 225, 193, 0.65);
   box-shadow: 0 0 24px rgba(77, 225, 193, 0.35);
 }
 @keyframes respirar-marco {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.015); }
+  0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.015); }
 }
 
 .esquina {
