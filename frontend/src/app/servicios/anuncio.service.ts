@@ -11,6 +11,7 @@ export interface Anuncio {
   precio: number;
   zona: { id: number; nombre: string };
   fotos: { url: string }[];
+  creadoEn?: string;
 }
 
 @Injectable({ providedIn: 'root' })
