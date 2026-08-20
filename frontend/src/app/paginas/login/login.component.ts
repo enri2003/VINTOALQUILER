@@ -1,22 +1,36 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../servicios/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
-    <section class="login">
-      <h1>Iniciar sesion</h1>
-      <form (ngSubmit)="enviar()">
-        <input type="email" name="correo" placeholder="Correo" [(ngModel)]="correo" required />
-        <input type="password" name="clave" placeholder="Contrasena" [(ngModel)]="clave" required />
-        <button type="submit">Ingresar</button>
-      </form>
-      <p *ngIf="error">{{ error }}</p>
+    <section class="pagina-angosta">
+      <div class="panel">
+        <h1>Iniciar sesion</h1>
+        <p class="subtitulo">Ingresa para publicar, contactar o guardar favoritos.</p>
+        <form (ngSubmit)="enviar()">
+          <label>
+            <span class="etiqueta">Correo</span>
+            <input type="email" name="correo" placeholder="tucorreo@ejemplo.com" [(ngModel)]="correo" required />
+          </label>
+          <label>
+            <span class="etiqueta">Contrasena</span>
+            <input type="password" name="clave" placeholder="Tu contrasena" [(ngModel)]="clave" required />
+          </label>
+          <button type="submit" class="boton-principal boton-ancho" [disabled]="cargando">
+            {{ cargando ? 'Ingresando...' : 'Ingresar' }}
+          </button>
+        </form>
+        <p class="mensaje-error" *ngIf="error">{{ error }}</p>
+        <p class="pie">
+          ¿No tienes cuenta? <a routerLink="/registro">Crea una</a>
+        </p>
+      </div>
     </section>
   `,
 })
@@ -24,6 +38,7 @@ export class LoginComponent {
   correo = '';
   clave = '';
   error = '';
+  cargando = false;
 
   constructor(
     private readonly authService: AuthService,
@@ -31,9 +46,17 @@ export class LoginComponent {
   ) {}
 
   enviar(): void {
+    this.error = '';
+    this.cargando = true;
     this.authService.iniciarSesion(this.correo, this.clave).subscribe({
-      next: () => this.router.navigate(['/']),
-      error: () => (this.error = 'Correo o contrasena incorrectos'),
+      next: () => this.router.navigate(['/explorar']),
+      error: (err) => {
+        this.cargando = false;
+        this.error =
+          err?.status === 0
+            ? 'No se pudo conectar con el servidor. Verifica que el backend este corriendo.'
+            : 'Correo o contrasena incorrectos';
+      },
     });
   }
 }

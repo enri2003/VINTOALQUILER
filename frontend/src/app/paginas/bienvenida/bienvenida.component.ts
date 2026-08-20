@@ -7,11 +7,13 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   template: `
     <section class="bienvenida">
-      <h1>Alquileres Vinto</h1>
-      <p>Encuentra cuartos, garzoniers y departamentos cerca de la UAB.</p>
-      <div class="acciones">
-        <a routerLink="/login" class="boton-secundario">Iniciar sesion</a>
-        <a routerLink="/registro" class="boton-principal">Crear cuenta</a>
+      <div class="hero">
+        <h1>Alquileres Vinto</h1>
+        <p>Encuentra cuartos, garzoniers y departamentos cerca de la UAB, con anuncios verificados y contacto seguro.</p>
+        <div class="acciones">
+          <a routerLink="/registro" class="boton-principal">Crear cuenta</a>
+          <a routerLink="/login" class="boton-secundario">Iniciar sesion</a>
+        </div>
       </div>
     </section>
   `,
