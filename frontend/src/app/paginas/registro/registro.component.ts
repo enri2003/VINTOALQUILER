@@ -53,15 +53,15 @@ const PERFILES = ['Estudiante', 'Trabajador', 'Ejecutivo', 'Pareja', 'Familia', 
           <form (ngSubmit)="enviar()">
             <label>
               <span class="etiqueta">Nombre completo</span>
-              <input type="text" name="nombre" placeholder="Tu nombre completo" [(ngModel)]="nombre" required />
+              <input type="text" name="nombre" placeholder="Tu nombre completo" [(ngModel)]="nombre" />
             </label>
             <label>
               <span class="etiqueta">Correo electronico</span>
-              <input type="email" name="correo" placeholder="nombre@correo.com" [(ngModel)]="correo" required />
+              <input type="email" name="correo" placeholder="nombre@correo.com" [(ngModel)]="correo" />
             </label>
             <label>
               <span class="etiqueta">Celular (WhatsApp)</span>
-              <input type="tel" name="celular" placeholder="+591 7XXXXXXX" [(ngModel)]="celular" required />
+              <input type="tel" name="celular" placeholder="+591 7XXXXXXX" [(ngModel)]="celular" />
             </label>
 
             <div *ngIf="rol === 'interesado'" class="campo-perfil">
@@ -81,11 +81,11 @@ const PERFILES = ['Estudiante', 'Trabajador', 'Ejecutivo', 'Pareja', 'Familia', 
 
             <label>
               <span class="etiqueta">Contrasena</span>
-              <input type="password" name="clave" placeholder="Minimo 8 caracteres" [(ngModel)]="clave" required minlength="8" />
+              <input type="password" name="clave" placeholder="Minimo 8 caracteres" [(ngModel)]="clave" />
             </label>
 
             <label class="fila-terminos">
-              <input type="checkbox" name="acepta" [(ngModel)]="aceptaTerminos" required />
+              <input type="checkbox" name="acepta" [(ngModel)]="aceptaTerminos" />
               <span>Acepto los terminos de uso y la politica de privacidad.</span>
             </label>
 
@@ -125,6 +125,14 @@ export class RegistroComponent {
 
   enviar(): void {
     this.error = '';
+    if (!this.nombre || !this.correo || !this.celular || !this.clave) {
+      this.error = 'Completa todos los campos para continuar.';
+      return;
+    }
+    if (this.clave.length < 8) {
+      this.error = 'La contrasena debe tener al menos 8 caracteres.';
+      return;
+    }
     if (!this.aceptaTerminos) {
       this.error = 'Debes aceptar los terminos de uso y la politica de privacidad.';
       return;
