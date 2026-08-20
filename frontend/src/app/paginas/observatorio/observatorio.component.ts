@@ -37,7 +37,7 @@ interface PrecioAgrupado {
   `,
 })
 export class ObservatorioComponent implements OnInit {
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = '';
   indicadores?: Indicadores;
   porZona: PrecioAgrupado[] = [];
   porTipo: PrecioAgrupado[] = [];

@@ -8,7 +8,7 @@ interface RespuestaToken {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = '';
 
   constructor(private readonly http: HttpClient) {}
 

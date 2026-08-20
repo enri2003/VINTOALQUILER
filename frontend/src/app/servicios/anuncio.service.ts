@@ -16,7 +16,7 @@ export interface Anuncio {
 
 @Injectable({ providedIn: 'root' })
 export class AnuncioService {
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = '';
 
   constructor(
     private readonly http: HttpClient,

@@ -19,7 +19,7 @@ import { AuthService } from '../../servicios/auth.service';
   `,
 })
 export class FavoritosComponent implements OnInit {
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = '';
   favoritos: Anuncio[] = [];
 
   constructor(

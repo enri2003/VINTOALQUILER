@@ -1,0 +1,14 @@
+{
+  "/usuario": { "target": "http://localhost:3000", "secure": false },
+  "/auth": { "target": "http://localhost:3000", "secure": false },
+  "/zonas": { "target": "http://localhost:3000", "secure": false },
+  "/suscripcion": { "target": "http://localhost:3000", "secure": false },
+  "/anuncios": { "target": "http://localhost:3000", "secure": false },
+  "/verificacion": { "target": "http://localhost:3000", "secure": false },
+  "/reportes": { "target": "http://localhost:3000", "secure": false },
+  "/contactos": { "target": "http://localhost:3000", "secure": false },
+  "/favoritos": { "target": "http://localhost:3000", "secure": false },
+  "/alertas": { "target": "http://localhost:3000", "secure": false },
+  "/recomendaciones": { "target": "http://localhost:3000", "secure": false },
+  "/observatorio": { "target": "http://localhost:3000", "secure": false }
+}

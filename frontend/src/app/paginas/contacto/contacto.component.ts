@@ -18,7 +18,7 @@ import { AuthService } from '../../servicios/auth.service';
   `,
 })
 export class ContactoComponent {
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = '';
   celular = '';
   error = '';
 

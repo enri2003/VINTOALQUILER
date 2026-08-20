@@ -79,7 +79,7 @@ interface Indicadores {
   `,
 })
 export class ExplorarComponent implements OnInit {
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = '';
   anuncios: Anuncio[] = [];
   termino = '';
   tipo = '';

@@ -34,7 +34,7 @@ interface Alerta {
   `,
 })
 export class AlertasComponent implements OnInit {
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = '';
   alertas: Alerta[] = [];
   tipo = 'cuarto';
   precioMax: number | null = null;
