@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../servicios/auth.service';
 
+const PERFILES = ['Estudiante', 'Trabajador', 'Ejecutivo', 'Pareja', 'Familia', 'Otro'];
+
 @Component({
   selector: 'app-registro',
   standalone: true,
@@ -23,34 +25,72 @@ import { AuthService } from '../../servicios/auth.service';
       </div>
       <div class="panel-formulario">
         <div class="contenido-formulario">
+          <a routerLink="/" class="enlace-volver">← Volver</a>
           <h1>Crear cuenta</h1>
-          <p class="subtitulo">Registrate para publicar o buscar alquileres en Vinto.</p>
+          <p class="subtitulo">{{ rol === 'interesado' ? 'Busco donde alquilar en Vinto.' : 'Publico inmuebles en alquiler.' }}</p>
+
+          <div class="selector-rol">
+            <button
+              type="button"
+              class="opcion-rol"
+              [class.activa]="rol === 'interesado'"
+              (click)="rol = 'interesado'"
+            >
+              <span class="titulo-opcion">Interesado</span>
+              <span class="detalle-opcion">Busco alquiler</span>
+            </button>
+            <button
+              type="button"
+              class="opcion-rol"
+              [class.activa]="rol === 'publicador'"
+              (click)="rol = 'publicador'"
+            >
+              <span class="titulo-opcion">Publicador</span>
+              <span class="detalle-opcion">Ofrezco inmueble</span>
+            </button>
+          </div>
+
           <form (ngSubmit)="enviar()">
             <label>
-              <span class="etiqueta">Nombre</span>
+              <span class="etiqueta">Nombre completo</span>
               <input type="text" name="nombre" placeholder="Tu nombre completo" [(ngModel)]="nombre" required />
             </label>
             <label>
-              <span class="etiqueta">Correo</span>
-              <input type="email" name="correo" placeholder="tucorreo@ejemplo.com" [(ngModel)]="correo" required />
+              <span class="etiqueta">Correo electronico</span>
+              <input type="email" name="correo" placeholder="nombre@correo.com" [(ngModel)]="correo" required />
             </label>
+            <label>
+              <span class="etiqueta">Celular (WhatsApp)</span>
+              <input type="tel" name="celular" placeholder="+591 7XXXXXXX" [(ngModel)]="celular" required />
+            </label>
+
+            <div *ngIf="rol === 'interesado'" class="campo-perfil">
+              <span class="etiqueta">¿Quien va a vivir?</span>
+              <div class="chips-perfil">
+                <button
+                  type="button"
+                  *ngFor="let perfil of perfiles"
+                  class="chip-seleccionable"
+                  [class.activo]="perfilHogar === perfil"
+                  (click)="perfilHogar = perfil"
+                >
+                  {{ perfil }}
+                </button>
+              </div>
+            </div>
+
             <label>
               <span class="etiqueta">Contrasena</span>
               <input type="password" name="clave" placeholder="Minimo 8 caracteres" [(ngModel)]="clave" required minlength="8" />
             </label>
-            <label>
-              <span class="etiqueta">Celular</span>
-              <input type="tel" name="celular" placeholder="70000000" [(ngModel)]="celular" required />
+
+            <label class="fila-terminos">
+              <input type="checkbox" name="acepta" [(ngModel)]="aceptaTerminos" required />
+              <span>Acepto los terminos de uso y la politica de privacidad.</span>
             </label>
-            <label>
-              <span class="etiqueta">Quiero</span>
-              <select name="rol" [(ngModel)]="rol" required>
-                <option value="interesado">Buscar alquiler</option>
-                <option value="publicador">Publicar alquileres</option>
-              </select>
-            </label>
+
             <button type="submit" class="boton-principal boton-ancho" [disabled]="cargando">
-              {{ cargando ? 'Creando cuenta...' : 'Registrarme' }}
+              {{ cargando ? 'Creando cuenta...' : 'Crear cuenta' }}
             </button>
           </form>
           <p class="mensaje-error" *ngIf="error">{{ error }}</p>
@@ -63,11 +103,14 @@ import { AuthService } from '../../servicios/auth.service';
   `,
 })
 export class RegistroComponent {
+  perfiles = PERFILES;
   nombre = '';
   correo = '';
   clave = '';
   celular = '';
   rol: 'interesado' | 'publicador' = 'interesado';
+  perfilHogar = '';
+  aceptaTerminos = false;
   error = '';
   cargando = false;
 
@@ -86,6 +129,7 @@ export class RegistroComponent {
         clave: this.clave,
         celular: this.celular,
         rol: this.rol,
+        perfilHogar: this.rol === 'interesado' ? this.perfilHogar || undefined : undefined,
       })
       .subscribe({
         next: () => this.router.navigate(['/explorar']),

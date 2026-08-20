@@ -14,6 +14,7 @@ export class AuthController {
       clave: string;
       celular: string;
       rol: 'interesado' | 'publicador';
+      perfilHogar?: string;
     },
   ) {
     return this.authService.registrar(datos);

@@ -17,6 +17,7 @@ export class AuthService {
     clave: string;
     celular: string;
     rol: RolUsuario;
+    perfilHogar?: string;
   }) {
     const existente = await this.usuarioService.buscarPorCorreo(datos.correo);
     if (existente) {
@@ -29,6 +30,7 @@ export class AuthService {
       claveHash,
       celular: datos.celular,
       rol: datos.rol,
+      perfilHogar: datos.rol === 'interesado' ? datos.perfilHogar : undefined,
     });
     return this.generarToken(usuario.id, usuario.correo);
   }
