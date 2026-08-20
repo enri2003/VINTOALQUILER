@@ -1,113 +1,38 @@
-import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { Anuncio, AnuncioService } from '../../servicios/anuncio.service';
-
-interface Indicadores {
-  totalAnuncios: number;
-  precioPromedio: number;
-}
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-bienvenida',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [RouterLink],
   template: `
-    <section class="hero-ancho">
-      <div class="hero">
-        <span class="insignia">Funcionando en Vinto</span>
-        <h1>Encuentra donde vivir en Vinto</h1>
-        <p>Cuartos, garzoniers y departamentos con precio en bolivianos, ubicacion clara y publicadores verificados.</p>
-        <form class="buscador" (ngSubmit)="buscar()">
-          <input
-            type="text"
-            placeholder="Busca por zona o referencia: cerca de la UAB, plaza de Vinto..."
-            [(ngModel)]="termino"
-            name="termino"
-          />
-          <select [(ngModel)]="tipo" name="tipo">
-            <option value="">Todos los tipos</option>
-            <option value="cuarto">Cuarto</option>
-            <option value="garzonier">Garzonier</option>
-            <option value="departamento">Departamento</option>
-          </select>
-          <button type="submit" class="boton-principal">Buscar</button>
-        </form>
-      </div>
-    </section>
+    <section class="hero-ancho pantalla-bienvenida">
+      <div class="tarjeta-bienvenida">
+        <div class="icono-marca">⌁</div>
+        <h1>Alquileres Vinto</h1>
+        <p>Cuartos, garzoniers y departamentos del municipio de Vinto.</p>
 
-    <section>
-      <div class="grilla-estadisticas" *ngIf="indicadores as datos">
-        <div class="tarjeta-estadistica">
-          <p class="precio">{{ datos.totalAnuncios }}</p>
-          <p>anuncios publicados en Vinto</p>
+        <a routerLink="/registro" class="boton-principal boton-ancho">Crear mi cuenta gratis</a>
+        <div class="acciones-secundarias">
+          <a routerLink="/login" class="boton-secundario">Ya tengo cuenta</a>
+          <a routerLink="/explorar" class="boton-secundario">Solo mirar</a>
         </div>
-        <div class="tarjeta-estadistica">
-          <p class="precio">Bs. {{ datos.precioPromedio | number: '1.0-0' }}</p>
-          <p>precio promedio del alquiler</p>
-        </div>
-        <div class="tarjeta-estadistica">
-          <p class="precio">{{ zonasActivas }}</p>
-          <p>zonas con anuncios activos</p>
-        </div>
+        <p class="nota-bienvenida">
+          Funcionando en Vinto. Mas adelante llegaremos a Quillacollo y a toda Cochabamba.
+        </p>
       </div>
 
-      <div class="encabezado-seccion">
-        <div>
-          <h2>Publicados hace poco</h2>
-          <p class="subtitulo">Lo ultimo que se sumo en el municipio</p>
+      <div class="grilla-info">
+        <div class="tarjeta-info">
+          <h2>Buscas</h2>
+          <p>Sabes el precio y a cuantas cuadras queda antes de salir de tu casa.</p>
         </div>
-        <a routerLink="/explorar">Ver todos</a>
+        <div class="tarjeta-info">
+          <h2>Publicas</h2>
+          <p>Gratis y en minutos. Te escriben por WhatsApp sin mostrar tu numero.</p>
+        </div>
       </div>
-
-      <div class="grilla" *ngIf="recientes.length; else sinAnuncios">
-        <a *ngFor="let anuncio of recientes" [routerLink]="['/anuncio', anuncio.id]" class="tarjeta">
-          <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" alt="" />
-          <div class="fila-tarjeta">
-            <p class="precio">Bs. {{ anuncio.precio }}</p>
-            <span class="chip">{{ anuncio.tipo }}</span>
-          </div>
-          <h2>{{ anuncio.titulo }}</h2>
-          <p class="texto-suave">{{ anuncio.zona?.nombre }}</p>
-        </a>
-      </div>
-      <ng-template #sinAnuncios>
-        <p class="texto-suave">Todavia no hay anuncios publicados.</p>
-      </ng-template>
     </section>
   `,
 })
-export class BienvenidaComponent implements OnInit {
-  private readonly apiUrl = 'http://localhost:3000';
-  termino = '';
-  tipo = '';
-  indicadores?: Indicadores;
-  recientes: Anuncio[] = [];
-  zonasActivas = 0;
-
-  constructor(
-    private readonly http: HttpClient,
-    private readonly anuncioService: AnuncioService,
-    private readonly router: Router,
-  ) {}
-
-  ngOnInit(): void {
-    this.http
-      .get<Indicadores>(`${this.apiUrl}/observatorio/indicadores`)
-      .subscribe((res) => (this.indicadores = res));
-
-    this.http
-      .get<{ zona: string }[]>(`${this.apiUrl}/observatorio/precio-por-zona`)
-      .subscribe((res) => (this.zonasActivas = res.length));
-
-    this.anuncioService.listar().subscribe((res) => (this.recientes = res.slice(0, 3)));
-  }
-
-  buscar(): void {
-    this.router.navigate(['/explorar'], {
-      queryParams: { tipo: this.tipo || undefined },
-    });
-  }
-}
+export class BienvenidaComponent {}
