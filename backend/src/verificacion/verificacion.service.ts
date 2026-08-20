@@ -26,21 +26,28 @@ export class VerificacionService {
     return `${iv.toString('hex')}:${cifrado.toString('hex')}`;
   }
 
-  async procesarDocumento(imagenBuffer: Buffer) {
+  async procesarDocumento(anversoBuffer: Buffer, reversoBuffer: Buffer) {
     const resultado = await textractClient.send(
-      new AnalyzeIDCommand({ DocumentPages: [{ Bytes: imagenBuffer }] }),
+      new AnalyzeIDCommand({
+        DocumentPages: [{ Bytes: anversoBuffer }, { Bytes: reversoBuffer }],
+      }),
     );
     const campos = resultado.IdentityDocuments?.[0]?.IdentityDocumentFields || [];
     const campoCi = campos.find((campo) => campo.Type?.Text === 'DOCUMENT_NUMBER');
     return campoCi?.ValueDetection?.Text || '';
   }
 
-  async procesarSelfie(usuarioId: number, documentoBuffer: Buffer, selfieBuffer: Buffer) {
-    const numeroCi = await this.procesarDocumento(documentoBuffer);
+  async procesarSelfie(
+    usuarioId: number,
+    anversoBuffer: Buffer,
+    reversoBuffer: Buffer,
+    selfieBuffer: Buffer,
+  ) {
+    const numeroCi = await this.procesarDocumento(anversoBuffer, reversoBuffer);
 
     const comparacion = await rekognitionClient.send(
       new CompareFacesCommand({
-        SourceImage: { Bytes: documentoBuffer },
+        SourceImage: { Bytes: anversoBuffer },
         TargetImage: { Bytes: selfieBuffer },
         SimilarityThreshold: UMBRAL_SIMILITUD,
       }),

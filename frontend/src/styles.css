@@ -733,64 +733,109 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
 }
 .aura-verificacion {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, #4DE1C1, #6E8BFF, #C46BFF, #FF7BAC, #4DE1C1);
+  width: 168px;
+  height: 168px;
+  border-radius: 28px;
+  background: radial-gradient(circle at 30% 25%, rgba(77, 225, 193, 0.35), transparent 55%),
+    radial-gradient(circle at 75% 30%, rgba(110, 139, 255, 0.35), transparent 55%),
+    radial-gradient(circle at 55% 80%, rgba(196, 107, 255, 0.35), transparent 55%),
+    radial-gradient(circle at 85% 85%, rgba(255, 123, 172, 0.3), transparent 55%),
+    #12192a;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   position: relative;
-  animation: girar-aura 6s linear infinite;
-}
-@keyframes girar-aura {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  overflow: hidden;
 }
 .marca-verificacion {
-  width: 74px;
-  height: 74px;
-  border-radius: 50%;
-  background: var(--verif-fondo);
-  color: var(--verif-texto);
+  width: 92px;
+  height: 118px;
+  border-radius: 14px;
+  background: rgba(20, 27, 43, 0.75);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--verif-texto-suave);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: contrarrotar 6s linear infinite;
-}
-@keyframes contrarrotar {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
+  position: relative;
+  overflow: hidden;
 }
 .marca-verificacion svg {
-  width: 30px;
-  height: 30px;
+  width: 46px;
+  height: 46px;
 }
-.marca-verificacion.pulso {
-  animation: contrarrotar 6s linear infinite, pulso 1.4s ease-in-out infinite;
+.marca-verificacion.pulso svg {
+  animation: pulso 1.4s ease-in-out infinite;
 }
 @keyframes pulso {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.5; }
+}
+.linea-escaneo {
+  position: absolute;
+  left: 6%;
+  width: 88%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #4DE1C1, #6E8BFF, transparent);
+  box-shadow: 0 0 8px 1px rgba(110, 139, 255, 0.6);
+  animation: escanear 1.8s ease-in-out infinite;
+}
+@keyframes escanear {
+  0% { top: 12%; }
+  50% { top: 85%; }
+  100% { top: 12%; }
 }
 .etiqueta-aura {
   position: absolute;
-  bottom: -28px;
+  bottom: -30px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font: 800 10.5px 'Manrope', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--verif-texto-suave);
 }
+.etiqueta-aura i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4DE1C1;
+  display: inline-block;
+  animation: parpadeo 1.2s ease-in-out infinite;
+}
+.etiqueta-aura i:nth-child(2) {
+  background: #C46BFF;
+  animation-delay: 0.2s;
+}
+.etiqueta-aura i:nth-child(3) {
+  background: #FF7BAC;
+  animation-delay: 0.4s;
+}
+@keyframes parpadeo {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
 .tarjeta-verificacion h1 {
   font-size: 26px;
-  margin: 8px 0 10px;
+  margin: 16px 0 10px;
 }
 .tarjeta-verificacion > p {
   color: var(--verif-texto-suave);
   font-size: 14px;
   line-height: 1.5;
-  margin: 0 0 32px;
+  margin: 0 0 28px;
+}
+
+.tarjeta-estado-verif {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radio-panel);
+  padding: 22px;
+  margin-bottom: 24px;
 }
 .fila-estado {
   width: 100%;
@@ -840,42 +885,146 @@ input:focus, select:focus, textarea:focus {
   text-align: left;
   color: var(--verif-texto-suave);
   font-size: 12.5px;
-  margin: 10px 0 32px;
+  margin: 10px 0 0;
 }
 
-.campos-verificacion {
+/* Pasos y botones de la verificacion */
+.pasos-verificacion, .paso-captura {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-.campo-archivo {
+.paso-verif {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 14px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radio-tarjeta);
+  padding: 16px;
+}
+.numero-paso {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--verif-texto);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 12px 'Manrope', sans-serif;
+}
+.paso-verif h3 {
+  font-size: 14.5px;
+  margin: 0 0 4px;
+}
+.paso-verif p {
+  font-size: 12.5px;
+  color: var(--verif-texto-suave);
+  margin: 0;
+  line-height: 1.5;
+}
+.nota-cifrado {
+  text-align: left;
+  background: rgba(77, 225, 193, 0.08);
+  border: 1px solid rgba(77, 225, 193, 0.2);
+  border-radius: var(--radio-campo);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: #A8EBDA;
+  margin: 4px 0 0;
+}
+.nota-beneficios {
+  font-size: 12px;
+  color: var(--verif-texto-suave);
+  text-align: center;
+  margin: 0;
+}
+
+.boton-degradado {
+  width: 100%;
+  border: none;
+  border-radius: var(--radio-boton);
+  padding: 16px;
+  font: 800 14.5px 'Manrope', sans-serif;
+  color: #0E1420;
+  background: linear-gradient(90deg, #4DE1C1, #6E8BFF, #C46BFF);
+  cursor: pointer;
+}
+.boton-degradado:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.boton-fantasma-verif {
+  width: 100%;
+  background: transparent;
+  color: var(--verif-texto-suave);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radio-boton);
+  padding: 14px;
+  font: 700 13.5px 'Manrope', sans-serif;
+  cursor: pointer;
+}
+.boton-fantasma-verif:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+/* Captura de documento */
+.campo-captura {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+  border-radius: var(--radio-tarjeta);
+  padding: 16px;
+  cursor: pointer;
+  font: 600 13.5px 'Manrope', sans-serif;
+  color: var(--verif-texto-suave);
   text-align: left;
 }
-.campo-archivo span {
-  font: 800 11.5px 'Manrope', sans-serif;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--verif-texto-suave);
+.campo-captura.listo {
+  border-style: solid;
+  border-color: #4DE1C1;
+  color: var(--verif-texto);
 }
-.campo-archivo input[type='file'] {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.25);
-  color: var(--verif-texto-suave);
-  border-radius: var(--radio-campo);
-  padding: 12px;
+.icono-captura {
+  font-size: 22px;
+}
+
+/* Camara en vivo */
+.visor-camara {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 340px;
+  border-radius: var(--radio-panel);
+  overflow: hidden;
+  position: relative;
+  background: #000;
+}
+.visor-camara video, .visor-camara img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.anillo-camara {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+.error-camara {
+  color: #E3A3A3;
   font-size: 12.5px;
 }
-.campos-verificacion .boton-principal {
-  background: #fff;
-  color: var(--verif-fondo);
-  margin-top: 6px;
-}
-.campos-verificacion .boton-principal:hover {
-  background: #D8DBDF;
+.mensaje-error-verif {
+  width: 100%;
+  margin-top: 16px;
 }
 
 /* Navegacion movil */

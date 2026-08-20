@@ -16,9 +16,14 @@ export class VerificacionService {
     return new HttpHeaders({ Authorization: `Bearer ${this.authService.obtenerToken()}` });
   }
 
-  enviarSelfie(documento: File, selfie: File): Observable<{ resultado: string; similitud: number }> {
+  enviarVerificacion(
+    anverso: File,
+    reverso: File,
+    selfie: File,
+  ): Observable<{ resultado: string; similitud: number }> {
     const formData = new FormData();
-    formData.append('documento', documento);
+    formData.append('anverso', anverso);
+    formData.append('reverso', reverso);
     formData.append('selfie', selfie);
     return this.http.post<{ resultado: string; similitud: number }>(
       `${this.apiUrl}/verificacion/selfie`,
