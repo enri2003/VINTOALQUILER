@@ -2,7 +2,39 @@ import { CommonModule } from '@angular/common';
 import { AfterViewChecked, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { VerificacionService } from '../../servicios/verificacion.service';
 
-type Fase = 'resumen' | 'documento' | 'selfie' | 'enviando' | 'aprobado' | 'rechazado';
+type Fase = 'resumen' | 'captura' | 'enviando' | 'aprobado' | 'rechazado';
+
+interface PasoCaptura {
+  clave: 'anverso' | 'reverso' | 'selfie';
+  facing: 'environment' | 'user';
+  marco: 'documento' | 'rostro';
+  titulo: string;
+  instruccion: string;
+}
+
+const PASOS: PasoCaptura[] = [
+  {
+    clave: 'anverso',
+    facing: 'environment',
+    marco: 'documento',
+    titulo: 'Escanea el anverso de tu cedula',
+    instruccion: 'Encuadra el documento dentro del marco.',
+  },
+  {
+    clave: 'reverso',
+    facing: 'environment',
+    marco: 'documento',
+    titulo: 'Ahora el reverso',
+    instruccion: 'Da vuelta tu cedula y encuadrala igual.',
+  },
+  {
+    clave: 'selfie',
+    facing: 'user',
+    marco: 'rostro',
+    titulo: 'Ahora tu rostro',
+    instruccion: 'Centra tu cara dentro del circulo y mira a la camara.',
+  },
+];
 
 @Component({
   selector: 'app-verificacion',
@@ -11,7 +43,7 @@ type Fase = 'resumen' | 'documento' | 'selfie' | 'enviando' | 'aprobado' | 'rech
   template: `
     <section class="pantalla-verificacion">
       <div class="tarjeta-verificacion">
-        <div class="aura-verificacion">
+        <div class="aura-verificacion" *ngIf="fase !== 'captura'">
           <div class="marca-verificacion" [class.pulso]="fase === 'enviando'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <rect x="5" y="3" width="14" height="18" rx="2.5" />
@@ -21,27 +53,29 @@ type Fase = 'resumen' | 'documento' | 'selfie' | 'enviando' | 'aprobado' | 'rech
             <span class="linea-escaneo" *ngIf="fase === 'enviando'"></span>
           </div>
           <span class="etiqueta-aura" *ngIf="fase === 'enviando'">
-            <i></i><i></i><i></i> Analizando
+            <i></i><i></i><i></i> Analizando con IA
           </span>
         </div>
 
-        <h1>Verificacion de identidad</h1>
-        <p>Comparamos tu documento con tu rostro en tiempo real. Toma menos de un minuto y nadie mas ve tus fotos.</p>
+        <ng-container *ngIf="fase !== 'captura'">
+          <h1>Verificacion de identidad</h1>
+          <p>Escaneamos tu documento y tu rostro en vivo. Nada se guarda como archivo, solo el resultado.</p>
 
-        <div class="tarjeta-estado-verif">
-          <div class="fila-estado">
-            <span>Estado</span>
-            <span class="pastilla-estado" [class.aprobado]="fase === 'aprobado'" [class.rechazado]="fase === 'rechazado'">
-              {{ estadoTexto() }}
-            </span>
-          </div>
-          <h2 class="titulo-estado">{{ fase === 'aprobado' ? 'Identidad verificada' : 'Identidad sin verificar' }}</h2>
+          <div class="tarjeta-estado-verif">
+            <div class="fila-estado">
+              <span>Estado</span>
+              <span class="pastilla-estado" [class.aprobado]="fase === 'aprobado'" [class.rechazado]="fase === 'rechazado'">
+                {{ estadoTexto() }}
+              </span>
+            </div>
+            <h2 class="titulo-estado">{{ fase === 'aprobado' ? 'Identidad verificada' : 'Identidad sin verificar' }}</h2>
 
-          <div class="barra-progreso">
-            <div class="relleno-progreso" [style.width.%]="progreso()"></div>
+            <div class="barra-progreso">
+              <div class="relleno-progreso" [style.width.%]="progreso()"></div>
+            </div>
+            <p class="nota-progreso">{{ notaProgreso() }}</p>
           </div>
-          <p class="nota-progreso">{{ notaProgreso() }}</p>
-        </div>
+        </ng-container>
 
         <!-- Resumen de pasos -->
         <div class="pasos-verificacion" *ngIf="fase === 'resumen'">
@@ -49,58 +83,56 @@ type Fase = 'resumen' | 'documento' | 'selfie' | 'enviando' | 'aprobado' | 'rech
             <span class="numero-paso">1</span>
             <div>
               <h3>Cedula de identidad</h3>
-              <p>Foto del anverso y reverso. La IA lee los datos y detecta si la imagen fue alterada.</p>
+              <p>Escaneo en vivo del anverso y reverso. La IA lee los datos y detecta si fue alterada.</p>
             </div>
           </div>
           <div class="paso-verif">
             <span class="numero-paso">2</span>
             <div>
-              <h3>Selfie de contraste</h3>
-              <p>Se compara tu rostro con la foto del documento usando tu camara en tiempo real.</p>
+              <h3>Rostro en vivo</h3>
+              <p>Comparamos tu rostro en tiempo real con la foto del documento. No se puede subir una imagen guardada.</p>
             </div>
           </div>
           <div class="paso-verif">
             <span class="numero-paso">3</span>
             <div>
               <h3>Resultado inmediato</h3>
-              <p>En segundos sabes si tu identidad quedo verificada.</p>
+              <p>En segundos sabes si tu identidad coincide y quedo verificada.</p>
             </div>
           </div>
-          <p class="nota-cifrado">Tus documentos se procesan cifrados y se descartan al terminar la verificacion.</p>
-          <button class="boton-degradado" (click)="fase = 'documento'">Comenzar verificacion</button>
+          <p class="nota-cifrado">Todo el analisis ocurre en vivo, cifrado, y se descarta al terminar la verificacion.</p>
+          <button class="boton-degradado" (click)="iniciarCaptura()">Comenzar verificacion</button>
           <p class="nota-beneficios">Al verificarte puedes contactar, guardar favoritos, comparar, crear alertas y ver la direccion exacta.</p>
         </div>
 
-        <!-- Paso 1: documento -->
-        <div class="paso-captura" *ngIf="fase === 'documento'">
-          <label class="campo-captura" [class.listo]="!!anverso">
-            <input type="file" accept="image/*" capture="environment" (change)="seleccionar($event, 'anverso')" hidden />
-            <span class="icono-captura">📇</span>
-            <span>{{ anverso ? 'Anverso capturado' : 'Foto del anverso' }}</span>
-          </label>
-          <label class="campo-captura" [class.listo]="!!reverso">
-            <input type="file" accept="image/*" capture="environment" (change)="seleccionar($event, 'reverso')" hidden />
-            <span class="icono-captura">🪪</span>
-            <span>{{ reverso ? 'Reverso capturado' : 'Foto del reverso' }}</span>
-          </label>
-          <button class="boton-degradado" [disabled]="!anverso || !reverso" (click)="irASelfie()">
-            Continuar a la selfie
-          </button>
-        </div>
-
-        <!-- Paso 2: selfie con camara en vivo -->
-        <div class="paso-captura" *ngIf="fase === 'selfie'">
-          <div class="visor-camara">
-            <video #video autoplay playsinline muted *ngIf="!fotoSelfie"></video>
-            <img *ngIf="fotoSelfie" [src]="fotoSelfie" alt="Selfie capturada" />
-            <span class="anillo-camara" *ngIf="!fotoSelfie"></span>
+        <!-- Captura en vivo (documento y selfie) -->
+        <div class="paso-captura" *ngIf="fase === 'captura'">
+          <div class="cabecera-captura">
+            <span class="paso-actual">Paso {{ indice + 1 }} de {{ pasos.length }}</span>
+            <h2>{{ pasoActual.titulo }}</h2>
           </div>
+
+          <div class="visor-camara" [class.marco-documento]="pasoActual.marco === 'documento'">
+            <video #video autoplay playsinline muted *ngIf="!fotoActual"></video>
+            <img *ngIf="fotoActual" [src]="fotoActual" alt="Captura" />
+            <span class="marco-guia" [class.rostro]="pasoActual.marco === 'rostro'" *ngIf="!fotoActual"></span>
+            <span class="esquina esquina-tl"></span>
+            <span class="esquina esquina-tr"></span>
+            <span class="esquina esquina-bl"></span>
+            <span class="esquina esquina-br"></span>
+          </div>
+          <p class="instruccion-captura">{{ pasoActual.instruccion }}</p>
           <p class="error-camara" *ngIf="errorCamara">{{ errorCamara }}</p>
-          <button class="boton-degradado" *ngIf="!fotoSelfie" [disabled]="!camaraLista" (click)="capturarSelfie()">
-            {{ camaraLista ? 'Capturar selfie' : 'Activando camara...' }}
+
+          <button class="boton-degradado" *ngIf="!fotoActual" [disabled]="!camaraLista" (click)="capturar()">
+            {{ camaraLista ? 'Capturar' : 'Activando camara...' }}
           </button>
-          <button class="boton-fantasma-verif" *ngIf="fotoSelfie" (click)="reintentarSelfie()">Tomar de nuevo</button>
-          <button class="boton-degradado" *ngIf="fotoSelfie" (click)="enviar()">Verificar identidad</button>
+          <div class="acciones-captura" *ngIf="fotoActual">
+            <button class="boton-fantasma-verif" (click)="reintentar()">Repetir</button>
+            <button class="boton-degradado" (click)="siguientePaso()">
+              {{ indice === pasos.length - 1 ? 'Enviar a analisis' : 'Continuar' }}
+            </button>
+          </div>
         </div>
 
         <p class="mensaje-error mensaje-error-verif" *ngIf="error">{{ error }}</p>
@@ -113,20 +145,25 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   @ViewChild('video') videoRef?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas') canvasRef?: ElementRef<HTMLCanvasElement>;
 
+  pasos = PASOS;
   fase: Fase = 'resumen';
-  anverso: File | null = null;
-  reverso: File | null = null;
-  fotoSelfie: string | null = null;
-  private selfieFile: File | null = null;
-  private stream: MediaStream | null = null;
+  indice = 0;
+  fotoActual: string | null = null;
+  archivos: Partial<Record<PasoCaptura['clave'], File>> = {};
   camaraLista = false;
   errorCamara = '';
   error = '';
 
+  private stream: MediaStream | null = null;
+
   constructor(private readonly verificacionService: VerificacionService) {}
 
+  get pasoActual(): PasoCaptura {
+    return this.pasos[this.indice];
+  }
+
   ngAfterViewChecked(): void {
-    if (this.fase === 'selfie' && this.videoRef && !this.stream && !this.fotoSelfie) {
+    if (this.fase === 'captura' && this.videoRef && !this.stream && !this.fotoActual) {
       this.iniciarCamara();
     }
   }
@@ -135,21 +172,18 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     this.detenerCamara();
   }
 
-  seleccionar(evento: Event, campo: 'anverso' | 'reverso'): void {
-    const archivo = (evento.target as HTMLInputElement).files?.[0] || null;
-    if (campo === 'anverso') this.anverso = archivo;
-    else this.reverso = archivo;
-  }
-
-  irASelfie(): void {
+  iniciarCaptura(): void {
     this.error = '';
-    this.fase = 'selfie';
+    this.indice = 0;
+    this.fotoActual = null;
+    this.fase = 'captura';
   }
 
   private async iniciarCamara(): Promise<void> {
+    this.errorCamara = '';
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
+        video: { facingMode: this.pasoActual.facing },
         audio: false,
       });
       if (this.videoRef) {
@@ -167,7 +201,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     this.camaraLista = false;
   }
 
-  capturarSelfie(): void {
+  capturar(): void {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
     if (!video || !canvas) return;
@@ -177,25 +211,35 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     const contexto = canvas.getContext('2d');
     contexto?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    this.fotoSelfie = canvas.toDataURL('image/jpeg');
+    this.fotoActual = canvas.toDataURL('image/jpeg');
+    const clave = this.pasoActual.clave;
     canvas.toBlob((blob) => {
-      if (blob) this.selfieFile = new File([blob], 'selfie.jpg', { type: 'image/jpeg' });
+      if (blob) this.archivos[clave] = new File([blob], `${clave}.jpg`, { type: 'image/jpeg' });
     }, 'image/jpeg');
 
     this.detenerCamara();
   }
 
-  reintentarSelfie(): void {
-    this.fotoSelfie = null;
-    this.selfieFile = null;
+  reintentar(): void {
+    this.fotoActual = null;
     this.iniciarCamara();
   }
 
-  enviar(): void {
-    if (!this.anverso || !this.reverso || !this.selfieFile) return;
+  siguientePaso(): void {
+    if (this.indice < this.pasos.length - 1) {
+      this.indice += 1;
+      this.fotoActual = null;
+      return;
+    }
+    this.enviar();
+  }
+
+  private enviar(): void {
+    const { anverso, reverso, selfie } = this.archivos;
+    if (!anverso || !reverso || !selfie) return;
     this.error = '';
     this.fase = 'enviando';
-    this.verificacionService.enviarVerificacion(this.anverso, this.reverso, this.selfieFile).subscribe({
+    this.verificacionService.enviarVerificacion(anverso, reverso, selfie).subscribe({
       next: (res) => (this.fase = res.resultado === 'aprobado' ? 'aprobado' : 'rechazado'),
       error: () => {
         this.fase = 'rechazado';
@@ -208,24 +252,19 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     if (this.fase === 'aprobado') return 'VERIFICADO';
     if (this.fase === 'rechazado') return 'RECHAZADO';
     if (this.fase === 'enviando') return 'ANALIZANDO';
-    if (this.fase === 'resumen') return 'PENDIENTE';
-    return 'EN PROCESO';
+    return 'PENDIENTE';
   }
 
   progreso(): number {
     if (this.fase === 'aprobado' || this.fase === 'rechazado') return 100;
     if (this.fase === 'enviando') return 85;
-    if (this.fase === 'selfie') return 60;
-    if (this.fase === 'documento') return 30;
     return 10;
   }
 
   notaProgreso(): string {
     if (this.fase === 'aprobado') return 'Ya puedes contactar, guardar favoritos y publicar sin limites.';
-    if (this.fase === 'rechazado') return this.error || 'No pudimos verificarte. Intenta de nuevo con fotos mas claras.';
-    if (this.fase === 'enviando') return 'Estamos comparando tu documento con la selfie...';
-    if (this.fase === 'selfie') return 'Ubica tu rostro dentro del circulo y toma la foto.';
-    if (this.fase === 'documento') return 'Sube el anverso y reverso de tu cedula.';
-    return 'Falta subir tu documento para continuar.';
+    if (this.fase === 'rechazado') return this.error || 'No pudimos verificarte. Intenta de nuevo con mejor luz.';
+    if (this.fase === 'enviando') return 'Comparando tu documento con tu rostro en vivo...';
+    return 'Falta escanear tu documento para continuar.';
   }
 }

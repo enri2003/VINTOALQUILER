@@ -741,12 +741,18 @@ input:focus, select:focus, textarea:focus {
     radial-gradient(circle at 55% 80%, rgba(196, 107, 255, 0.35), transparent 55%),
     radial-gradient(circle at 85% 85%, rgba(255, 123, 172, 0.3), transparent 55%),
     #12192a;
+  background-size: 220% 220%;
+  animation: flotar-aura 7s ease-in-out infinite;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 18px;
   position: relative;
   overflow: hidden;
+}
+@keyframes flotar-aura {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
 }
 .marca-verificacion {
   width: 92px;
@@ -972,55 +978,107 @@ input:focus, select:focus, textarea:focus {
   color: #fff;
 }
 
-/* Captura de documento */
-.campo-captura {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1.5px dashed rgba(255, 255, 255, 0.2);
-  border-radius: var(--radio-tarjeta);
-  padding: 16px;
-  cursor: pointer;
-  font: 600 13.5px 'Manrope', sans-serif;
-  color: var(--verif-texto-suave);
+/* Captura en vivo por camara */
+.cabecera-captura {
+  width: 100%;
   text-align: left;
+  margin-bottom: 16px;
 }
-.campo-captura.listo {
-  border-style: solid;
-  border-color: #4DE1C1;
+.paso-actual {
+  font: 800 10.5px 'Manrope', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #4DE1C1, #6E8BFF, #C46BFF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.cabecera-captura h2 {
+  font-size: 21px;
+  margin: 6px 0 0;
   color: var(--verif-texto);
 }
-.icono-captura {
-  font-size: 22px;
-}
 
-/* Camara en vivo */
 .visor-camara {
   width: 100%;
   aspect-ratio: 3 / 4;
-  max-height: 340px;
+  max-height: 380px;
   border-radius: var(--radio-panel);
   overflow: hidden;
   position: relative;
-  background: #000;
+  background: radial-gradient(circle at 30% 20%, rgba(77, 225, 193, 0.18), transparent 55%),
+    radial-gradient(circle at 80% 80%, rgba(196, 107, 255, 0.18), transparent 55%), #05070c;
 }
 .visor-camara video, .visor-camara img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.visor-camara.marco-documento video,
+.visor-camara.marco-documento img {
+  transform: none;
+}
+.visor-camara:not(.marco-documento) video,
+.visor-camara:not(.marco-documento) img {
   transform: scaleX(-1);
 }
-.anillo-camara {
+
+.marco-guia {
   position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  border: 2px dashed rgba(255, 255, 255, 0.5);
+  inset: 10% 8%;
+  border-radius: 18px;
+  border: 2px solid rgba(110, 139, 255, 0.6);
+  box-shadow: 0 0 24px rgba(110, 139, 255, 0.35);
   pointer-events: none;
+  animation: respirar-marco 2.4s ease-in-out infinite;
+}
+.marco-guia.rostro {
+  inset: 14%;
+  border-radius: 50%;
+  border-color: rgba(77, 225, 193, 0.65);
+  box-shadow: 0 0 24px rgba(77, 225, 193, 0.35);
+}
+@keyframes respirar-marco {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.015); }
+}
+
+.esquina {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid #fff;
+  opacity: 0.8;
+}
+.esquina-tl { top: 14px; left: 14px; border-right: none; border-bottom: none; border-radius: 6px 0 0 0; }
+.esquina-tr { top: 14px; right: 14px; border-left: none; border-bottom: none; border-radius: 0 6px 0 0; }
+.esquina-bl { bottom: 14px; left: 14px; border-right: none; border-top: none; border-radius: 0 0 0 6px; }
+.esquina-br { bottom: 14px; right: 14px; border-left: none; border-top: none; border-radius: 0 0 6px 0; }
+
+.instruccion-captura {
+  color: var(--verif-texto-suave);
+  font-size: 13px;
+  text-align: center;
+  margin: 14px 0 18px;
 }
 .error-camara {
   color: #E3A3A3;
   font-size: 12.5px;
+  text-align: center;
+  margin: 0 0 14px;
+}
+.acciones-captura {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+.acciones-captura .boton-fantasma-verif {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 14px 20px;
+}
+.acciones-captura .boton-degradado {
+  flex: 1;
 }
 .mensaje-error-verif {
   width: 100%;
