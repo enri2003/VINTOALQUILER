@@ -8,5 +8,6 @@ import { AlertaController } from './alerta.controller';
   imports: [TypeOrmModule.forFeature([Alerta])],
   controllers: [AlertaController],
   providers: [AlertaService],
+  exports: [AlertaService],
 })
 export class AlertaModule {}

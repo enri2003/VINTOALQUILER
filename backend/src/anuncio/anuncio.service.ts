@@ -1,8 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
 import { Anuncio, TipoAnuncio } from './anuncio.entity';
 import { SuscripcionService } from '../suscripcion/suscripcion.service';
+import { AlertaService } from '../alerta/alerta.service';
+import { NotificacionService } from '../notificacion/notificacion.service';
 
 const DIAS_VENCIMIENTO = 60;
 const CAMPOS_COMPLETITUD: (keyof Anuncio)[] = [
@@ -34,10 +36,14 @@ interface DatosAnuncio {
 
 @Injectable()
 export class AnuncioService {
+  private readonly logger = new Logger(AnuncioService.name);
+
   constructor(
     @InjectRepository(Anuncio)
     private readonly anuncioRepo: Repository<Anuncio>,
     private readonly suscripcionService: SuscripcionService,
+    private readonly alertaService: AlertaService,
+    private readonly notificacionService: NotificacionService,
   ) {}
 
   async listar(filtros: {
@@ -115,7 +121,33 @@ export class AnuncioService {
       completitud: this.calcularCompletitud(resto),
       venceEn,
     });
-    return this.anuncioRepo.save(anuncio);
+    const anuncioGuardado = await this.anuncioRepo.save(anuncio);
+
+    this.notificarAlertasCoincidentes(anuncioGuardado).catch((error) =>
+      this.logger.error('No se pudieron enviar las notificaciones de alertas', error),
+    );
+
+    return anuncioGuardado;
+  }
+
+  private async notificarAlertasCoincidentes(anuncio: Anuncio): Promise<void> {
+    const zonaId = anuncio.zona?.id;
+    if (!zonaId) return;
+    const alertas = await this.alertaService.listarActivasPara(
+      anuncio.tipo,
+      zonaId,
+      Number(anuncio.precio),
+    );
+
+    for (const alerta of alertas) {
+      await this.notificacionService.enviarCorreo(
+        alerta.usuario.correo,
+        'Nuevo anuncio que coincide con tu alerta',
+        `<p>Hola ${alerta.usuario.nombre},</p>
+         <p>Se publico un nuevo anuncio en Alquileres Vinto que coincide con tu alerta:</p>
+         <p><strong>${anuncio.titulo}</strong> - Bs. ${anuncio.precio}</p>`,
+      );
+    }
   }
 
   async actualizar(id: number, publicadorId: number, datos: DatosAnuncio) {
