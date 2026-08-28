@@ -16,6 +16,7 @@ import { AlertaModule } from './alerta/alerta.module';
 import { RecomendacionModule } from './recomendacion/recomendacion.module';
 import { SuscripcionModule } from './suscripcion/suscripcion.module';
 import { ObservatorioModule } from './observatorio/observatorio.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ObservatorioModule } from './observatorio/observatorio.module';
     AlertaModule,
     RecomendacionModule,
     ObservatorioModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

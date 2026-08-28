@@ -22,4 +22,11 @@ export class ReporteService {
   contarPorAnuncio(anuncioId: number) {
     return this.reporteRepo.count({ where: { anuncio: { id: anuncioId } as any } });
   }
+
+  listarTodos() {
+    return this.reporteRepo.find({
+      relations: ['anuncio', 'anuncio.publicador'],
+      order: { creadoEn: 'DESC' },
+    });
+  }
 }

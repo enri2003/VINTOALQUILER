@@ -23,6 +23,7 @@ const RUTAS_SIN_NAV = ['/', '/login', '/registro'];
           <a routerLink="/alertas" routerLinkActive="activo">Alertas</a>
           <a routerLink="/mis-anuncios" routerLinkActive="activo">Mis anuncios</a>
         </ng-container>
+        <a *ngIf="authService.esAdmin()" routerLink="/admin" routerLinkActive="activo">Admin</a>
       </nav>
 
       <div class="acciones-cabecera">

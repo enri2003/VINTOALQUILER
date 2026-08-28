@@ -28,6 +28,9 @@ export class Usuario {
   @Column({ default: false })
   verificado: boolean;
 
+  @Column({ default: true })
+  activo: boolean;
+
   @CreateDateColumn()
   creadoEn: Date;
 

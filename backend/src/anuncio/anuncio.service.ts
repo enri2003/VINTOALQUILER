@@ -165,6 +165,12 @@ export class AnuncioService {
     return this.anuncioRepo.save(anuncio);
   }
 
+  async moderarComoAdmin(id: number, estado: Anuncio['estado']) {
+    const anuncio = await this.buscarPorId(id);
+    anuncio.estado = estado;
+    return this.anuncioRepo.save(anuncio);
+  }
+
   async eliminar(id: number, publicadorId: number) {
     const anuncio = await this.buscarPorId(id);
     if (anuncio.publicador.id !== publicadorId) {

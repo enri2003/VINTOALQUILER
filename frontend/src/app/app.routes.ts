@@ -16,7 +16,9 @@ import { MapaComponent } from './paginas/mapa/mapa.component';
 import { PlanesComponent } from './paginas/planes/planes.component';
 import { EstadisticasComponent } from './paginas/estadisticas/estadisticas.component';
 import { ObservatorioComponent } from './paginas/observatorio/observatorio.component';
+import { AdminComponent } from './paginas/admin/admin.component';
 import { authGuard } from './guardias/auth.guard';
+import { adminGuard } from './guardias/admin.guard';
 
 export const routes: Routes = [
   { path: '', component: BienvenidaComponent },
@@ -36,4 +38,5 @@ export const routes: Routes = [
   { path: 'planes', component: PlanesComponent, canActivate: [authGuard] },
   { path: 'estadisticas', component: EstadisticasComponent, canActivate: [authGuard] },
   { path: 'observatorio', component: ObservatorioComponent },
+  { path: 'admin', component: AdminComponent, canActivate: [authGuard, adminGuard] },
 ];

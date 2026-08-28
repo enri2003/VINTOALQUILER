@@ -6,6 +6,12 @@ interface RespuestaToken {
   accessToken: string;
 }
 
+interface PayloadToken {
+  sub: number;
+  correo: string;
+  rol: 'interesado' | 'publicador' | 'admin';
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiUrl = '';
@@ -41,6 +47,21 @@ export class AuthService {
 
   estaAutenticado(): boolean {
     return !!this.obtenerToken();
+  }
+
+  esAdmin(): boolean {
+    return this.obtenerPayload()?.rol === 'admin';
+  }
+
+  private obtenerPayload(): PayloadToken | null {
+    const token = this.obtenerToken();
+    if (!token) return null;
+    try {
+      const partes = token.split('.');
+      return JSON.parse(atob(partes[1]));
+    } catch {
+      return null;
+    }
   }
 
   private guardarToken(token: string): void {

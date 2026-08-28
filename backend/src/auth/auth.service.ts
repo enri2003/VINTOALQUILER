@@ -1,8 +1,8 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsuarioService } from '../usuario/usuario.service';
-import { RolUsuario } from '../usuario/usuario.entity';
+import { RolUsuario, Usuario } from '../usuario/usuario.entity';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +32,7 @@ export class AuthService {
       rol: datos.rol,
       perfilHogar: datos.rol === 'interesado' ? datos.perfilHogar : undefined,
     });
-    return this.generarToken(usuario.id, usuario.correo);
+    return this.generarToken(usuario);
   }
 
   async iniciarSesion(correo: string, clave: string) {
@@ -44,11 +44,18 @@ export class AuthService {
     if (!claveValida) {
       throw new UnauthorizedException('Credenciales invalidas');
     }
-    return this.generarToken(usuario.id, usuario.correo);
+    if (!usuario.activo) {
+      throw new ForbiddenException('Esta cuenta fue suspendida');
+    }
+    return this.generarToken(usuario);
   }
 
-  private generarToken(id: number, correo: string) {
-    const accessToken = this.jwtService.sign({ sub: id, correo });
+  private generarToken(usuario: Usuario) {
+    const accessToken = this.jwtService.sign({
+      sub: usuario.id,
+      correo: usuario.correo,
+      rol: usuario.rol,
+    });
     return { accessToken };
   }
 }

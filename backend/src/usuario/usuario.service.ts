@@ -26,4 +26,22 @@ export class UsuarioService {
   async marcarVerificado(id: number) {
     await this.usuarioRepo.update(id, { verificado: true });
   }
+
+  async contar() {
+    return this.usuarioRepo.count();
+  }
+
+  listarTodos(pagina: number, porPagina: number) {
+    return this.usuarioRepo.findAndCount({
+      order: { creadoEn: 'DESC' },
+      skip: (pagina - 1) * porPagina,
+      take: porPagina,
+      select: ['id', 'nombre', 'correo', 'celular', 'rol', 'verificado', 'activo', 'creadoEn'],
+    });
+  }
+
+  async cambiarActivo(id: number, activo: boolean) {
+    await this.usuarioRepo.update(id, { activo });
+    return this.buscarPorId(id);
+  }
 }
