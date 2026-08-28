@@ -2,6 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Alerta } from './alerta.entity';
+import { TipoAnuncio } from '../anuncio/anuncio.entity';
+
+interface DatosAlerta {
+  tipo?: TipoAnuncio;
+  zonaId?: number;
+  precioMax?: number;
+  activa?: boolean;
+}
 
 @Injectable()
 export class AlertaService {
@@ -11,16 +19,40 @@ export class AlertaService {
   ) {}
 
   listar(usuarioId: number) {
-    return this.alertaRepo.find({ where: { usuario: { id: usuarioId } as any } });
+    return this.alertaRepo.find({
+      where: { usuario: { id: usuarioId } as any },
+      relations: ['zona'],
+    });
   }
 
-  crear(usuarioId: number, datos: Partial<Alerta>) {
-    const alerta = this.alertaRepo.create({ ...datos, usuario: { id: usuarioId } as any });
+  crear(usuarioId: number, datos: DatosAlerta) {
+    const { zonaId, ...resto } = datos;
+    const alerta = this.alertaRepo.create({
+      ...resto,
+      zona: zonaId ? ({ id: zonaId } as any) : undefined,
+      usuario: { id: usuarioId } as any,
+    });
     return this.alertaRepo.save(alerta);
   }
 
-  async actualizar(id: number, usuarioId: number, datos: Partial<Alerta>) {
-    await this.alertaRepo.update({ id, usuario: { id: usuarioId } as any }, datos);
-    return this.alertaRepo.findOne({ where: { id } });
+  async actualizar(id: number, usuarioId: number, datos: DatosAlerta) {
+    const { zonaId, ...resto } = datos;
+    await this.alertaRepo.update(
+      { id, usuario: { id: usuarioId } as any },
+      { ...resto, zona: zonaId ? ({ id: zonaId } as any) : undefined },
+    );
+    return this.alertaRepo.findOne({ where: { id }, relations: ['zona'] });
+  }
+
+  listarActivasPara(tipo: TipoAnuncio, zonaId: number, precio: number) {
+    return this.alertaRepo
+      .createQueryBuilder('alerta')
+      .leftJoinAndSelect('alerta.usuario', 'usuario')
+      .leftJoin('alerta.zona', 'zona')
+      .where('alerta.activa = true')
+      .andWhere('(alerta.tipo IS NULL OR alerta.tipo = :tipo)', { tipo })
+      .andWhere('(zona.id IS NULL OR zona.id = :zonaId)', { zonaId })
+      .andWhere('(alerta.precioMax IS NULL OR alerta.precioMax >= :precio)', { precio })
+      .getMany();
   }
 }

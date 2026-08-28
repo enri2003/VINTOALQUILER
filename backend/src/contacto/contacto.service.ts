@@ -34,6 +34,9 @@ export class ContactoService {
     });
     await this.contactoRepo.save(contacto);
 
-    return { celular: anuncio.publicador.celular };
+    const digitos = anuncio.publicador.celular.replace(/[^\d]/g, '');
+    const numero = digitos.startsWith('591') ? digitos : `591${digitos}`;
+    const mensaje = encodeURIComponent(`Hola, vi tu anuncio "${anuncio.titulo}" en Alquileres Vinto.`);
+    return { enlaceWhatsapp: `https://wa.me/${numero}?text=${mensaje}` };
   }
 }

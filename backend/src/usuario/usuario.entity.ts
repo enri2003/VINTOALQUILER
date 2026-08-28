@@ -1,6 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-export type RolUsuario = 'interesado' | 'publicador';
+export type RolUsuario = 'interesado' | 'publicador' | 'admin';
 
 @Entity('usuario')
 export class Usuario {
@@ -30,4 +30,7 @@ export class Usuario {
 
   @CreateDateColumn()
   creadoEn: Date;
+
+  @UpdateDateColumn()
+  actualizadoEn: Date;
 }

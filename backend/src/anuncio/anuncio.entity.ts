@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Usuario } from '../usuario/usuario.entity';
 import { Zona } from '../zona/zona.entity';
@@ -14,13 +16,16 @@ export type TipoAnuncio = 'cuarto' | 'garzonier' | 'departamento';
 export type EstadoAnuncio = 'disponible' | 'ocupado' | 'pausado';
 
 @Entity('anuncio')
+@Index(['estado', 'tipo'])
 export class Anuncio {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Usuario)
   publicador: Usuario;
 
+  @Index()
   @ManyToOne(() => Zona)
   zona: Zona;
 
@@ -57,6 +62,7 @@ export class Anuncio {
   @Column()
   contratoMinimo: string;
 
+  @Index()
   @Column({ default: 'disponible' })
   estado: EstadoAnuncio;
 
@@ -68,4 +74,10 @@ export class Anuncio {
 
   @CreateDateColumn()
   creadoEn: Date;
+
+  @UpdateDateColumn()
+  actualizadoEn: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  venceEn: Date;
 }

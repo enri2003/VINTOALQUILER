@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Usuario } from '../usuario/usuario.entity';
 
 export type ResultadoVerificacion = 'aprobado' | 'rechazado';
@@ -8,6 +8,7 @@ export class Verificacion {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Usuario)
   usuario: Usuario;
 

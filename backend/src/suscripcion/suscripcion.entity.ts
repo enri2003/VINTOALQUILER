@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Usuario } from '../usuario/usuario.entity';
 
 export type Plan = 'gratuito' | 'pro';
@@ -8,6 +8,7 @@ export class Suscripcion {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Usuario, { onDelete: 'CASCADE' })
   usuario: Usuario;
 

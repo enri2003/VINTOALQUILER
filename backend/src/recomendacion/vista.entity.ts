@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Usuario } from '../usuario/usuario.entity';
 import { Anuncio } from '../anuncio/anuncio.entity';
 
@@ -7,9 +7,11 @@ export class Vista {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Usuario, { onDelete: 'CASCADE' })
   usuario: Usuario;
 
+  @Index()
   @ManyToOne(() => Anuncio, { onDelete: 'CASCADE' })
   anuncio: Anuncio;
 

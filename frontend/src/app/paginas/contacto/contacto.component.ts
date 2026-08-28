@@ -11,15 +11,25 @@ import { AuthService } from '../../servicios/auth.service';
   template: `
     <section class="contacto">
       <h1>Contactar al publicador</h1>
-      <button (click)="solicitar()">Ver numero de contacto</button>
-      <p *ngIf="celular">Celular: {{ celular }}</p>
-      <p *ngIf="error">{{ error }}</p>
+      <button class="boton-principal" (click)="solicitar()" *ngIf="!enlaceWhatsapp">
+        Contactar por WhatsApp
+      </button>
+      <a
+        *ngIf="enlaceWhatsapp"
+        class="boton-principal"
+        [href]="enlaceWhatsapp"
+        target="_blank"
+        rel="noopener"
+      >
+        Abrir conversacion en WhatsApp
+      </a>
+      <p class="mensaje-error" *ngIf="error">{{ error }}</p>
     </section>
   `,
 })
 export class ContactoComponent {
   private readonly apiUrl = '';
-  celular = '';
+  enlaceWhatsapp = '';
   error = '';
 
   constructor(
@@ -32,9 +42,9 @@ export class ContactoComponent {
     const anuncioId = Number(this.route.snapshot.paramMap.get('id'));
     const headers = new HttpHeaders({ Authorization: `Bearer ${this.authService.obtenerToken()}` });
     this.http
-      .post<{ celular: string }>(`${this.apiUrl}/contactos`, { anuncioId }, { headers })
+      .post<{ enlaceWhatsapp: string }>(`${this.apiUrl}/contactos`, { anuncioId }, { headers })
       .subscribe({
-        next: (res) => (this.celular = res.celular),
+        next: (res) => (this.enlaceWhatsapp = res.enlaceWhatsapp),
         error: () => (this.error = 'Verifica tu identidad para contactar al publicador'),
       });
   }

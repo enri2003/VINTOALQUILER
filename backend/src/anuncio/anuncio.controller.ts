@@ -12,8 +12,11 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AnuncioService } from './anuncio.service';
-import { Anuncio, TipoAnuncio } from './anuncio.entity';
+import { Anuncio } from './anuncio.entity';
 import { UsuarioService } from '../usuario/usuario.service';
+import { CrearAnuncioDto } from './dto/crear-anuncio.dto';
+import { ActualizarAnuncioDto } from './dto/actualizar-anuncio.dto';
+import { ListarAnunciosDto } from './dto/listar-anuncios.dto';
 
 function ocultarDireccion(anuncio: Anuncio, verificado: boolean) {
   if (verificado) {
@@ -31,17 +34,12 @@ export class AnuncioController {
   ) {}
 
   @Get()
-  async listar(
-    @Query('zonaId') zonaId?: string,
-    @Query('tipo') tipo?: TipoAnuncio,
-    @Query('precioMax') precioMax?: string,
-  ) {
-    const anuncios = await this.anuncioService.listar({
-      zonaId: zonaId ? Number(zonaId) : undefined,
-      tipo,
-      precioMax: precioMax ? Number(precioMax) : undefined,
-    });
-    return anuncios.map((anuncio) => ocultarDireccion(anuncio, false));
+  async listar(@Query() filtros: ListarAnunciosDto) {
+    const resultado = await this.anuncioService.listar(filtros);
+    return {
+      ...resultado,
+      datos: resultado.datos.map((anuncio) => ocultarDireccion(anuncio, false)),
+    };
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -60,13 +58,13 @@ export class AnuncioController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  crear(@Req() req: any, @Body() datos: Partial<Anuncio>) {
+  crear(@Req() req: any, @Body() datos: CrearAnuncioDto) {
     return this.anuncioService.crear(req.user.id, datos);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
-  actualizar(@Param('id') id: string, @Req() req: any, @Body() datos: Partial<Anuncio>) {
+  actualizar(@Param('id') id: string, @Req() req: any, @Body() datos: ActualizarAnuncioDto) {
     return this.anuncioService.actualizar(Number(id), req.user.id, datos);
   }
 

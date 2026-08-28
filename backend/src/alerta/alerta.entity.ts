@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Usuario } from '../usuario/usuario.entity';
 import { Zona } from '../zona/zona.entity';
 
@@ -7,12 +7,14 @@ export class Alerta {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Usuario, { onDelete: 'CASCADE' })
   usuario: Usuario;
 
   @Column({ nullable: true })
   tipo: string;
 
+  @Index()
   @ManyToOne(() => Zona, { nullable: true })
   zona: Zona;
 

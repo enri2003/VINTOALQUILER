@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Plan } from './suscripcion.entity';
 import { SuscripcionService } from './suscripcion.service';
+import { ContratarSuscripcionDto } from './dto/contratar-suscripcion.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('suscripcion')
@@ -15,7 +15,7 @@ export class SuscripcionController {
   }
 
   @Post()
-  contratar(@Req() req: any, @Body() datos: { plan: Plan }) {
+  contratar(@Req() req: any, @Body() datos: ContratarSuscripcionDto) {
     return this.suscripcionService.contratar(req.user.id, datos.plan);
   }
 }

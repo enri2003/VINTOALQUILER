@@ -4,13 +4,14 @@ import { Anuncio } from './anuncio.entity';
 import { Foto } from './foto.entity';
 import { AnuncioService } from './anuncio.service';
 import { AnuncioController } from './anuncio.controller';
+import { AnuncioTareas } from './anuncio.tareas';
 import { UsuarioModule } from '../usuario/usuario.module';
 import { SuscripcionModule } from '../suscripcion/suscripcion.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Anuncio, Foto]), UsuarioModule, SuscripcionModule],
   controllers: [AnuncioController],
-  providers: [AnuncioService],
+  providers: [AnuncioService, AnuncioTareas],
   exports: [AnuncioService],
 })
 export class AnuncioModule {}

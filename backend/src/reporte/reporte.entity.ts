@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Anuncio } from '../anuncio/anuncio.entity';
 
 @Entity('reporte')
@@ -6,6 +6,7 @@ export class Reporte {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Anuncio, { onDelete: 'CASCADE' })
   anuncio: Anuncio;
 

@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { AuthService } from './auth.service';
 
 export interface Anuncio {
@@ -27,13 +27,19 @@ export class AnuncioService {
     return new HttpHeaders({ Authorization: `Bearer ${this.authService.obtenerToken()}` });
   }
 
-  listar(filtros: { zonaId?: number; tipo?: string; precioMax?: number } = {}): Observable<Anuncio[]> {
+  listar(
+    filtros: { zonaId?: number; tipo?: string; precioMax?: number; pagina?: number; porPagina?: number } = {},
+  ): Observable<Anuncio[]> {
     const params: string[] = [];
     if (filtros.zonaId) params.push(`zonaId=${filtros.zonaId}`);
     if (filtros.tipo) params.push(`tipo=${filtros.tipo}`);
     if (filtros.precioMax) params.push(`precioMax=${filtros.precioMax}`);
+    if (filtros.pagina) params.push(`pagina=${filtros.pagina}`);
+    if (filtros.porPagina) params.push(`porPagina=${filtros.porPagina}`);
     const query = params.length ? `?${params.join('&')}` : '';
-    return this.http.get<Anuncio[]>(`${this.apiUrl}/anuncios${query}`);
+    return this.http
+      .get<{ datos: Anuncio[]; total: number }>(`${this.apiUrl}/anuncios${query}`)
+      .pipe(map((res) => res.datos));
   }
 
   detalle(id: number): Observable<Anuncio> {
