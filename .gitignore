@@ -1,5 +1,26 @@
+# Dependencias
 node_modules/
+
+# Builds
 dist/
-.env
-*.log
+build/
 .angular/
+*.tsbuildinfo
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Archivos subidos localmente (si se prueba sin Cloudflare R2)
+uploads/
