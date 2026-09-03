@@ -22,6 +22,15 @@ interface Usuario {
   creadoEn: string;
 }
 
+interface ImpulsoPendiente {
+  id: number;
+  plan: number;
+  precio: number;
+  comprobanteUrl: string;
+  estado: string;
+  anuncio: { id: number; titulo: string; publicador: { nombre: string } };
+}
+
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -57,6 +66,26 @@ interface Usuario {
 
       <div class="encabezado-seccion">
         <div>
+          <h2>Impulsos pendientes de pago</h2>
+          <p class="subtitulo">{{ impulsosPendientes.length }} solicitud(es)</p>
+        </div>
+      </div>
+      <div *ngFor="let impulso of impulsosPendientes" class="tarjeta">
+        <div class="fila-tarjeta">
+          <p class="precio">{{ impulso.anuncio.titulo }}</p>
+          <span class="chip">Plan {{ impulso.plan }} dias - Bs. {{ impulso.precio }}</span>
+        </div>
+        <p class="texto-suave">Publicador: {{ impulso.anuncio.publicador.nombre }}</p>
+        <a [href]="impulso.comprobanteUrl" target="_blank" rel="noopener">Ver comprobante</a>
+        <div class="acciones">
+          <button class="boton-secundario" (click)="activarImpulso(impulso.id)">Activar impulso</button>
+          <button class="boton-secundario" (click)="rechazarImpulso(impulso.id)">Rechazar</button>
+        </div>
+      </div>
+      <p class="texto-suave" *ngIf="!impulsosPendientes.length">No hay solicitudes de impulso pendientes.</p>
+
+      <div class="encabezado-seccion">
+        <div>
           <h2>Usuarios</h2>
           <p class="subtitulo">{{ usuarios.length }} usuario(s)</p>
         </div>
@@ -85,6 +114,7 @@ export class AdminComponent implements OnInit {
   private readonly apiUrl = '';
   reportes: Reporte[] = [];
   usuarios: Usuario[] = [];
+  impulsosPendientes: ImpulsoPendiente[] = [];
 
   constructor(
     private readonly http: HttpClient,
@@ -94,6 +124,26 @@ export class AdminComponent implements OnInit {
   ngOnInit(): void {
     this.cargarReportes();
     this.cargarUsuarios();
+    this.cargarImpulsosPendientes();
+  }
+
+  private cargarImpulsosPendientes(): void {
+    this.http
+      .get<ImpulsoPendiente[]>(`${this.apiUrl}/impulsos/pendientes`, { headers: this.cabeceras() })
+      .subscribe((res) => (this.impulsosPendientes = res));
+  }
+
+  activarImpulso(id: number): void {
+    this.http
+      .patch(`${this.apiUrl}/impulsos/${id}/activar`, {}, { headers: this.cabeceras() })
+      .subscribe(() => this.cargarImpulsosPendientes());
+  }
+
+  rechazarImpulso(id: number): void {
+    const motivo = window.prompt('Motivo del rechazo (ej: comprobante ilegible):', '') || undefined;
+    this.http
+      .patch(`${this.apiUrl}/impulsos/${id}/rechazar`, { motivo }, { headers: this.cabeceras() })
+      .subscribe(() => this.cargarImpulsosPendientes());
   }
 
   private cabeceras(): HttpHeaders {

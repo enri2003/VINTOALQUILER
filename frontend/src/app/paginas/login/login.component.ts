@@ -12,13 +12,9 @@ import { AuthService } from '../../servicios/auth.service';
     <section class="pagina-dividida">
       <div class="panel-marca">
         <div class="icono-marca">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="8.5" cy="8.5" r="4.5" />
-            <path d="M11.8 11.8 21 21" />
-            <path d="M17.5 21 21 17.5" />
-          </svg>
+          <img src="/assets/icono-logo.png" alt="" />
         </div>
-        <h2>Alquileres Vinto</h2>
+        <h2>Vinto<span class="acento-marca">Alquiler</span></h2>
         <p>Cuartos, garzoniers y departamentos del municipio de Vinto, con contacto seguro y anuncios verificados.</p>
       </div>
       <div class="panel-formulario">
@@ -27,18 +23,28 @@ import { AuthService } from '../../servicios/auth.service';
           <p class="subtitulo">Ingresa para publicar, contactar o guardar favoritos.</p>
           <form (ngSubmit)="enviar()">
             <label>
-              <span class="etiqueta">Correo</span>
+              <span class="etiqueta">Correo electronico</span>
               <input type="email" name="correo" placeholder="tucorreo@ejemplo.com" [(ngModel)]="correo" required />
             </label>
             <label>
               <span class="etiqueta">Contrasena</span>
               <input type="password" name="clave" placeholder="Tu contrasena" [(ngModel)]="clave" required />
             </label>
+            <div class="fila-terminos fila-opciones-login">
+              <label class="opcion-recordarme">
+                <input type="checkbox" name="recordarme" [(ngModel)]="recordarme" />
+                <span>Recordarme</span>
+              </label>
+              <a href="javascript:void(0)" class="enlace-olvido" (click)="mostrarAyudaClave()">¿Olvidaste tu contrasena?</a>
+            </div>
             <button type="submit" class="boton-principal boton-ancho" [disabled]="cargando">
               {{ cargando ? 'Ingresando...' : 'Ingresar' }}
             </button>
           </form>
           <p class="mensaje-error" *ngIf="error">{{ error }}</p>
+          <p class="texto-suave" *ngIf="ayudaClave">
+            Escribe a soporte por WhatsApp o correo para restablecer tu contrasena; la recuperacion automatica aun no esta disponible.
+          </p>
           <p class="pie">
             ¿No tienes cuenta? <a routerLink="/registro">Crea una</a>
           </p>
@@ -50,8 +56,14 @@ import { AuthService } from '../../servicios/auth.service';
 export class LoginComponent {
   correo = '';
   clave = '';
+  recordarme = true;
   error = '';
+  ayudaClave = false;
   cargando = false;
+
+  mostrarAyudaClave(): void {
+    this.ayudaClave = true;
+  }
 
   constructor(
     private readonly authService: AuthService,

@@ -29,7 +29,7 @@ export class NotificacionService {
       return;
     }
     await this.transportador.sendMail({
-      from: process.env.SMTP_FROM || 'Alquileres Vinto <no-responder@alquileresvinto.com>',
+      from: process.env.SMTP_FROM || 'VintoAlquiler <no-responder@vintoalquiler.com>',
       to: destinatario,
       subject: asunto,
       html: textoHtml,

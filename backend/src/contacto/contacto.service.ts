@@ -36,7 +36,7 @@ export class ContactoService {
 
     const digitos = anuncio.publicador.celular.replace(/[^\d]/g, '');
     const numero = digitos.startsWith('591') ? digitos : `591${digitos}`;
-    const mensaje = encodeURIComponent(`Hola, vi tu anuncio "${anuncio.titulo}" en Alquileres Vinto.`);
+    const mensaje = encodeURIComponent(`Hola, vi tu anuncio "${anuncio.titulo}" en VintoAlquiler.`);
     return { enlaceWhatsapp: `https://wa.me/${numero}?text=${mensaje}` };
   }
 }

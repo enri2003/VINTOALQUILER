@@ -25,6 +25,12 @@ export class Usuario {
   @Column({ nullable: true })
   perfilHogar: string;
 
+  @Column('numeric', { precision: 10, scale: 2, nullable: true })
+  presupuestoMax: number;
+
+  @Column({ nullable: true })
+  tipoPreferido: string;
+
   @Column({ default: false })
   verificado: boolean;
 

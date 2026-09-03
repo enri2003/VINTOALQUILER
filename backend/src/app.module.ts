@@ -17,6 +17,8 @@ import { RecomendacionModule } from './recomendacion/recomendacion.module';
 import { SuscripcionModule } from './suscripcion/suscripcion.module';
 import { ObservatorioModule } from './observatorio/observatorio.module';
 import { AdminModule } from './admin/admin.module';
+import { ImpulsoModule } from './impulso/impulso.module';
+import { AlmacenamientoModule } from './almacenamiento/almacenamiento.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { AdminModule } from './admin/admin.module';
     RecomendacionModule,
     ObservatorioModule,
     AdminModule,
+    ImpulsoModule,
+    AlmacenamientoModule,
   ],
 })
 export class AppModule {}

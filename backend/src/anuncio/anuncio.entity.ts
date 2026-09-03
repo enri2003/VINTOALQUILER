@@ -80,4 +80,14 @@ export class Anuncio {
 
   @Column({ type: 'timestamptz', nullable: true })
   venceEn: Date;
+
+  @Column({ default: 5 })
+  fotosMax: number;
+
+  @Index()
+  @Column({ type: 'timestamptz', nullable: true })
+  impulsadoHasta: Date;
+
+  @Column({ default: false })
+  enPortada: boolean;
 }

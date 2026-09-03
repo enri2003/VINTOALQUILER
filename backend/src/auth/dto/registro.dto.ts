@@ -1,4 +1,5 @@
-import { IsEmail, IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEmail, IsIn, IsNumber, IsOptional, IsPositive, IsString, MinLength } from 'class-validator';
 import { RolUsuario } from '../../usuario/usuario.entity';
 
 export class RegistroDto {
@@ -23,4 +24,14 @@ export class RegistroDto {
   @IsOptional()
   @IsString()
   perfilHogar?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @IsPositive()
+  presupuestoMax?: number;
+
+  @IsOptional()
+  @IsIn(['cuarto', 'garzonier', 'departamento'])
+  tipoPreferido?: string;
 }

@@ -18,6 +18,8 @@ export class AuthService {
     celular: string;
     rol: RolUsuario;
     perfilHogar?: string;
+    presupuestoMax?: number;
+    tipoPreferido?: string;
   }) {
     const existente = await this.usuarioService.buscarPorCorreo(datos.correo);
     if (existente) {
@@ -31,6 +33,8 @@ export class AuthService {
       celular: datos.celular,
       rol: datos.rol,
       perfilHogar: datos.rol === 'interesado' ? datos.perfilHogar : undefined,
+      presupuestoMax: datos.rol === 'interesado' ? datos.presupuestoMax : undefined,
+      tipoPreferido: datos.rol === 'interesado' ? datos.tipoPreferido : undefined,
     });
     return this.generarToken(usuario);
   }

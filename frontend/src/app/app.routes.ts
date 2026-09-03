@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { BienvenidaComponent } from './paginas/bienvenida/bienvenida.component';
 import { LoginComponent } from './paginas/login/login.component';
 import { RegistroComponent } from './paginas/registro/registro.component';
 import { ExplorarComponent } from './paginas/explorar/explorar.component';
@@ -21,7 +20,7 @@ import { authGuard } from './guardias/auth.guard';
 import { adminGuard } from './guardias/admin.guard';
 
 export const routes: Routes = [
-  { path: '', component: BienvenidaComponent },
+  { path: '', component: ExplorarComponent },
   { path: 'login', component: LoginComponent },
   { path: 'registro', component: RegistroComponent },
   { path: 'explorar', component: ExplorarComponent },

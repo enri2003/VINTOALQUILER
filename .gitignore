@@ -24,3 +24,6 @@ Thumbs.db
 
 # Archivos subidos localmente (si se prueba sin Cloudflare R2)
 uploads/
+
+# Herramientas locales
+.claude/

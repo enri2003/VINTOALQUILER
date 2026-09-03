@@ -8,14 +8,10 @@ import { RouterLink } from '@angular/router';
   template: `
     <section class="pantalla-bienvenida">
       <div class="icono-marca">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="8.5" cy="8.5" r="4.5" />
-          <path d="M11.8 11.8 21 21" />
-          <path d="M17.5 21 21 17.5" />
-        </svg>
+        <img src="/assets/icono-logo.png" alt="" />
       </div>
 
-      <h1>Alquileres Vinto</h1>
+      <h1>Vinto<span class="acento-marca">Alquiler</span></h1>
       <p>Cuartos, garzoniers y departamentos del municipio de Vinto.</p>
 
       <div class="acciones-bienvenida">

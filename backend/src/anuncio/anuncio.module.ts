@@ -4,11 +4,14 @@ import { Anuncio } from './anuncio.entity';
 import { Foto } from './foto.entity';
 import { AnuncioService } from './anuncio.service';
 import { AnuncioController } from './anuncio.controller';
+import { FotoController } from './foto.controller';
+import { FotoService } from './foto.service';
 import { AnuncioTareas } from './anuncio.tareas';
 import { UsuarioModule } from '../usuario/usuario.module';
 import { SuscripcionModule } from '../suscripcion/suscripcion.module';
 import { AlertaModule } from '../alerta/alerta.module';
 import { NotificacionModule } from '../notificacion/notificacion.module';
+import { AlmacenamientoModule } from '../almacenamiento/almacenamiento.module';
 
 @Module({
   imports: [
@@ -17,9 +20,10 @@ import { NotificacionModule } from '../notificacion/notificacion.module';
     SuscripcionModule,
     AlertaModule,
     NotificacionModule,
+    AlmacenamientoModule,
   ],
-  controllers: [AnuncioController],
-  providers: [AnuncioService, AnuncioTareas],
+  controllers: [AnuncioController, FotoController],
+  providers: [AnuncioService, FotoService, AnuncioTareas],
   exports: [AnuncioService],
 })
 export class AnuncioModule {}

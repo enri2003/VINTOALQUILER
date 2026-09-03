@@ -241,9 +241,9 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     this.fase = 'enviando';
     this.verificacionService.enviarVerificacion(anverso, reverso, selfie).subscribe({
       next: (res) => (this.fase = res.resultado === 'aprobado' ? 'aprobado' : 'rechazado'),
-      error: () => {
+      error: (err) => {
         this.fase = 'rechazado';
-        this.error = 'No se pudo completar la verificacion. Intenta de nuevo.';
+        this.error = err?.error?.message || 'No se pudo completar la verificacion. Intenta de nuevo.';
       },
     });
   }

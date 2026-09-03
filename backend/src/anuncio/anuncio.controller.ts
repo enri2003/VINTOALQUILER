@@ -18,11 +18,22 @@ import { CrearAnuncioDto } from './dto/crear-anuncio.dto';
 import { ActualizarAnuncioDto } from './dto/actualizar-anuncio.dto';
 import { ListarAnunciosDto } from './dto/listar-anuncios.dto';
 
-function ocultarDireccion(anuncio: Anuncio, verificado: boolean) {
-  if (verificado) {
+function limpiarPublicador(anuncio: Anuncio): Anuncio {
+  if (!anuncio.publicador) {
     return anuncio;
   }
-  const { direccionExacta, ...resto } = anuncio;
+  return {
+    ...anuncio,
+    publicador: { id: anuncio.publicador.id, verificado: anuncio.publicador.verificado } as any,
+  };
+}
+
+function ocultarDireccion(anuncio: Anuncio, verificado: boolean) {
+  const limpio = limpiarPublicador(anuncio);
+  if (verificado) {
+    return limpio;
+  }
+  const { direccionExacta, ...resto } = limpio;
   return resto;
 }
 

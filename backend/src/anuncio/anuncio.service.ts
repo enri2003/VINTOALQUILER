@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Anuncio, TipoAnuncio } from './anuncio.entity';
-import { SuscripcionService } from '../suscripcion/suscripcion.service';
 import { AlertaService } from '../alerta/alerta.service';
 import { NotificacionService } from '../notificacion/notificacion.service';
 
 const DIAS_VENCIMIENTO = 60;
+const LIMITE_ANUNCIOS_ACTIVOS_GRATIS = 1;
 const CAMPOS_COMPLETITUD: (keyof Anuncio)[] = [
   'titulo',
   'descripcion',
@@ -41,7 +41,6 @@ export class AnuncioService {
   constructor(
     @InjectRepository(Anuncio)
     private readonly anuncioRepo: Repository<Anuncio>,
-    private readonly suscripcionService: SuscripcionService,
     private readonly alertaService: AlertaService,
     private readonly notificacionService: NotificacionService,
   ) {}
@@ -60,8 +59,14 @@ export class AnuncioService {
       .createQueryBuilder('anuncio')
       .leftJoinAndSelect('anuncio.zona', 'zona')
       .leftJoinAndSelect('anuncio.fotos', 'fotos')
+      .leftJoinAndSelect('anuncio.publicador', 'publicador')
+      .addSelect(
+        'CASE WHEN anuncio.impulsadoHasta IS NOT NULL AND anuncio.impulsadoHasta > NOW() THEN 0 ELSE 1 END',
+        'orden_impulso',
+      )
       .where('anuncio.estado = :estado', { estado: 'disponible' })
-      .orderBy('anuncio.creadoEn', 'DESC')
+      .orderBy('orden_impulso', 'ASC')
+      .addOrderBy('anuncio.creadoEn', 'DESC')
       .skip((pagina - 1) * porPagina)
       .take(porPagina);
 
@@ -99,14 +104,12 @@ export class AnuncioService {
   }
 
   async crear(publicadorId: number, datos: DatosAnuncio) {
-    const plan = await this.suscripcionService.planActual(publicadorId);
-    const limites = this.suscripcionService.limites(plan);
     const activos = await this.anuncioRepo.count({
       where: { publicador: { id: publicadorId } as any, estado: 'disponible' },
     });
-    if (activos >= limites.anunciosActivos) {
+    if (activos >= LIMITE_ANUNCIOS_ACTIVOS_GRATIS) {
       throw new BadRequestException(
-        `Tu plan ${plan} permite hasta ${limites.anunciosActivos} anuncios activos`,
+        `Ya tienes ${LIMITE_ANUNCIOS_ACTIVOS_GRATIS} anuncio(s) activo(s). Pausa o elimina uno para publicar otro.`,
       );
     }
 
@@ -121,16 +124,29 @@ export class AnuncioService {
       completitud: this.calcularCompletitud(resto),
       venceEn,
     });
-    const anuncioGuardado = await this.anuncioRepo.save(anuncio);
-
-    this.notificarAlertasCoincidentes(anuncioGuardado).catch((error) =>
-      this.logger.error('No se pudieron enviar las notificaciones de alertas', error),
-    );
-
-    return anuncioGuardado;
+    return this.anuncioRepo.save(anuncio);
   }
 
-  private async notificarAlertasCoincidentes(anuncio: Anuncio): Promise<void> {
+  async activarImpulso(
+    anuncioId: number,
+    datos: { fotosMax: number; impulsadoHasta: Date; enPortada: boolean },
+  ): Promise<Anuncio> {
+    const anuncio = await this.buscarPorId(anuncioId);
+    anuncio.fotosMax = datos.fotosMax;
+    anuncio.impulsadoHasta = datos.impulsadoHasta;
+    anuncio.enPortada = datos.enPortada;
+    const guardado = await this.anuncioRepo.save(anuncio);
+
+    if (datos.enPortada) {
+      this.notificarAlertasCoincidentes(guardado).catch((error) =>
+        this.logger.error('No se pudieron enviar las notificaciones de alertas', error),
+      );
+    }
+
+    return guardado;
+  }
+
+  async notificarAlertasCoincidentes(anuncio: Anuncio): Promise<void> {
     const zonaId = anuncio.zona?.id;
     if (!zonaId) return;
     const alertas = await this.alertaService.listarActivasPara(
@@ -144,7 +160,7 @@ export class AnuncioService {
         alerta.usuario.correo,
         'Nuevo anuncio que coincide con tu alerta',
         `<p>Hola ${alerta.usuario.nombre},</p>
-         <p>Se publico un nuevo anuncio en Alquileres Vinto que coincide con tu alerta:</p>
+         <p>Se publico un nuevo anuncio en VintoAlquiler que coincide con tu alerta:</p>
          <p><strong>${anuncio.titulo}</strong> - Bs. ${anuncio.precio}</p>`,
       );
     }
@@ -188,10 +204,14 @@ export class AnuncioService {
   }
 
   async pausarVencidos(): Promise<number> {
-    const resultado = await this.anuncioRepo.update(
-      { estado: 'disponible', venceEn: LessThan(new Date()) },
-      { estado: 'pausado' },
-    );
+    const resultado = await this.anuncioRepo
+      .createQueryBuilder()
+      .update(Anuncio)
+      .set({ estado: 'pausado' })
+      .where('estado = :estado', { estado: 'disponible' })
+      .andWhere('venceEn < NOW()')
+      .andWhere('(impulsadoHasta IS NULL OR impulsadoHasta < NOW())')
+      .execute();
     return resultado.affected || 0;
   }
 }

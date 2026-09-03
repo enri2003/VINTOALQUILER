@@ -34,7 +34,9 @@ interface Zona {
         <input type="text" name="direccionExacta" placeholder="Direccion exacta" [(ngModel)]="direccionExacta" required />
         <input type="text" name="garantia" placeholder="Garantia" [(ngModel)]="garantia" required />
         <input type="text" name="contratoMinimo" placeholder="Contrato minimo" [(ngModel)]="contratoMinimo" required />
-        <button type="submit" [disabled]="!zonaId">Publicar</button>
+        <label>Fotos (hasta 5 en el plan gratuito)</label>
+        <input type="file" accept="image/jpeg,image/png,image/webp" multiple (change)="seleccionarFotos($event)" />
+        <button type="submit" [disabled]="!zonaId || enviando">{{ enviando ? 'Publicando...' : 'Publicar' }}</button>
       </form>
       <p class="mensaje-error" *ngIf="error">{{ error }}</p>
     </section>
@@ -53,6 +55,8 @@ export class PublicarComponent implements OnInit {
   garantia = '';
   contratoMinimo = '';
   error = '';
+  enviando = false;
+  fotosSeleccionadas: File[] = [];
 
   constructor(
     private readonly http: HttpClient,
@@ -64,9 +68,15 @@ export class PublicarComponent implements OnInit {
     this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
   }
 
+  seleccionarFotos(evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    this.fotosSeleccionadas = input.files ? Array.from(input.files) : [];
+  }
+
   enviar(): void {
     if (!this.zonaId) return;
     this.error = '';
+    this.enviando = true;
     this.anuncioService
       .crear({
         zonaId: this.zonaId,
@@ -80,8 +90,23 @@ export class PublicarComponent implements OnInit {
         contratoMinimo: this.contratoMinimo,
       } as any)
       .subscribe({
-        next: () => this.router.navigate(['/mis-anuncios']),
-        error: (err) => (this.error = err?.error?.message || 'No se pudo publicar el anuncio.'),
+        next: (anuncio) => {
+          if (!this.fotosSeleccionadas.length) {
+            this.router.navigate(['/mis-anuncios']);
+            return;
+          }
+          this.anuncioService.subirFotos(anuncio.id, this.fotosSeleccionadas).subscribe({
+            next: () => this.router.navigate(['/mis-anuncios']),
+            error: () => {
+              this.enviando = false;
+              this.error = 'El anuncio se publico, pero no se pudieron subir las fotos. Intenta subirlas de nuevo.';
+            },
+          });
+        },
+        error: (err) => {
+          this.enviando = false;
+          this.error = err?.error?.message || 'No se pudo publicar el anuncio.';
+        },
       });
   }
 }

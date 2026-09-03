@@ -1,20 +1,34 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Anuncio } from '../../servicios/anuncio.service';
 import { AuthService } from '../../servicios/auth.service';
 
 @Component({
   selector: 'app-favoritos',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <section class="favoritos">
-      <h1>Mis favoritos</h1>
-      <div *ngFor="let anuncio of favoritos" class="tarjeta">
-        <h2>{{ anuncio.titulo }}</h2>
-        <p class="precio">Bs. {{ anuncio.precio }}</p>
+      <h1>Mis favoritos ♥</h1>
+      <p class="texto-suave">Estos son los alquileres que has guardado.</p>
+
+      <div class="grilla" *ngIf="favoritos.length; else sinFavoritos">
+        <a *ngFor="let anuncio of favoritos" [routerLink]="['/anuncio', anuncio.id]" class="tarjeta">
+          <span class="corazon-tarjeta">♥</span>
+          <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" alt="" />
+          <div class="fila-tarjeta">
+            <p class="precio">Bs. {{ anuncio.precio }}</p>
+            <span class="chip">{{ anuncio.tipo }}</span>
+          </div>
+          <h2>{{ anuncio.titulo }}</h2>
+          <p class="texto-suave">{{ anuncio.zona?.nombre }}</p>
+        </a>
       </div>
+      <ng-template #sinFavoritos>
+        <p class="texto-suave">Aun no guardaste ningun anuncio como favorito.</p>
+      </ng-template>
     </section>
   `,
 })

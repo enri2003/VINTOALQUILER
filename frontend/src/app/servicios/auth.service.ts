@@ -25,6 +25,8 @@ export class AuthService {
     celular: string;
     rol: 'interesado' | 'publicador';
     perfilHogar?: string;
+    presupuestoMax?: number;
+    tipoPreferido?: string;
   }): Observable<RespuestaToken> {
     return this.http
       .post<RespuestaToken>(`${this.apiUrl}/auth/registro`, datos)

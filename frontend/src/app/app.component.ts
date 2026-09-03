@@ -4,7 +4,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter } from 'rxjs';
 import { AuthService } from './servicios/auth.service';
 
-const RUTAS_SIN_NAV = ['/', '/login', '/registro'];
+const RUTAS_SIN_NAV = ['/login', '/registro'];
 
 @Component({
   selector: 'app-root',
@@ -12,10 +12,15 @@ const RUTAS_SIN_NAV = ['/', '/login', '/registro'];
   imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
   template: `
     <header class="cabecera" *ngIf="!ocultarNav">
-      <a routerLink="/" class="marca">Alquileres Vinto</a>
+      <a routerLink="/" class="marca">
+        <img src="/assets/icono-logo.png" alt="" class="icono-logo" />
+        <span class="texto-marca">Vinto<span class="acento-marca">Alquiler</span></span>
+      </a>
 
       <nav class="nav-principal">
-        <a routerLink="/explorar" routerLinkActive="activo">Explorar</a>
+        <a routerLink="/" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+        <a routerLink="/explorar" routerLinkActive="activo">Buscar</a>
+        <a routerLink="/publicar" routerLinkActive="activo">Publicar aviso</a>
         <a routerLink="/mapa" routerLinkActive="activo">Mapa</a>
         <a routerLink="/observatorio" routerLinkActive="activo">Datos</a>
         <ng-container *ngIf="authService.estaAutenticado()">
@@ -28,13 +33,11 @@ const RUTAS_SIN_NAV = ['/', '/login', '/registro'];
 
       <div class="acciones-cabecera">
         <ng-container *ngIf="authService.estaAutenticado(); else invitado">
-          <a routerLink="/publicar" routerLinkActive="activo" class="boton-secundario boton-cabecera">Publicar</a>
           <a routerLink="/verificacion" class="insignia-verificacion">Identidad sin verificar</a>
           <button class="boton-salir" (click)="salir()">Salir</button>
         </ng-container>
         <ng-template #invitado>
-          <a routerLink="/login">Iniciar sesion</a>
-          <a routerLink="/registro" class="cta-registro">Crear cuenta</a>
+          <a routerLink="/login" class="cta-registro">Iniciar sesion</a>
         </ng-template>
       </div>
     </header>

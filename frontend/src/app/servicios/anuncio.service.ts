@@ -12,6 +12,8 @@ export interface Anuncio {
   zona: { id: number; nombre: string };
   fotos: { url: string }[];
   creadoEn?: string;
+  enPortada?: boolean;
+  publicador?: { verificado: boolean };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -52,5 +54,13 @@ export class AnuncioService {
 
   misAnuncios(): Observable<Anuncio[]> {
     return this.http.get<Anuncio[]>(`${this.apiUrl}/anuncios/mios`, { headers: this.cabeceras() });
+  }
+
+  subirFotos(anuncioId: number, archivos: File[]): Observable<{ url: string }[]> {
+    const formulario = new FormData();
+    archivos.forEach((archivo) => formulario.append('fotos', archivo));
+    return this.http.post<{ url: string }[]>(`${this.apiUrl}/anuncios/${anuncioId}/fotos`, formulario, {
+      headers: this.cabeceras(),
+    });
   }
 }

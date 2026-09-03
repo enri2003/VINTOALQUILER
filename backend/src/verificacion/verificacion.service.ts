@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AnalyzeIDCommand } from '@aws-sdk/client-textract';
 import { CompareFacesCommand } from '@aws-sdk/client-rekognition';
@@ -9,6 +9,7 @@ import { UsuarioService } from '../usuario/usuario.service';
 import { textractClient, rekognitionClient } from './aws.client';
 
 const UMBRAL_SIMILITUD = 90;
+const INTENTOS_MAXIMOS = 3;
 const CLAVE_CIFRADO = Buffer.from((process.env.JWT_SECRET || 'cambiar_este_secreto').padEnd(32, '0').slice(0, 32));
 
 @Injectable()
@@ -37,12 +38,25 @@ export class VerificacionService {
     return campoCi?.ValueDetection?.Text || '';
   }
 
+  private async intentosFallidos(usuarioId: number): Promise<number> {
+    return this.verificacionRepo.count({
+      where: { usuario: { id: usuarioId } as any, resultado: 'rechazado' },
+    });
+  }
+
   async procesarSelfie(
     usuarioId: number,
     anversoBuffer: Buffer,
     reversoBuffer: Buffer,
     selfieBuffer: Buffer,
   ) {
+    const fallidos = await this.intentosFallidos(usuarioId);
+    if (fallidos >= INTENTOS_MAXIMOS) {
+      throw new ForbiddenException(
+        'Alcanzaste el limite de 3 intentos de verificacion. Contacta a soporte para continuar.',
+      );
+    }
+
     const numeroCi = await this.procesarDocumento(anversoBuffer, reversoBuffer);
 
     const comparacion = await rekognitionClient.send(
@@ -72,6 +86,11 @@ export class VerificacionService {
 
   async estado(usuarioId: number) {
     const usuario = await this.usuarioService.buscarPorId(usuarioId);
-    return { verificado: !!usuario?.verificado };
+    const fallidos = await this.intentosFallidos(usuarioId);
+    return {
+      verificado: !!usuario?.verificado,
+      intentosRestantes: Math.max(0, INTENTOS_MAXIMOS - fallidos),
+      bloqueado: fallidos >= INTENTOS_MAXIMOS,
+    };
   }
 }
