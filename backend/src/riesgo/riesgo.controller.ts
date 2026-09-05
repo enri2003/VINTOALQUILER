@@ -1,6 +1,8 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { RiesgoService } from './riesgo.service';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('anuncios')
 export class RiesgoController {
   constructor(private readonly riesgoService: RiesgoService) {}
