@@ -10,5 +10,7 @@
   "/favoritos": { "target": "http://localhost:3000", "secure": false },
   "/alertas": { "target": "http://localhost:3000", "secure": false },
   "/recomendaciones": { "target": "http://localhost:3000", "secure": false },
-  "/observatorio": { "target": "http://localhost:3000", "secure": false }
+  "/observatorio": { "target": "http://localhost:3000", "secure": false },
+  "/impulsos": { "target": "http://localhost:3000", "secure": false },
+  "/admin": { "target": "http://localhost:3000", "secure": false }
 }
