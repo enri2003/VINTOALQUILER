@@ -48,6 +48,13 @@ export class AnuncioService {
     return this.http.get<Anuncio>(`${this.apiUrl}/anuncios/${id}`, { headers: this.cabeceras() });
   }
 
+  riesgo(id: number): Observable<{ nivel: 'bajo' | 'medio' | 'alto'; senales: string[] }> {
+    return this.http.get<{ nivel: 'bajo' | 'medio' | 'alto'; senales: string[] }>(
+      `${this.apiUrl}/anuncios/${id}/riesgo`,
+      { headers: this.cabeceras() },
+    );
+  }
+
   crear(datos: Partial<Anuncio>): Observable<Anuncio> {
     return this.http.post<Anuncio>(`${this.apiUrl}/anuncios`, datos, { headers: this.cabeceras() });
   }
