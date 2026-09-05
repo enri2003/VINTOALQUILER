@@ -70,6 +70,14 @@ export class ImpulsoService {
     });
   }
 
+  listarActivos(): Promise<Impulso[]> {
+    return this.impulsoRepo.find({
+      where: { estado: 'activo' },
+      relations: ['anuncio', 'anuncio.publicador'],
+      order: { finEn: 'ASC' },
+    });
+  }
+
   async activar(id: number): Promise<Impulso> {
     const impulso = await this.impulsoRepo.findOne({ where: { id }, relations: ['anuncio'] });
     if (!impulso) {

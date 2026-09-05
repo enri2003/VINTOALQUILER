@@ -53,6 +53,13 @@ export class ImpulsoController {
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
+  @Get('activos')
+  activos() {
+    return this.impulsoService.listarActivos();
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   @Patch(':id/activar')
   activar(@Param('id') id: string) {
     return this.impulsoService.activar(Number(id));

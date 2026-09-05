@@ -31,6 +31,15 @@ interface ImpulsoPendiente {
   anuncio: { id: number; titulo: string; publicador: { nombre: string } };
 }
 
+interface ImpulsoActivo {
+  id: number;
+  plan: number;
+  precio: number;
+  inicioEn: string;
+  finEn: string;
+  anuncio: { id: number; titulo: string; publicador: { nombre: string } };
+}
+
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -86,6 +95,24 @@ interface ImpulsoPendiente {
 
       <div class="encabezado-seccion">
         <div>
+          <h2>Impulsos activos</h2>
+          <p class="subtitulo">{{ impulsosActivos.length }} impulso(s) activo(s)</p>
+        </div>
+      </div>
+      <div *ngFor="let impulso of impulsosActivos" class="tarjeta">
+        <div class="fila-tarjeta">
+          <p class="precio">{{ impulso.anuncio.titulo }}</p>
+          <span class="chip">Plan {{ impulso.plan }} dias - Bs. {{ impulso.precio }}</span>
+        </div>
+        <p class="texto-suave">Publicador: {{ impulso.anuncio.publicador.nombre }}</p>
+        <p class="texto-suave">
+          Vigente hasta: {{ impulso.finEn | date: 'dd/MM/yyyy' }}
+        </p>
+      </div>
+      <p class="texto-suave" *ngIf="!impulsosActivos.length">No hay impulsos activos por el momento.</p>
+
+      <div class="encabezado-seccion">
+        <div>
           <h2>Usuarios</h2>
           <p class="subtitulo">{{ usuarios.length }} usuario(s)</p>
         </div>
@@ -115,6 +142,7 @@ export class AdminComponent implements OnInit {
   reportes: Reporte[] = [];
   usuarios: Usuario[] = [];
   impulsosPendientes: ImpulsoPendiente[] = [];
+  impulsosActivos: ImpulsoActivo[] = [];
 
   constructor(
     private readonly http: HttpClient,
@@ -125,6 +153,7 @@ export class AdminComponent implements OnInit {
     this.cargarReportes();
     this.cargarUsuarios();
     this.cargarImpulsosPendientes();
+    this.cargarImpulsosActivos();
   }
 
   private cargarImpulsosPendientes(): void {
@@ -133,10 +162,19 @@ export class AdminComponent implements OnInit {
       .subscribe((res) => (this.impulsosPendientes = res));
   }
 
+  private cargarImpulsosActivos(): void {
+    this.http
+      .get<ImpulsoActivo[]>(`${this.apiUrl}/impulsos/activos`, { headers: this.cabeceras() })
+      .subscribe((res) => (this.impulsosActivos = res));
+  }
+
   activarImpulso(id: number): void {
     this.http
       .patch(`${this.apiUrl}/impulsos/${id}/activar`, {}, { headers: this.cabeceras() })
-      .subscribe(() => this.cargarImpulsosPendientes());
+      .subscribe(() => {
+        this.cargarImpulsosPendientes();
+        this.cargarImpulsosActivos();
+      });
   }
 
   rechazarImpulso(id: number): void {
