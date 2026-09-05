@@ -10,7 +10,7 @@ import { textractClient, rekognitionClient } from './aws.client';
 
 const UMBRAL_SIMILITUD = 90;
 const INTENTOS_MAXIMOS = 3;
-const CLAVE_CIFRADO = Buffer.from((process.env.JWT_SECRET || 'cambiar_este_secreto').padEnd(32, '0').slice(0, 32));
+const CLAVE_CIFRADO = Buffer.from((process.env.CI_CIFRADO_SECRET || 'cambiar_este_secreto').padEnd(32, '0').slice(0, 32));
 
 @Injectable()
 export class VerificacionService {
