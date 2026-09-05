@@ -5,7 +5,7 @@ import { Anuncio, TipoAnuncio } from './anuncio.entity';
 import { AlertaService } from '../alerta/alerta.service';
 import { NotificacionService } from '../notificacion/notificacion.service';
 
-const DIAS_VENCIMIENTO = 60;
+export const DIAS_VENCIMIENTO = 60;
 const LIMITE_ANUNCIOS_ACTIVOS_GRATIS = 1;
 const CAMPOS_COMPLETITUD: (keyof Anuncio)[] = [
   'titulo',

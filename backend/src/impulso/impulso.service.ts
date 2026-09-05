@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EstadoImpulso, Impulso, PlanImpulso } from './impulso.entity';
 import { Anuncio } from '../anuncio/anuncio.entity';
-import { AnuncioService } from '../anuncio/anuncio.service';
+import { AnuncioService, DIAS_VENCIMIENTO } from '../anuncio/anuncio.service';
 import { AlmacenamientoService } from '../almacenamiento/almacenamiento.service';
 
 export const PLANES_IMPULSO: Record<PlanImpulso, { dias: number; precio: number; fotosMax: number; portada: boolean }> = {
@@ -122,7 +122,9 @@ export class ImpulsoService {
       const mitad = new Date(impulso.inicioEn);
       mitad.setDate(mitad.getDate() + 15);
       if (ahora >= mitad) {
-        await this.anuncioRepo.update(impulso.anuncio.id, { actualizadoEn: ahora });
+        const nuevoVenceEn = new Date(ahora);
+        nuevoVenceEn.setDate(nuevoVenceEn.getDate() + DIAS_VENCIMIENTO);
+        await this.anuncioRepo.update(impulso.anuncio.id, { venceEn: nuevoVenceEn });
         impulso.reimpulsoHecho = true;
         await this.impulsoRepo.save(impulso);
         contador++;
