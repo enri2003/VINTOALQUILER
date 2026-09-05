@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Alerta } from './alerta.entity';
@@ -37,10 +37,13 @@ export class AlertaService {
 
   async actualizar(id: number, usuarioId: number, datos: DatosAlerta) {
     const { zonaId, ...resto } = datos;
-    await this.alertaRepo.update(
+    const resultado = await this.alertaRepo.update(
       { id, usuario: { id: usuarioId } as any },
       { ...resto, zona: zonaId ? ({ id: zonaId } as any) : undefined },
     );
+    if (!resultado.affected) {
+      throw new ForbiddenException('No tienes permiso para modificar esta alerta');
+    }
     return this.alertaRepo.findOne({ where: { id }, relations: ['zona'] });
   }
 
