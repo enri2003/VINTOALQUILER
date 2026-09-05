@@ -14,6 +14,12 @@ interface PrecioAgrupado {
   totalAnuncios: string;
 }
 
+interface OfertaDemanda {
+  zona: string;
+  oferta: number;
+  demanda: number;
+}
+
 @Component({
   selector: 'app-observatorio',
   standalone: true,
@@ -33,14 +39,47 @@ interface PrecioAgrupado {
       <div *ngFor="let fila of porTipo">
         <p>{{ fila.tipo }}: Bs. {{ fila.precioPromedio | number: '1.0-0' }}</p>
       </div>
+
+      <h2>Oferta y demanda por zona</h2>
+      <table class="tabla-oferta-demanda" *ngIf="ofertaDemanda.length">
+        <thead>
+          <tr>
+            <th>Zona</th>
+            <th>Oferta (anuncios activos)</th>
+            <th>Demanda (favoritos + contactos)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let fila of ofertaDemanda">
+            <td>{{ fila.zona }}</td>
+            <td>{{ fila.oferta }}</td>
+            <td>{{ fila.demanda }}</td>
+          </tr>
+        </tbody>
+      </table>
     </section>
   `,
+  styles: [
+    `
+      .tabla-oferta-demanda {
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      .tabla-oferta-demanda th,
+      .tabla-oferta-demanda td {
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--borde, #E2E6EA);
+        text-align: left;
+      }
+    `,
+  ],
 })
 export class ObservatorioComponent implements OnInit {
   private readonly apiUrl = '';
   indicadores?: Indicadores;
   porZona: PrecioAgrupado[] = [];
   porTipo: PrecioAgrupado[] = [];
+  ofertaDemanda: OfertaDemanda[] = [];
 
   constructor(private readonly http: HttpClient) {}
 
@@ -54,5 +93,8 @@ export class ObservatorioComponent implements OnInit {
     this.http
       .get<PrecioAgrupado[]>(`${this.apiUrl}/observatorio/precio-por-tipo`)
       .subscribe((res) => (this.porTipo = res));
+    this.http
+      .get<OfertaDemanda[]>(`${this.apiUrl}/observatorio/oferta-demanda`)
+      .subscribe((res) => (this.ofertaDemanda = res));
   }
 }

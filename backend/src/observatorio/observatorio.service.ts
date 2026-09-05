@@ -46,4 +46,21 @@ export class ObservatorioService {
       .groupBy('anuncio.tipo')
       .getRawMany();
   }
+
+  ofertaDemandaPorZona() {
+    return this.anuncioRepo.query(`
+      SELECT
+        zona.nombre AS zona,
+        COUNT(DISTINCT anuncio.id)::int AS oferta,
+        COALESCE(SUM(
+          (SELECT COUNT(*) FROM contacto WHERE contacto."anuncioId" = anuncio.id) +
+          (SELECT COUNT(*) FROM favorito WHERE favorito."anuncioId" = anuncio.id)
+        ), 0)::int AS demanda
+      FROM anuncio
+      LEFT JOIN zona ON zona.id = anuncio."zonaId"
+      WHERE anuncio.estado = 'disponible'
+      GROUP BY zona.nombre
+      ORDER BY zona.nombre
+    `);
+  }
 }

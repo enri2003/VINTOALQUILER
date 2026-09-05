@@ -19,4 +19,9 @@ export class ObservatorioController {
   precioPorTipo() {
     return this.observatorioService.precioPorTipo();
   }
+
+  @Get('oferta-demanda')
+  ofertaDemanda() {
+    return this.observatorioService.ofertaDemandaPorZona();
+  }
 }
