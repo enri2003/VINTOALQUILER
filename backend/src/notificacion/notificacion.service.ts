@@ -18,6 +18,12 @@ export class NotificacionService {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      // Solo para desarrollo local: algunos antivirus (Avast, McAfee) interceptan TLS
+      // con un certificado propio que Node no reconoce. En produccion esta variable
+      // no debe definirse, para que la verificacion del certificado siga activa.
+      tls: {
+        rejectUnauthorized: process.env.SMTP_TLS_REJECT_UNAUTHORIZED !== 'false',
+      },
     });
   }
 
