@@ -13,6 +13,7 @@ export interface Anuncio {
   fotos: { url: string }[];
   creadoEn?: string;
   enPortada?: boolean;
+  estado?: string;
   publicador?: { verificado: boolean };
 }
 
@@ -61,6 +62,14 @@ export class AnuncioService {
 
   misAnuncios(): Observable<Anuncio[]> {
     return this.http.get<Anuncio[]>(`${this.apiUrl}/anuncios/mios`, { headers: this.cabeceras() });
+  }
+
+  actualizar(id: number, datos: Partial<Anuncio>): Observable<Anuncio> {
+    return this.http.patch<Anuncio>(`${this.apiUrl}/anuncios/${id}`, datos, { headers: this.cabeceras() });
+  }
+
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/anuncios/${id}`, { headers: this.cabeceras() });
   }
 
   subirFotos(anuncioId: number, archivos: File[]): Observable<{ url: string }[]> {
