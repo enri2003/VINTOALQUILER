@@ -6,11 +6,14 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { ImpulsoService, PLANES_IMPULSO } from './impulso.service';
@@ -26,6 +29,16 @@ export class ImpulsoController {
   @Get('planes')
   planes() {
     return PLANES_IMPULSO;
+  }
+
+  @Get('accion')
+  async accionPorCorreo(@Query('token') token: string, @Res() res: Response) {
+    try {
+      const resultado = await this.impulsoService.ejecutarAccionPorToken(token);
+      res.status(200).send(paginaResultado(resultado.mensaje, true));
+    } catch (error: any) {
+      res.status(400).send(paginaResultado(error.message || 'No se pudo procesar la accion.', false));
+    }
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -71,4 +84,14 @@ export class ImpulsoController {
   rechazar(@Param('id') id: string, @Body() datos: RechazarImpulsoDto) {
     return this.impulsoService.rechazar(Number(id), datos.motivo);
   }
+}
+
+function paginaResultado(mensaje: string, exito: boolean): string {
+  return `<!doctype html>
+<html lang="es"><head><meta charset="utf-8" />
+<title>VintoAlquiler</title>
+<style>body{font-family:sans-serif;background:#FBF1E3;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
+.tarjeta{background:#fff;padding:32px;border-radius:16px;max-width:420px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.08);}
+.icono{font-size:40px;}</style></head>
+<body><div class="tarjeta"><div class="icono">${exito ? '✅' : '⚠️'}</div><p>${mensaje}</p></div></body></html>`;
 }

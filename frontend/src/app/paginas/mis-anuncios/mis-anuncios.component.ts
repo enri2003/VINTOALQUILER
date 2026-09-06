@@ -31,7 +31,11 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
             {{ anuncio.estado === 'ocupado' ? 'Marcar disponible' : 'Marcar ocupado' }}
           </button>
           <button class="boton-secundario" (click)="eliminar(anuncio)">Eliminar</button>
-          <button class="boton-secundario" (click)="alternarFormulario(anuncio.id)">
+          <button
+            class="boton-secundario"
+            (click)="alternarFormulario(anuncio.id)"
+            *ngIf="!impulsoActivo(anuncio.id)"
+          >
             {{ formularioAbierto === anuncio.id ? 'Cancelar' : 'Impulsar anuncio' }}
           </button>
         </div>

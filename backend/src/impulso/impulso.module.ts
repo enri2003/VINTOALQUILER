@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
 import { Impulso } from './impulso.entity';
 import { Anuncio } from '../anuncio/anuncio.entity';
 import { ImpulsoService } from './impulso.service';
@@ -15,6 +16,10 @@ import { NotificacionModule } from '../notificacion/notificacion.module';
     AnuncioModule,
     AlmacenamientoModule,
     NotificacionModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'cambiar_este_secreto',
+      signOptions: { expiresIn: '3d' },
+    }),
   ],
   controllers: [ImpulsoController],
   providers: [ImpulsoService, ImpulsoTareas],

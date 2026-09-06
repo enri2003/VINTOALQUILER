@@ -1,11 +1,14 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { EstadoImpulso, Impulso, PlanImpulso } from './impulso.entity';
 import { Anuncio } from '../anuncio/anuncio.entity';
 import { AnuncioService, DIAS_VENCIMIENTO } from '../anuncio/anuncio.service';
 import { AlmacenamientoService } from '../almacenamiento/almacenamiento.service';
 import { NotificacionService } from '../notificacion/notificacion.service';
+
+type AccionImpulso = 'activar' | 'rechazar';
 
 export const PLANES_IMPULSO: Record<PlanImpulso, { dias: number; precio: number; fotosMax: number; portada: boolean }> = {
   7: { dias: 7, precio: 20, fotosMax: 8, portada: false },
@@ -25,7 +28,32 @@ export class ImpulsoService {
     private readonly anuncioService: AnuncioService,
     private readonly almacenamientoService: AlmacenamientoService,
     private readonly notificacionService: NotificacionService,
+    private readonly jwtService: JwtService,
   ) {}
+
+  private generarEnlaceAccion(impulsoId: number, accion: AccionImpulso): string {
+    const token = this.jwtService.sign({ impulsoId, accion, proposito: 'accion-impulso' });
+    const baseUrl = process.env.API_PUBLIC_URL || 'http://localhost:3000';
+    return `${baseUrl}/impulsos/accion?token=${token}`;
+  }
+
+  async ejecutarAccionPorToken(token: string): Promise<{ mensaje: string }> {
+    let payload: { impulsoId: number; accion: AccionImpulso; proposito: string };
+    try {
+      payload = this.jwtService.verify(token);
+    } catch {
+      throw new BadRequestException('El enlace es invalido o ya expiro. Ingresa al panel de administracion.');
+    }
+    if (payload.proposito !== 'accion-impulso') {
+      throw new BadRequestException('Enlace invalido.');
+    }
+    if (payload.accion === 'activar') {
+      await this.activar(payload.impulsoId);
+      return { mensaje: 'Impulso activado correctamente.' };
+    }
+    await this.rechazar(payload.impulsoId, 'Rechazado desde el enlace del correo');
+    return { mensaje: 'Impulso rechazado correctamente.' };
+  }
 
   async solicitar(
     anuncioId: number,
@@ -58,13 +86,21 @@ export class ImpulsoService {
     const guardado = await this.impulsoRepo.save(impulso);
 
     if (process.env.ADMIN_EMAIL) {
+      const enlaceActivar = this.generarEnlaceAccion(guardado.id, 'activar');
+      const enlaceRechazar = this.generarEnlaceAccion(guardado.id, 'rechazar');
       this.notificacionService
         .enviarCorreo(
           process.env.ADMIN_EMAIL,
           'Nueva solicitud de Impulso pendiente de pago',
           `<p>Se registro una nueva solicitud de Impulso.</p>
            <p><strong>${anuncio.titulo}</strong> · Plan ${plan} dias · Bs. ${configuracion.precio}</p>
-           <p>Revisa el comprobante y activala desde el panel de administracion.</p>`,
+           <p><a href="${comprobanteUrl}">Ver comprobante</a></p>
+           <p>
+             <a href="${enlaceActivar}" style="color:#2e7d32;font-weight:bold;">Activar impulso</a>
+             &nbsp;·&nbsp;
+             <a href="${enlaceRechazar}" style="color:#c62828;font-weight:bold;">Rechazar</a>
+           </p>
+           <p style="color:#888;font-size:12px;">Estos enlaces son de un solo uso y expiran en 3 dias. Verifica el pago en tu banco antes de activar.</p>`,
         )
         .catch((error) => this.logger.error('No se pudo notificar al admin sobre el nuevo impulso', error));
     }
