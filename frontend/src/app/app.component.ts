@@ -20,14 +20,14 @@ const RUTAS_SIN_NAV = ['/login', '/registro'];
       <nav class="nav-principal">
         <a routerLink="/" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
         <a routerLink="/explorar" routerLinkActive="activo">Buscar</a>
-        <a routerLink="/publicar" routerLinkActive="activo">Publicar aviso</a>
         <a routerLink="/mapa" routerLinkActive="activo">Mapa</a>
         <a routerLink="/observatorio" routerLinkActive="activo">Datos</a>
-        <ng-container *ngIf="authService.estaAutenticado()">
+        <ng-container *ngIf="authService.esInteresado()">
           <a routerLink="/favoritos" routerLinkActive="activo">Favoritos</a>
           <a routerLink="/alertas" routerLinkActive="activo">Alertas</a>
-          <a routerLink="/mis-anuncios" routerLinkActive="activo">Mis anuncios</a>
         </ng-container>
+        <a *ngIf="authService.esPublicador()" routerLink="/mis-anuncios" routerLinkActive="activo">Mis anuncios</a>
+        <a *ngIf="authService.esPublicador()" routerLink="/publicar" routerLinkActive="activo">Publicar aviso</a>
         <a *ngIf="authService.esAdmin()" routerLink="/admin" routerLinkActive="activo">Admin</a>
       </nav>
 
@@ -55,7 +55,7 @@ const RUTAS_SIN_NAV = ['/login', '/registro'];
         <span class="icono">◎</span>
         Mapa
       </a>
-      <a routerLink="/favoritos" routerLinkActive="activo">
+      <a *ngIf="authService.esInteresado()" routerLink="/favoritos" routerLinkActive="activo">
         <span class="icono">♡</span>
         Favoritos
       </a>

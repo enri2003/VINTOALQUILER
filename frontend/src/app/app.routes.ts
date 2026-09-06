@@ -18,6 +18,8 @@ import { ObservatorioComponent } from './paginas/observatorio/observatorio.compo
 import { AdminComponent } from './paginas/admin/admin.component';
 import { authGuard } from './guardias/auth.guard';
 import { adminGuard } from './guardias/admin.guard';
+import { interesadoGuard } from './guardias/interesado.guard';
+import { publicadorGuard } from './guardias/publicador.guard';
 
 export const routes: Routes = [
   { path: '', component: ExplorarComponent },
@@ -25,14 +27,14 @@ export const routes: Routes = [
   { path: 'registro', component: RegistroComponent },
   { path: 'explorar', component: ExplorarComponent },
   { path: 'anuncio/:id', component: DetalleComponent },
-  { path: 'publicar', component: PublicarComponent, canActivate: [authGuard] },
-  { path: 'mis-anuncios', component: MisAnunciosComponent, canActivate: [authGuard] },
+  { path: 'publicar', component: PublicarComponent, canActivate: [authGuard, publicadorGuard] },
+  { path: 'mis-anuncios', component: MisAnunciosComponent, canActivate: [authGuard, publicadorGuard] },
   { path: 'verificacion', component: VerificacionComponent, canActivate: [authGuard] },
   { path: 'anuncio/:id/reportar', component: ReportarComponent },
-  { path: 'anuncio/:id/contacto', component: ContactoComponent, canActivate: [authGuard] },
-  { path: 'favoritos', component: FavoritosComponent, canActivate: [authGuard] },
-  { path: 'comparacion', component: ComparacionComponent, canActivate: [authGuard] },
-  { path: 'alertas', component: AlertasComponent, canActivate: [authGuard] },
+  { path: 'anuncio/:id/contacto', component: ContactoComponent, canActivate: [authGuard, interesadoGuard] },
+  { path: 'favoritos', component: FavoritosComponent, canActivate: [authGuard, interesadoGuard] },
+  { path: 'comparacion', component: ComparacionComponent, canActivate: [authGuard, interesadoGuard] },
+  { path: 'alertas', component: AlertasComponent, canActivate: [authGuard, interesadoGuard] },
   { path: 'mapa', component: MapaComponent },
   { path: 'planes', component: PlanesComponent, canActivate: [authGuard] },
   { path: 'estadisticas', component: EstadisticasComponent, canActivate: [authGuard] },

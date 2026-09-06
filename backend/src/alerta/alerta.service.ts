@@ -29,6 +29,9 @@ export class AlertaService {
 
   async crear(usuarioId: number, datos: DatosAlerta) {
     const usuario = await this.usuarioService.buscarPorId(usuarioId);
+    if (usuario?.rol !== 'interesado') {
+      throw new ForbiddenException('Solo los interesados pueden crear alertas');
+    }
     if (!usuario?.verificado) {
       throw new ForbiddenException('Debes verificar tu identidad para crear alertas');
     }

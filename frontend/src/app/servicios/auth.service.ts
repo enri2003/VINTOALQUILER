@@ -55,6 +55,14 @@ export class AuthService {
     return this.obtenerPayload()?.rol === 'admin';
   }
 
+  esInteresado(): boolean {
+    return this.obtenerPayload()?.rol === 'interesado';
+  }
+
+  esPublicador(): boolean {
+    return this.obtenerPayload()?.rol === 'publicador';
+  }
+
   private obtenerPayload(): PayloadToken | null {
     const token = this.obtenerToken();
     if (!token) return null;

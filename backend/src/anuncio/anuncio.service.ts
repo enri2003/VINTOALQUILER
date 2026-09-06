@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Anuncio, TipoAnuncio } from './anuncio.entity';
 import { AlertaService } from '../alerta/alerta.service';
 import { NotificacionService } from '../notificacion/notificacion.service';
+import { UsuarioService } from '../usuario/usuario.service';
 
 export const DIAS_VENCIMIENTO = 60;
 const LIMITE_ANUNCIOS_ACTIVOS_GRATIS = 1;
@@ -43,6 +44,7 @@ export class AnuncioService {
     private readonly anuncioRepo: Repository<Anuncio>,
     private readonly alertaService: AlertaService,
     private readonly notificacionService: NotificacionService,
+    private readonly usuarioService: UsuarioService,
   ) {}
 
   async listar(filtros: {
@@ -104,6 +106,10 @@ export class AnuncioService {
   }
 
   async crear(publicadorId: number, datos: DatosAnuncio) {
+    const usuario = await this.usuarioService.buscarPorId(publicadorId);
+    if (usuario?.rol !== 'publicador') {
+      throw new BadRequestException('Solo los publicadores pueden publicar anuncios');
+    }
     const activos = await this.anuncioRepo.count({
       where: { publicador: { id: publicadorId } as any, estado: 'disponible' },
     });

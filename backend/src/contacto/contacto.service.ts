@@ -17,6 +17,9 @@ export class ContactoService {
 
   async solicitar(anuncioId: number, interesadoId: number) {
     const interesado = await this.usuarioService.buscarPorId(interesadoId);
+    if (interesado?.rol !== 'interesado') {
+      throw new ForbiddenException('Solo los interesados pueden contactar publicadores');
+    }
     if (!interesado?.verificado) {
       throw new ForbiddenException('Debes verificar tu identidad para contactar');
     }

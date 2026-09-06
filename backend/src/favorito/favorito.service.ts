@@ -21,6 +21,9 @@ export class FavoritoService {
 
   async agregar(usuarioId: number, anuncioId: number) {
     const usuario = await this.usuarioService.buscarPorId(usuarioId);
+    if (usuario?.rol !== 'interesado') {
+      throw new ForbiddenException('Solo los interesados pueden guardar favoritos');
+    }
     if (!usuario?.verificado) {
       throw new ForbiddenException('Debes verificar tu identidad para guardar favoritos');
     }
