@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Alerta } from './alerta.entity';
 import { TipoAnuncio } from '../anuncio/anuncio.entity';
+import { UsuarioService } from '../usuario/usuario.service';
 
 interface DatosAlerta {
   tipo?: TipoAnuncio;
@@ -16,6 +17,7 @@ export class AlertaService {
   constructor(
     @InjectRepository(Alerta)
     private readonly alertaRepo: Repository<Alerta>,
+    private readonly usuarioService: UsuarioService,
   ) {}
 
   listar(usuarioId: number) {
@@ -25,7 +27,11 @@ export class AlertaService {
     });
   }
 
-  crear(usuarioId: number, datos: DatosAlerta) {
+  async crear(usuarioId: number, datos: DatosAlerta) {
+    const usuario = await this.usuarioService.buscarPorId(usuarioId);
+    if (!usuario?.verificado) {
+      throw new ForbiddenException('Debes verificar tu identidad para crear alertas');
+    }
     const { zonaId, ...resto } = datos;
     const alerta = this.alertaRepo.create({
       ...resto,
