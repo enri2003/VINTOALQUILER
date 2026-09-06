@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EstadoImpulso, Impulso, PlanImpulso } from './impulso.entity';
 import { Anuncio } from '../anuncio/anuncio.entity';
 import { AnuncioService, DIAS_VENCIMIENTO } from '../anuncio/anuncio.service';
 import { AlmacenamientoService } from '../almacenamiento/almacenamiento.service';
+import { NotificacionService } from '../notificacion/notificacion.service';
 
 export const PLANES_IMPULSO: Record<PlanImpulso, { dias: number; precio: number; fotosMax: number; portada: boolean }> = {
   7: { dias: 7, precio: 20, fotosMax: 8, portada: false },
@@ -14,6 +15,8 @@ export const PLANES_IMPULSO: Record<PlanImpulso, { dias: number; precio: number;
 
 @Injectable()
 export class ImpulsoService {
+  private readonly logger = new Logger(ImpulsoService.name);
+
   constructor(
     @InjectRepository(Impulso)
     private readonly impulsoRepo: Repository<Impulso>,
@@ -21,6 +24,7 @@ export class ImpulsoService {
     private readonly anuncioRepo: Repository<Anuncio>,
     private readonly anuncioService: AnuncioService,
     private readonly almacenamientoService: AlmacenamientoService,
+    private readonly notificacionService: NotificacionService,
   ) {}
 
   async solicitar(
@@ -51,7 +55,21 @@ export class ImpulsoService {
       comprobanteUrl,
       estado: 'pendiente',
     });
-    return this.impulsoRepo.save(impulso);
+    const guardado = await this.impulsoRepo.save(impulso);
+
+    if (process.env.ADMIN_EMAIL) {
+      this.notificacionService
+        .enviarCorreo(
+          process.env.ADMIN_EMAIL,
+          'Nueva solicitud de Impulso pendiente de pago',
+          `<p>Se registro una nueva solicitud de Impulso.</p>
+           <p><strong>${anuncio.titulo}</strong> · Plan ${plan} dias · Bs. ${configuracion.precio}</p>
+           <p>Revisa el comprobante y activala desde el panel de administracion.</p>`,
+        )
+        .catch((error) => this.logger.error('No se pudo notificar al admin sobre el nuevo impulso', error));
+    }
+
+    return guardado;
   }
 
   listarMios(publicadorId: number): Promise<Impulso[]> {

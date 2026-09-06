@@ -7,9 +7,15 @@ import { ImpulsoController } from './impulso.controller';
 import { ImpulsoTareas } from './impulso.tareas';
 import { AnuncioModule } from '../anuncio/anuncio.module';
 import { AlmacenamientoModule } from '../almacenamiento/almacenamiento.module';
+import { NotificacionModule } from '../notificacion/notificacion.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Impulso, Anuncio]), AnuncioModule, AlmacenamientoModule],
+  imports: [
+    TypeOrmModule.forFeature([Impulso, Anuncio]),
+    AnuncioModule,
+    AlmacenamientoModule,
+    NotificacionModule,
+  ],
   controllers: [ImpulsoController],
   providers: [ImpulsoService, ImpulsoTareas],
 })
