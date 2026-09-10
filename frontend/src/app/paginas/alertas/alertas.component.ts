@@ -4,11 +4,17 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../servicios/auth.service';
 
+interface Zona {
+  id: number;
+  nombre: string;
+}
+
 interface Alerta {
   id: number;
   tipo: string;
   precioMax: number;
   activa: boolean;
+  zona?: Zona;
 }
 
 @Component({
@@ -24,11 +30,19 @@ interface Alerta {
           <option value="garzonier">Garzonier</option>
           <option value="departamento">Departamento</option>
         </select>
+        <select name="zonaId" [(ngModel)]="zonaId">
+          <option [ngValue]="null">Todas las zonas</option>
+          <option *ngFor="let zona of zonas" [ngValue]="zona.id">{{ zona.nombre }}</option>
+        </select>
         <input type="number" name="precioMax" placeholder="Precio maximo" [(ngModel)]="precioMax" />
         <button type="submit">Crear alerta</button>
       </form>
+      <p class="mensaje-error" *ngIf="error">{{ error }}</p>
       <div *ngFor="let alerta of alertas" class="tarjeta">
-        <p>{{ alerta.tipo }} hasta Bs. {{ alerta.precioMax }}</p>
+        <p>
+          {{ alerta.tipo }} hasta Bs. {{ alerta.precioMax }}
+          <ng-container *ngIf="alerta.zona"> en {{ alerta.zona.nombre }}</ng-container>
+        </p>
         <p class="texto-suave">Estado: {{ alerta.activa ? 'Activa' : 'Desactivada' }}</p>
         <button class="boton-secundario" (click)="alternarActiva(alerta)">
           {{ alerta.activa ? 'Desactivar' : 'Activar' }}
@@ -41,8 +55,11 @@ interface Alerta {
 export class AlertasComponent implements OnInit {
   private readonly apiUrl = '/api';
   alertas: Alerta[] = [];
+  zonas: Zona[] = [];
   tipo = 'cuarto';
+  zonaId: number | null = null;
   precioMax: number | null = null;
+  error = '';
 
   constructor(
     private readonly http: HttpClient,
@@ -51,6 +68,7 @@ export class AlertasComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargar();
+    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
   }
 
   private cabeceras(): HttpHeaders {
@@ -64,9 +82,17 @@ export class AlertasComponent implements OnInit {
   }
 
   crear(): void {
+    this.error = '';
     this.http
-      .post(`${this.apiUrl}/alertas`, { tipo: this.tipo, precioMax: this.precioMax }, { headers: this.cabeceras() })
-      .subscribe(() => this.cargar());
+      .post(
+        `${this.apiUrl}/alertas`,
+        { tipo: this.tipo, zonaId: this.zonaId, precioMax: this.precioMax },
+        { headers: this.cabeceras() },
+      )
+      .subscribe({
+        next: () => this.cargar(),
+        error: (err) => (this.error = err?.error?.message || 'No se pudo crear la alerta.'),
+      });
   }
 
   alternarActiva(alerta: Alerta): void {
