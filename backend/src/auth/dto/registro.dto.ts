@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsEmail, IsIn, IsNumber, IsOptional, IsPositive, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsIn, IsNumber, IsOptional, IsPositive, IsString, Matches, MinLength } from 'class-validator';
 import { RolUsuario } from '../../usuario/usuario.entity';
 
 export class RegistroDto {
@@ -15,7 +15,7 @@ export class RegistroDto {
   clave: string;
 
   @IsString()
-  @MinLength(6)
+  @Matches(/^\+?\d{6,15}$/, { message: 'celular debe contener solo numeros (6 a 15 digitos)' })
   celular: string;
 
   @IsIn(['interesado', 'publicador'])

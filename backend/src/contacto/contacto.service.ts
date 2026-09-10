@@ -31,14 +31,18 @@ export class ContactoService {
       throw new NotFoundException('Anuncio no encontrado');
     }
 
+    const digitos = anuncio.publicador.celular.replace(/[^\d]/g, '');
+    if (digitos.length < 6) {
+      throw new NotFoundException('El publicador no tiene un numero de contacto valido registrado');
+    }
+    const numero = digitos.startsWith('591') ? digitos : `591${digitos}`;
+
     const contacto = this.contactoRepo.create({
       anuncio: { id: anuncioId } as any,
       interesado: { id: interesadoId } as any,
     });
     await this.contactoRepo.save(contacto);
 
-    const digitos = anuncio.publicador.celular.replace(/[^\d]/g, '');
-    const numero = digitos.startsWith('591') ? digitos : `591${digitos}`;
     const mensaje = encodeURIComponent(`Hola, vi tu anuncio "${anuncio.titulo}" en VintoAlquiler.`);
     return { enlaceWhatsapp: `https://wa.me/${numero}?text=${mensaje}` };
   }

@@ -19,7 +19,6 @@ const RUTAS_SIN_NAV = ['/login', '/registro'];
 
       <nav class="nav-principal">
         <a routerLink="/" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
-        <a routerLink="/explorar" routerLinkActive="activo">Buscar</a>
         <a routerLink="/mapa" routerLinkActive="activo">Mapa</a>
         <a routerLink="/observatorio" routerLinkActive="activo">Datos</a>
         <ng-container *ngIf="authService.esInteresado()">

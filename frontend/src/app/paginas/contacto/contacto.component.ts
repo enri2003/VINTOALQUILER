@@ -45,7 +45,8 @@ export class ContactoComponent {
       .post<{ enlaceWhatsapp: string }>(`${this.apiUrl}/contactos`, { anuncioId }, { headers })
       .subscribe({
         next: (res) => (this.enlaceWhatsapp = res.enlaceWhatsapp),
-        error: () => (this.error = 'Verifica tu identidad para contactar al publicador'),
+        error: (err) =>
+          (this.error = err?.error?.message || 'No se pudo generar el enlace de contacto.'),
       });
   }
 }
