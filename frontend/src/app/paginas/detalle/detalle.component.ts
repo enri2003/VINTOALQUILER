@@ -18,10 +18,31 @@ const ETIQUETAS_SENALES: Record<string, string> = {
   imports: [CommonModule, RouterLink],
   template: `
     <section class="detalle" *ngIf="anuncio">
+      <div class="galeria" *ngIf="anuncio.fotos?.length">
+        <img *ngFor="let foto of anuncio.fotos" [src]="foto.url" alt="" />
+      </div>
+
       <h1>{{ anuncio.titulo }}</h1>
-      <p class="precio">Bs. {{ anuncio.precio }}</p>
-      <p>{{ anuncio.zona?.nombre }}</p>
+      <p class="precio">Bs. {{ anuncio.precio }}/mes</p>
+      <p class="texto-suave">📍 {{ anuncio.referencia }} · {{ anuncio.zona?.nombre }}</p>
+      <p *ngIf="anuncio.direccionExacta" class="texto-suave">Dirección exacta: {{ anuncio.direccionExacta }}</p>
+
       <p>{{ anuncio.descripcion }}</p>
+
+      <div class="detalles-tecnicos">
+        <span class="chip">{{ anuncio.tipo }}</span>
+        <span class="chip" *ngIf="anuncio.ambientes">{{ anuncio.ambientes }} ambiente(s)</span>
+        <span class="chip" *ngIf="anuncio.superficieM2">{{ anuncio.superficieM2 }} m²</span>
+      </div>
+
+      <ul class="lista-servicios" *ngIf="anuncio.servicios?.length">
+        <li *ngFor="let servicio of anuncio.servicios">{{ servicio }}</li>
+      </ul>
+
+      <div class="condiciones">
+        <p *ngIf="anuncio.garantia"><strong>Garantía:</strong> {{ anuncio.garantia }}</p>
+        <p *ngIf="anuncio.contratoMinimo"><strong>Contrato mínimo:</strong> {{ anuncio.contratoMinimo }}</p>
+      </div>
 
       <div class="acciones" *ngIf="authService.esInteresado()">
         <button class="boton-secundario" (click)="alternarFavorito()">
@@ -46,6 +67,32 @@ const ETIQUETAS_SENALES: Record<string, string> = {
   `,
   styles: [
     `
+      .galeria {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        margin-bottom: 16px;
+      }
+      .galeria img {
+        height: 220px;
+        width: auto;
+        border-radius: 12px;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .detalles-tecnicos {
+        display: flex;
+        gap: 8px;
+        margin: 12px 0;
+        flex-wrap: wrap;
+      }
+      .lista-servicios {
+        margin: 8px 0;
+        padding-left: 18px;
+      }
+      .condiciones p {
+        margin: 4px 0;
+      }
       .acciones {
         display: flex;
         gap: 12px;

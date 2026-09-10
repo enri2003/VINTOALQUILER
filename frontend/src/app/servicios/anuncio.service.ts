@@ -15,6 +15,13 @@ export interface Anuncio {
   enPortada?: boolean;
   estado?: string;
   publicador?: { verificado: boolean };
+  referencia?: string;
+  direccionExacta?: string;
+  garantia?: string;
+  contratoMinimo?: string;
+  superficieM2?: number;
+  ambientes?: number;
+  servicios?: string[];
 }
 
 @Injectable({ providedIn: 'root' })
