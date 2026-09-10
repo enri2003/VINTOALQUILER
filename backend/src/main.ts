@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api');
 
   const origenesPermitidos = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((origen) => origen.trim())

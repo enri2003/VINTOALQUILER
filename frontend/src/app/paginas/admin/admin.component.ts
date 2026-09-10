@@ -138,7 +138,7 @@ interface ImpulsoActivo {
   `,
 })
 export class AdminComponent implements OnInit {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
   reportes: Reporte[] = [];
   usuarios: Usuario[] = [];
   impulsosPendientes: ImpulsoPendiente[] = [];

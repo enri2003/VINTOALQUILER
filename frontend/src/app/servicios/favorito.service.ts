@@ -6,7 +6,7 @@ import { Anuncio } from './anuncio.service';
 
 @Injectable({ providedIn: 'root' })
 export class FavoritoService {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
 
   constructor(
     private readonly http: HttpClient,

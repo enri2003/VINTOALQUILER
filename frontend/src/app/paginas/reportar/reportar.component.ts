@@ -21,7 +21,7 @@ import { ActivatedRoute } from '@angular/router';
   `,
 })
 export class ReportarComponent {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
   motivo = '';
   detalle = '';
   enviado = false;

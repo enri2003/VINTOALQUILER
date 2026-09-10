@@ -43,7 +43,7 @@ interface Zona {
   `,
 })
 export class PublicarComponent implements OnInit {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
   zonas: Zona[] = [];
   zonaId: number | null = null;
   tipo = 'cuarto';

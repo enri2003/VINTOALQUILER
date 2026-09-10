@@ -22,7 +22,7 @@ export interface Impulso {
 
 @Injectable({ providedIn: 'root' })
 export class ImpulsoService {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
 
   constructor(
     private readonly http: HttpClient,

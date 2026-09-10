@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class VerificacionService {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
 
   constructor(
     private readonly http: HttpClient,

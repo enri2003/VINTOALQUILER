@@ -26,7 +26,7 @@ import { AuthService } from '../../servicios/auth.service';
   `,
 })
 export class PlanesComponent implements OnInit {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
   plan = 'gratuito';
 
   constructor(

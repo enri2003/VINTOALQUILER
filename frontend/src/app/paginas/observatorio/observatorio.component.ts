@@ -75,7 +75,7 @@ interface OfertaDemanda {
   ],
 })
 export class ObservatorioComponent implements OnInit {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
   indicadores?: Indicadores;
   porZona: PrecioAgrupado[] = [];
   porTipo: PrecioAgrupado[] = [];

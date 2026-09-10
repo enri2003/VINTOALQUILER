@@ -34,7 +34,7 @@ export class ImpulsoService {
   private generarEnlaceAccion(impulsoId: number, accion: AccionImpulso): string {
     const token = this.jwtService.sign({ impulsoId, accion, proposito: 'accion-impulso' });
     const baseUrl = process.env.API_PUBLIC_URL || 'http://localhost:3000';
-    return `${baseUrl}/impulsos/accion?token=${token}`;
+    return `${baseUrl}/api/impulsos/accion?token=${token}`;
   }
 
   async ejecutarAccionPorToken(token: string): Promise<{ mensaje: string }> {

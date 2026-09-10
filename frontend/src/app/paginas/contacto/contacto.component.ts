@@ -28,7 +28,7 @@ import { AuthService } from '../../servicios/auth.service';
   `,
 })
 export class ContactoComponent {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
   enlaceWhatsapp = '';
   error = '';
 

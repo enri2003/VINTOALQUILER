@@ -14,7 +14,7 @@ interface PayloadToken {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
 
   constructor(private readonly http: HttpClient) {}
 

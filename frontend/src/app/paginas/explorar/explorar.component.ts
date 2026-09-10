@@ -168,7 +168,7 @@ const RANGOS_PRECIO = [
   `,
 })
 export class ExplorarComponent implements OnInit, AfterViewInit {
-  private readonly apiUrl = '';
+  private readonly apiUrl = '/api';
   private mapa?: maplibregl.Map;
   private mapaListo = false;
   private marcadores: maplibregl.Marker[] = [];
