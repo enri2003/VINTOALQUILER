@@ -12,6 +12,7 @@ import { SuscripcionModule } from '../suscripcion/suscripcion.module';
 import { AlertaModule } from '../alerta/alerta.module';
 import { NotificacionModule } from '../notificacion/notificacion.module';
 import { AlmacenamientoModule } from '../almacenamiento/almacenamiento.module';
+import { RecomendacionModule } from '../recomendacion/recomendacion.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AlmacenamientoModule } from '../almacenamiento/almacenamiento.module';
     AlertaModule,
     NotificacionModule,
     AlmacenamientoModule,
+    RecomendacionModule,
   ],
   controllers: [AnuncioController, FotoController],
   providers: [AnuncioService, FotoService, AnuncioTareas],

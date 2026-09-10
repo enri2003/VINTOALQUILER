@@ -14,6 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AnuncioService } from './anuncio.service';
 import { Anuncio } from './anuncio.entity';
 import { UsuarioService } from '../usuario/usuario.service';
+import { RecomendacionService } from '../recomendacion/recomendacion.service';
 import { CrearAnuncioDto } from './dto/crear-anuncio.dto';
 import { ActualizarAnuncioDto } from './dto/actualizar-anuncio.dto';
 import { ListarAnunciosDto } from './dto/listar-anuncios.dto';
@@ -42,6 +43,7 @@ export class AnuncioController {
   constructor(
     private readonly anuncioService: AnuncioService,
     private readonly usuarioService: UsuarioService,
+    private readonly recomendacionService: RecomendacionService,
   ) {}
 
   @Get()
@@ -64,6 +66,9 @@ export class AnuncioController {
   async detalle(@Param('id') id: string, @Req() req: any) {
     const anuncio = await this.anuncioService.buscarPorId(Number(id));
     const usuario = await this.usuarioService.buscarPorId(req.user?.id);
+    if (usuario?.rol === 'interesado') {
+      this.recomendacionService.registrarVista(usuario.id, anuncio.id).catch(() => undefined);
+    }
     return ocultarDireccion(anuncio, !!usuario?.verificado);
   }
 

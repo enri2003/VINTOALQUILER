@@ -10,5 +10,6 @@ import { RecomendacionController } from './recomendacion.controller';
   imports: [TypeOrmModule.forFeature([Vista, Anuncio, Favorito])],
   controllers: [RecomendacionController],
   providers: [RecomendacionService],
+  exports: [RecomendacionService],
 })
 export class RecomendacionModule {}

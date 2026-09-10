@@ -16,6 +16,7 @@ import { PlanesComponent } from './paginas/planes/planes.component';
 import { EstadisticasComponent } from './paginas/estadisticas/estadisticas.component';
 import { ObservatorioComponent } from './paginas/observatorio/observatorio.component';
 import { AdminComponent } from './paginas/admin/admin.component';
+import { RecomendadosComponent } from './paginas/recomendados/recomendados.component';
 import { authGuard } from './guardias/auth.guard';
 import { adminGuard } from './guardias/admin.guard';
 import { interesadoGuard } from './guardias/interesado.guard';
@@ -35,6 +36,7 @@ export const routes: Routes = [
   { path: 'favoritos', component: FavoritosComponent, canActivate: [authGuard, interesadoGuard] },
   { path: 'comparacion', component: ComparacionComponent, canActivate: [authGuard, interesadoGuard] },
   { path: 'alertas', component: AlertasComponent, canActivate: [authGuard, interesadoGuard] },
+  { path: 'recomendados', component: RecomendadosComponent, canActivate: [authGuard, interesadoGuard] },
   { path: 'mapa', component: MapaComponent },
   { path: 'planes', component: PlanesComponent, canActivate: [authGuard] },
   { path: 'estadisticas', component: EstadisticasComponent, canActivate: [authGuard] },

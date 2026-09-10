@@ -72,6 +72,10 @@ export class AnuncioService {
     return this.http.delete<void>(`${this.apiUrl}/anuncios/${id}`, { headers: this.cabeceras() });
   }
 
+  recomendados(): Observable<Anuncio[]> {
+    return this.http.get<Anuncio[]>(`${this.apiUrl}/recomendaciones`, { headers: this.cabeceras() });
+  }
+
   subirFotos(anuncioId: number, archivos: File[]): Observable<{ url: string }[]> {
     const formulario = new FormData();
     archivos.forEach((archivo) => formulario.append('fotos', archivo));

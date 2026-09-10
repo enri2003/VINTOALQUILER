@@ -25,6 +25,7 @@ const RUTAS_SIN_NAV = ['/login', '/registro'];
         <ng-container *ngIf="authService.esInteresado()">
           <a routerLink="/favoritos" routerLinkActive="activo">Favoritos</a>
           <a routerLink="/alertas" routerLinkActive="activo">Alertas</a>
+          <a routerLink="/recomendados" routerLinkActive="activo">Recomendados</a>
         </ng-container>
         <a *ngIf="authService.esPublicador()" routerLink="/mis-anuncios" routerLinkActive="activo">Mis anuncios</a>
         <a *ngIf="authService.esPublicador()" routerLink="/publicar" routerLinkActive="activo">Publicar aviso</a>
