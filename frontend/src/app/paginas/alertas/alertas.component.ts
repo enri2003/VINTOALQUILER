@@ -29,7 +29,12 @@ interface Alerta {
       </form>
       <div *ngFor="let alerta of alertas" class="tarjeta">
         <p>{{ alerta.tipo }} hasta Bs. {{ alerta.precioMax }}</p>
+        <p class="texto-suave">Estado: {{ alerta.activa ? 'Activa' : 'Desactivada' }}</p>
+        <button class="boton-secundario" (click)="alternarActiva(alerta)">
+          {{ alerta.activa ? 'Desactivar' : 'Activar' }}
+        </button>
       </div>
+      <p class="texto-suave" *ngIf="!alertas.length">Aun no tienes alertas configuradas.</p>
     </section>
   `,
 })
@@ -61,6 +66,12 @@ export class AlertasComponent implements OnInit {
   crear(): void {
     this.http
       .post(`${this.apiUrl}/alertas`, { tipo: this.tipo, precioMax: this.precioMax }, { headers: this.cabeceras() })
+      .subscribe(() => this.cargar());
+  }
+
+  alternarActiva(alerta: Alerta): void {
+    this.http
+      .patch(`${this.apiUrl}/alertas/${alerta.id}`, { activa: !alerta.activa }, { headers: this.cabeceras() })
       .subscribe(() => this.cargar());
   }
 }
