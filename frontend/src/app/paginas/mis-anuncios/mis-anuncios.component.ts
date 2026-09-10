@@ -27,6 +27,9 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
           <button class="boton-secundario" (click)="alternarEdicion(anuncio)">
             {{ anuncioEditando === anuncio.id ? 'Cancelar edicion' : 'Editar' }}
           </button>
+          <button class="boton-secundario" (click)="alternarFotos(anuncio.id)">
+            {{ gestionFotosAbierta === anuncio.id ? 'Cerrar fotos' : 'Gestionar fotos' }} ({{ anuncio.fotos.length }}/{{ anuncio.fotosMax || 5 }})
+          </button>
           <button class="boton-secundario" (click)="alternarOcupado(anuncio)">
             {{ anuncio.estado === 'ocupado' ? 'Marcar disponible' : 'Marcar ocupado' }}
           </button>
@@ -46,6 +49,30 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
           <textarea [(ngModel)]="edicionDescripcion" placeholder="Descripcion"></textarea>
           <button class="boton-secundario" (click)="guardarEdicion(anuncio)">Guardar cambios</button>
           <p class="mensaje-error" *ngIf="errorEdicion">{{ errorEdicion }}</p>
+        </div>
+
+        <div class="gestion-fotos" *ngIf="gestionFotosAbierta === anuncio.id">
+          <div class="miniaturas-fotos">
+            <div class="miniatura" *ngFor="let foto of anuncio.fotos">
+              <img [src]="foto.url" alt="" />
+              <button class="boton-quitar-foto" (click)="eliminarFoto(anuncio, foto.id)">Eliminar</button>
+            </div>
+          </div>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            [disabled]="anuncio.fotos.length >= (anuncio.fotosMax || 5)"
+            (change)="seleccionarFotosNuevas($event)"
+          />
+          <button
+            class="boton-secundario"
+            [disabled]="!fotosNuevas.length || subiendoFotos"
+            (click)="subirFotosNuevas(anuncio)"
+          >
+            {{ subiendoFotos ? 'Subiendo...' : 'Agregar fotos' }}
+          </button>
+          <p class="mensaje-error" *ngIf="errorFotos">{{ errorFotos }}</p>
         </div>
 
         <div class="formulario-impulso" *ngIf="formularioAbierto === anuncio.id">
@@ -71,6 +98,32 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
       <p class="texto-suave" *ngIf="!anuncios.length">Aun no tienes anuncios publicados.</p>
     </section>
   `,
+  styles: [
+    `
+      .miniaturas-fotos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .miniatura {
+        position: relative;
+        width: 110px;
+      }
+      .miniatura img {
+        width: 110px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block;
+      }
+      .boton-quitar-foto {
+        width: 100%;
+        margin-top: 4px;
+        font-size: 0.75rem;
+      }
+    `,
+  ],
 })
 export class MisAnunciosComponent implements OnInit {
   anuncios: Anuncio[] = [];
@@ -89,6 +142,11 @@ export class MisAnunciosComponent implements OnInit {
   edicionPrecio: number | null = null;
   edicionDescripcion = '';
   errorEdicion = '';
+
+  gestionFotosAbierta: number | null = null;
+  fotosNuevas: File[] = [];
+  subiendoFotos = false;
+  errorFotos = '';
 
   constructor(
     private readonly anuncioService: AnuncioService,
@@ -186,5 +244,37 @@ export class MisAnunciosComponent implements OnInit {
   eliminar(anuncio: Anuncio): void {
     if (!window.confirm(`¿Eliminar el anuncio "${anuncio.titulo}"? Esta accion no se puede deshacer.`)) return;
     this.anuncioService.eliminar(anuncio.id).subscribe(() => this.cargarAnuncios());
+  }
+
+  alternarFotos(anuncioId: number): void {
+    this.gestionFotosAbierta = this.gestionFotosAbierta === anuncioId ? null : anuncioId;
+    this.fotosNuevas = [];
+    this.errorFotos = '';
+  }
+
+  seleccionarFotosNuevas(evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    this.fotosNuevas = input.files ? Array.from(input.files) : [];
+  }
+
+  subirFotosNuevas(anuncio: Anuncio): void {
+    if (!this.fotosNuevas.length) return;
+    this.subiendoFotos = true;
+    this.errorFotos = '';
+    this.anuncioService.subirFotos(anuncio.id, this.fotosNuevas).subscribe({
+      next: () => {
+        this.subiendoFotos = false;
+        this.fotosNuevas = [];
+        this.cargarAnuncios();
+      },
+      error: (err) => {
+        this.subiendoFotos = false;
+        this.errorFotos = err?.error?.message || 'No se pudieron subir las fotos.';
+      },
+    });
+  }
+
+  eliminarFoto(anuncio: Anuncio, fotoId: number): void {
+    this.anuncioService.eliminarFoto(anuncio.id, fotoId).subscribe(() => this.cargarAnuncios());
   }
 }

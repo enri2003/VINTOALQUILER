@@ -10,10 +10,11 @@ export interface Anuncio {
   descripcion: string;
   precio: number;
   zona: { id: number; nombre: string };
-  fotos: { url: string }[];
+  fotos: { id: number; url: string }[];
   creadoEn?: string;
   enPortada?: boolean;
   estado?: string;
+  fotosMax?: number;
   publicador?: { verificado: boolean };
   referencia?: string;
   direccionExacta?: string;
@@ -83,10 +84,16 @@ export class AnuncioService {
     return this.http.get<Anuncio[]>(`${this.apiUrl}/recomendaciones`, { headers: this.cabeceras() });
   }
 
-  subirFotos(anuncioId: number, archivos: File[]): Observable<{ url: string }[]> {
+  subirFotos(anuncioId: number, archivos: File[]): Observable<{ id: number; url: string }[]> {
     const formulario = new FormData();
     archivos.forEach((archivo) => formulario.append('fotos', archivo));
-    return this.http.post<{ url: string }[]>(`${this.apiUrl}/anuncios/${anuncioId}/fotos`, formulario, {
+    return this.http.post<{ id: number; url: string }[]>(`${this.apiUrl}/anuncios/${anuncioId}/fotos`, formulario, {
+      headers: this.cabeceras(),
+    });
+  }
+
+  eliminarFoto(anuncioId: number, fotoId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/anuncios/${anuncioId}/fotos/${fotoId}`, {
       headers: this.cabeceras(),
     });
   }

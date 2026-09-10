@@ -10,6 +10,8 @@ interface Zona {
   nombre: string;
 }
 
+const LIMITE_FOTOS_GRATIS = 5;
+
 @Component({
   selector: 'app-publicar',
   standalone: true,
@@ -116,6 +118,9 @@ interface Zona {
         <label>
           Fotos (hasta 5 en el plan gratuito)
           <input type="file" accept="image/jpeg,image/png,image/webp" multiple (change)="seleccionarFotos($event)" />
+          <span class="ayuda-campo" *ngIf="fotosSeleccionadas.length">
+            {{ fotosSeleccionadas.length }} de {{ LIMITE_FOTOS_GRATIS }} fotos seleccionadas
+          </span>
         </label>
 
         <button type="submit" [disabled]="!zonaId || enviando">{{ enviando ? 'Publicando...' : 'Publicar' }}</button>
@@ -152,6 +157,7 @@ interface Zona {
   ],
 })
 export class PublicarComponent implements OnInit {
+  readonly LIMITE_FOTOS_GRATIS = LIMITE_FOTOS_GRATIS;
   private readonly apiUrl = '/api';
   zonas: Zona[] = [];
   zonaId: number | null = null;
@@ -179,7 +185,16 @@ export class PublicarComponent implements OnInit {
 
   seleccionarFotos(evento: Event): void {
     const input = evento.target as HTMLInputElement;
-    this.fotosSeleccionadas = input.files ? Array.from(input.files) : [];
+    const archivos = input.files ? Array.from(input.files) : [];
+    if (archivos.length > LIMITE_FOTOS_GRATIS) {
+      this.error = `Solo puedes subir hasta ${LIMITE_FOTOS_GRATIS} fotos en el plan gratuito. Seleccionaste ${archivos.length}, ninguna se guardo.`;
+      window.alert(this.error);
+      this.fotosSeleccionadas = [];
+      input.value = '';
+      return;
+    }
+    this.error = '';
+    this.fotosSeleccionadas = archivos;
   }
 
   enviar(): void {
@@ -206,9 +221,11 @@ export class PublicarComponent implements OnInit {
           }
           this.anuncioService.subirFotos(anuncio.id, this.fotosSeleccionadas).subscribe({
             next: () => this.router.navigate(['/mis-anuncios']),
-            error: () => {
+            error: (err) => {
               this.enviando = false;
-              this.error = 'El anuncio se publico, pero no se pudieron subir las fotos. Intenta subirlas de nuevo.';
+              this.error =
+                err?.error?.message ||
+                'El anuncio se publico, pero no se pudieron subir las fotos. Intenta subirlas de nuevo desde Mis anuncios.';
             },
           });
         },
