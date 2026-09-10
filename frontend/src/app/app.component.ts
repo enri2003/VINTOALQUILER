@@ -63,7 +63,7 @@ const RUTAS_SIN_NAV = ['/login', '/registro'];
         <span class="icono">▤</span>
         Datos
       </a>
-      <a [routerLink]="authService.estaAutenticado() ? '/mis-anuncios' : '/login'" routerLinkActive="activo">
+      <a [routerLink]="rutaPerfil()" routerLinkActive="activo">
         <span class="icono">◍</span>
         Perfil
       </a>
@@ -85,5 +85,12 @@ export class AppComponent {
   salir(): void {
     this.authService.cerrarSesion();
     this.router.navigate(['/']);
+  }
+
+  rutaPerfil(): string {
+    if (!this.authService.estaAutenticado()) return '/login';
+    if (this.authService.esPublicador()) return '/mis-anuncios';
+    if (this.authService.esAdmin()) return '/admin';
+    return '/verificacion';
   }
 }
