@@ -247,7 +247,7 @@ export class RegistroComponent {
         nombre: this.nombre,
         correo: this.correo,
         clave: this.clave,
-        celular: this.celular,
+        celular: this.celular.replace(/[\s()-]/g, ''),
         rol: this.rol,
         perfilHogar: this.rol === 'interesado' ? this.perfilHogar || undefined : undefined,
         presupuestoMax: this.rol === 'interesado' ? this.presupuestoMax || undefined : undefined,
