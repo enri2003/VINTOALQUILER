@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -40,5 +40,11 @@ export class AdminController {
   @Patch('usuarios/:id/activo')
   cambiarActivo(@Param('id') id: string, @Body() datos: CambiarActivoDto) {
     return this.usuarioService.cambiarActivo(Number(id), datos.activo);
+  }
+
+  @Post('tareas/vencimiento')
+  async ejecutarVencimiento() {
+    const cantidad = await this.anuncioService.pausarVencidos();
+    return { anunciosPausados: cantidad };
   }
 }

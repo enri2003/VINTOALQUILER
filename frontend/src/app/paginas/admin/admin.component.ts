@@ -113,6 +113,20 @@ interface ImpulsoActivo {
 
       <div class="encabezado-seccion">
         <div>
+          <h2>Mantenimiento</h2>
+          <p class="subtitulo">
+            Los anuncios vencidos se pausan automaticamente cada dia a medianoche. Tambien puedes
+            forzarlo ahora.
+          </p>
+        </div>
+      </div>
+      <button class="boton-secundario" (click)="ejecutarVencimiento()">
+        Pausar anuncios vencidos ahora
+      </button>
+      <p class="texto-suave" *ngIf="mensajeVencimiento">{{ mensajeVencimiento }}</p>
+
+      <div class="encabezado-seccion">
+        <div>
           <h2>Usuarios</h2>
           <p class="subtitulo">{{ usuarios.length }} usuario(s)</p>
         </div>
@@ -143,6 +157,7 @@ export class AdminComponent implements OnInit {
   usuarios: Usuario[] = [];
   impulsosPendientes: ImpulsoPendiente[] = [];
   impulsosActivos: ImpulsoActivo[] = [];
+  mensajeVencimiento = '';
 
   constructor(
     private readonly http: HttpClient,
@@ -204,6 +219,12 @@ export class AdminComponent implements OnInit {
     this.http
       .patch(`${this.apiUrl}/admin/anuncios/${anuncioId}/estado`, { estado }, { headers: this.cabeceras() })
       .subscribe(() => this.cargarReportes());
+  }
+
+  ejecutarVencimiento(): void {
+    this.http
+      .post<{ anunciosPausados: number }>(`${this.apiUrl}/admin/tareas/vencimiento`, {}, { headers: this.cabeceras() })
+      .subscribe((res) => (this.mensajeVencimiento = `${res.anunciosPausados} anuncio(s) pausados por vencimiento.`));
   }
 
   cambiarActivo(usuario: Usuario): void {
