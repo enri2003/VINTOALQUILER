@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import * as maplibregl from 'maplibre-gl';
 import { Anuncio, AnuncioService } from '../../servicios/anuncio.service';
+import { dispersarCoordenada } from '../../utilidades/coordenadas.util';
 
 interface Zona {
   id: number;
@@ -190,6 +191,10 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.tipo = this.route.snapshot.queryParamMap.get('tipo') || '';
+    const zonaParam = this.route.snapshot.queryParamMap.get('zonaId');
+    this.zonaId = zonaParam ? Number(zonaParam) : null;
+    const precioParam = this.route.snapshot.queryParamMap.get('precioMax');
+    this.precioMax = precioParam ? Number(precioParam) : null;
 
     this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
 
@@ -223,8 +228,9 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
         elemento.addEventListener('click', () => this.router.navigate(['/anuncio', anuncio.id]));
 
         const verificado = anuncio.publicador?.verificado;
+        const punto = dispersarCoordenada(Number(zona.latitud), Number(zona.longitud), anuncio.id);
         const marcador = new maplibregl.Marker({ element: elemento })
-          .setLngLat([zona.longitud, zona.latitud])
+          .setLngLat([punto.lng, punto.lat])
           .setPopup(
             new maplibregl.Popup({ offset: 24 }).setHTML(
               `<strong>${anuncio.titulo}</strong><br/>${anuncio.tipo.charAt(0).toUpperCase() + anuncio.tipo.slice(1)} · Bs ${anuncio.precio}/mes${verificado ? ' · <span style="color:#3E8E5B">✓ Verificado</span>' : ''}`,
@@ -253,7 +259,11 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
   buscar(): void {
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { tipo: this.tipo || undefined },
+      queryParams: {
+        tipo: this.tipo || undefined,
+        zonaId: this.zonaId || undefined,
+        precioMax: this.precioMax || undefined,
+      },
     });
     this.cargarAnuncios();
   }

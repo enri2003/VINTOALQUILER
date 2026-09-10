@@ -2,6 +2,7 @@ import { AfterViewInit, Component } from '@angular/core';
 import * as maplibregl from 'maplibre-gl';
 import { Router } from '@angular/router';
 import { AnuncioService } from '../../servicios/anuncio.service';
+import { dispersarCoordenada } from '../../utilidades/coordenadas.util';
 
 const CENTRO_VINTO: [number, number] = [-66.317, -17.397];
 const ICONO_CASA =
@@ -60,8 +61,9 @@ export class MapaComponent implements AfterViewInit {
         elemento.addEventListener('click', () => this.router.navigate(['/anuncio', anuncio.id]));
 
         const verificado = (anuncio as any).publicador?.verificado;
+        const punto = dispersarCoordenada(Number(zona.latitud), Number(zona.longitud), anuncio.id);
         new maplibregl.Marker({ element: elemento })
-          .setLngLat([zona.longitud, zona.latitud])
+          .setLngLat([punto.lng, punto.lat])
           .setPopup(
             new maplibregl.Popup({ offset: 24 }).setHTML(
               `<strong>${anuncio.titulo}</strong><br/>${capitalizar(anuncio.tipo)} · Bs ${anuncio.precio}/mes${verificado ? ' · <span style="color:#3E8E5B">✓ Verificado</span>' : ''}`,
