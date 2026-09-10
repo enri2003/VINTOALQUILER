@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { RolUsuario } from '../usuario/usuario.entity';
+import { UsuarioService } from '../usuario/usuario.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly usuarioService: UsuarioService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -14,6 +15,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: { sub: number; correo: string; rol: RolUsuario }) {
+    const usuario = await this.usuarioService.buscarPorId(payload.sub);
+    if (!usuario || !usuario.activo) {
+      throw new UnauthorizedException('Cuenta suspendida o inexistente');
+    }
     return { id: payload.sub, correo: payload.correo, rol: payload.rol };
   }
 }
