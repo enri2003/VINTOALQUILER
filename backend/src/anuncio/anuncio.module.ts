@@ -8,7 +8,6 @@ import { FotoController } from './foto.controller';
 import { FotoService } from './foto.service';
 import { AnuncioTareas } from './anuncio.tareas';
 import { UsuarioModule } from '../usuario/usuario.module';
-import { SuscripcionModule } from '../suscripcion/suscripcion.module';
 import { AlertaModule } from '../alerta/alerta.module';
 import { NotificacionModule } from '../notificacion/notificacion.module';
 import { AlmacenamientoModule } from '../almacenamiento/almacenamiento.module';
@@ -18,7 +17,6 @@ import { RecomendacionModule } from '../recomendacion/recomendacion.module';
   imports: [
     TypeOrmModule.forFeature([Anuncio, Foto]),
     UsuarioModule,
-    SuscripcionModule,
     AlertaModule,
     NotificacionModule,
     AlmacenamientoModule,

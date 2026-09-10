@@ -14,7 +14,6 @@ import { RiesgoModule } from './riesgo/riesgo.module';
 import { FavoritoModule } from './favorito/favorito.module';
 import { AlertaModule } from './alerta/alerta.module';
 import { RecomendacionModule } from './recomendacion/recomendacion.module';
-import { SuscripcionModule } from './suscripcion/suscripcion.module';
 import { ObservatorioModule } from './observatorio/observatorio.module';
 import { AdminModule } from './admin/admin.module';
 import { ImpulsoModule } from './impulso/impulso.module';
@@ -28,7 +27,6 @@ import { AlmacenamientoModule } from './almacenamiento/almacenamiento.module';
     UsuarioModule,
     AuthModule,
     ZonaModule,
-    SuscripcionModule,
     AnuncioModule,
     VerificacionModule,
     ReporteModule,

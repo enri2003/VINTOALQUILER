@@ -12,7 +12,6 @@ import { FavoritosComponent } from './paginas/favoritos/favoritos.component';
 import { ComparacionComponent } from './paginas/comparacion/comparacion.component';
 import { AlertasComponent } from './paginas/alertas/alertas.component';
 import { MapaComponent } from './paginas/mapa/mapa.component';
-import { PlanesComponent } from './paginas/planes/planes.component';
 import { EstadisticasComponent } from './paginas/estadisticas/estadisticas.component';
 import { ObservatorioComponent } from './paginas/observatorio/observatorio.component';
 import { AdminComponent } from './paginas/admin/admin.component';
@@ -38,7 +37,6 @@ export const routes: Routes = [
   { path: 'alertas', component: AlertasComponent, canActivate: [authGuard, interesadoGuard] },
   { path: 'recomendados', component: RecomendadosComponent, canActivate: [authGuard, interesadoGuard] },
   { path: 'mapa', component: MapaComponent },
-  { path: 'planes', component: PlanesComponent, canActivate: [authGuard] },
   { path: 'estadisticas', component: EstadisticasComponent, canActivate: [authGuard] },
   { path: 'observatorio', component: ObservatorioComponent },
   { path: 'admin', component: AdminComponent, canActivate: [authGuard, adminGuard] },
