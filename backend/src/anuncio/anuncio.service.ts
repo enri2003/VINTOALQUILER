@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Anuncio, TipoAnuncio } from './anuncio.entity';
@@ -7,7 +7,7 @@ import { NotificacionService } from '../notificacion/notificacion.service';
 import { UsuarioService } from '../usuario/usuario.service';
 
 export const DIAS_VENCIMIENTO = 60;
-const LIMITE_ANUNCIOS_ACTIVOS_GRATIS = 1;
+export const FOTOS_MAX_GRATIS = 15;
 const CAMPOS_COMPLETITUD: (keyof Anuncio)[] = [
   'titulo',
   'descripcion',
@@ -51,6 +51,9 @@ export class AnuncioService {
     zonaId?: number;
     tipo?: TipoAnuncio;
     precioMax?: number;
+    servicio?: string;
+    ambientesMin?: number;
+    superficieMin?: number;
     pagina?: number;
     porPagina?: number;
   }) {
@@ -81,6 +84,21 @@ export class AnuncioService {
     if (filtros.precioMax) {
       consulta.andWhere('anuncio.precio <= :precioMax', { precioMax: filtros.precioMax });
     }
+    if (filtros.servicio) {
+      consulta.andWhere('anuncio.servicios @> ARRAY[:servicio]::text[]', {
+        servicio: filtros.servicio,
+      });
+    }
+    if (filtros.ambientesMin) {
+      consulta.andWhere('anuncio.ambientes >= :ambientesMin', {
+        ambientesMin: filtros.ambientesMin,
+      });
+    }
+    if (filtros.superficieMin) {
+      consulta.andWhere('anuncio.superficieM2 >= :superficieMin', {
+        superficieMin: filtros.superficieMin,
+      });
+    }
 
     const [datos, total] = await consulta.getManyAndCount();
     return { datos, total, pagina, porPagina };
@@ -110,15 +128,9 @@ export class AnuncioService {
     if (usuario?.rol !== 'publicador') {
       throw new BadRequestException('Solo los publicadores pueden publicar anuncios');
     }
-    const activos = await this.anuncioRepo.count({
-      where: { publicador: { id: publicadorId } as any, estado: 'disponible' },
-    });
-    if (activos >= LIMITE_ANUNCIOS_ACTIVOS_GRATIS) {
-      throw new BadRequestException(
-        `Ya tienes ${LIMITE_ANUNCIOS_ACTIVOS_GRATIS} anuncio(s) activo(s). Pausa o elimina uno para publicar otro.`,
-      );
+    if (!usuario.verificado) {
+      throw new ForbiddenException('Verifica tu identidad para publicar anuncios. La verificación es gratuita.');
     }
-
     const { zonaId, ...resto } = datos;
     const venceEn = new Date();
     venceEn.setDate(venceEn.getDate() + DIAS_VENCIMIENTO);
@@ -135,12 +147,13 @@ export class AnuncioService {
 
   async activarImpulso(
     anuncioId: number,
-    datos: { fotosMax: number; impulsadoHasta: Date; enPortada: boolean },
+    datos: { fotosMax: number; impulsadoHasta: Date; enPortada: boolean; plan: 7 | 15 | 30 },
   ): Promise<Anuncio> {
     const anuncio = await this.buscarPorId(anuncioId);
     anuncio.fotosMax = datos.fotosMax;
     anuncio.impulsadoHasta = datos.impulsadoHasta;
     anuncio.enPortada = datos.enPortada;
+    anuncio.planImpulso = datos.plan;
     const guardado = await this.anuncioRepo.save(anuncio);
 
     if (datos.enPortada) {
@@ -150,6 +163,14 @@ export class AnuncioService {
     }
 
     return guardado;
+  }
+
+  async revertirImpulso(anuncioId: number): Promise<void> {
+    await this.anuncioRepo.update(anuncioId, {
+      fotosMax: FOTOS_MAX_GRATIS,
+      enPortada: false,
+      planImpulso: null,
+    });
   }
 
   async notificarAlertasCoincidentes(anuncio: Anuncio): Promise<void> {
@@ -216,7 +237,6 @@ export class AnuncioService {
       .set({ estado: 'pausado' })
       .where('estado = :estado', { estado: 'disponible' })
       .andWhere('venceEn < NOW()')
-      .andWhere('(impulsadoHasta IS NULL OR impulsadoHasta < NOW())')
       .execute();
     return resultado.affected || 0;
   }

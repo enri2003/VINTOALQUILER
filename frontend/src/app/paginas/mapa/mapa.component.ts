@@ -2,11 +2,12 @@ import { AfterViewInit, Component } from '@angular/core';
 import * as maplibregl from 'maplibre-gl';
 import { Router } from '@angular/router';
 import { AnuncioService } from '../../servicios/anuncio.service';
+import { AuthService } from '../../servicios/auth.service';
+import { FavoritoService } from '../../servicios/favorito.service';
 import { dispersarCoordenada } from '../../utilidades/coordenadas.util';
+import { crearAccionesMapa, crearMarcadorAnuncio } from '../../utilidades/mapa-popup.util';
 
 const CENTRO_VINTO: [number, number] = [-66.317, -17.397];
-const ICONO_CASA =
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /></svg>';
 
 const ESTILO_OSM_CLARO: maplibregl.StyleSpecification = {
   version: 8,
@@ -39,6 +40,8 @@ export class MapaComponent implements AfterViewInit {
   constructor(
     private readonly anuncioService: AnuncioService,
     private readonly router: Router,
+    private readonly authService: AuthService,
+    private readonly favoritoService: FavoritoService,
   ) {}
 
   ngAfterViewInit(): void {
@@ -50,31 +53,14 @@ export class MapaComponent implements AfterViewInit {
     });
     this.mapa.addControl(new maplibregl.NavigationControl(), 'bottom-right');
 
+    const acciones = crearAccionesMapa(this.router, this.authService, this.favoritoService);
     this.anuncioService.listar().subscribe((anuncios) => {
       anuncios.forEach((anuncio) => {
         const zona = anuncio.zona as any;
         if (!zona?.latitud || !zona?.longitud) return;
-
-        const elemento = document.createElement('div');
-        elemento.className = 'pin-anuncio';
-        elemento.innerHTML = ICONO_CASA;
-        elemento.addEventListener('click', () => this.router.navigate(['/anuncio', anuncio.id]));
-
-        const verificado = (anuncio as any).publicador?.verificado;
         const punto = dispersarCoordenada(Number(zona.latitud), Number(zona.longitud), anuncio.id);
-        new maplibregl.Marker({ element: elemento })
-          .setLngLat([punto.lng, punto.lat])
-          .setPopup(
-            new maplibregl.Popup({ offset: 24 }).setHTML(
-              `<strong>${anuncio.titulo}</strong><br/>${capitalizar(anuncio.tipo)} · Bs ${anuncio.precio}/mes${verificado ? ' · <span style="color:#3E8E5B">✓ Verificado</span>' : ''}`,
-            ),
-          )
-          .addTo(this.mapa);
+        crearMarcadorAnuncio(this.mapa, anuncio, punto, acciones);
       });
     });
   }
-}
-
-function capitalizar(texto: string): string {
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }

@@ -81,7 +81,7 @@ export class Anuncio {
   @Column({ type: 'timestamptz', nullable: true })
   venceEn: Date;
 
-  @Column({ default: 5 })
+  @Column({ default: 15 })
   fotosMax: number;
 
   @Index()
@@ -90,4 +90,7 @@ export class Anuncio {
 
   @Column({ default: false })
   enPortada: boolean;
+
+  @Column({ type: 'int', nullable: true })
+  planImpulso: 7 | 15 | 30 | null;
 }

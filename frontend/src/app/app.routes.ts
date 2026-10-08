@@ -15,6 +15,8 @@ import { MapaComponent } from './paginas/mapa/mapa.component';
 import { ObservatorioComponent } from './paginas/observatorio/observatorio.component';
 import { AdminComponent } from './paginas/admin/admin.component';
 import { RecomendadosComponent } from './paginas/recomendados/recomendados.component';
+import { TerminosComponent } from './paginas/terminos/terminos.component';
+import { PrivacidadComponent } from './paginas/privacidad/privacidad.component';
 import { authGuard } from './guardias/auth.guard';
 import { adminGuard } from './guardias/admin.guard';
 import { interesadoGuard } from './guardias/interesado.guard';
@@ -38,4 +40,6 @@ export const routes: Routes = [
   { path: 'mapa', component: MapaComponent },
   { path: 'observatorio', component: ObservatorioComponent },
   { path: 'admin', component: AdminComponent, canActivate: [authGuard, adminGuard] },
+  { path: 'terminos', component: TerminosComponent },
+  { path: 'privacidad', component: PrivacidadComponent },
 ];

@@ -15,7 +15,7 @@ export class FavoritoService {
   listar(usuarioId: number) {
     return this.favoritoRepo.find({
       where: { usuarioId },
-      relations: ['anuncio', 'anuncio.zona', 'anuncio.fotos'],
+      relations: ['anuncio', 'anuncio.zona', 'anuncio.fotos', 'anuncio.publicador'],
     });
   }
 
@@ -27,6 +27,8 @@ export class FavoritoService {
     if (!usuario?.verificado) {
       throw new ForbiddenException('Debes verificar tu identidad para guardar favoritos');
     }
+    const existente = await this.favoritoRepo.findOne({ where: { usuarioId, anuncioId } });
+    if (existente) return;
     const favorito = this.favoritoRepo.create({ usuarioId, anuncioId } as any);
     await this.favoritoRepo.save(favorito);
   }

@@ -39,7 +39,7 @@ import { Anuncio, AnuncioService } from '../../servicios/anuncio.service';
       </table>
       <ng-template #sinAnuncios>
         <p class="texto-suave">
-          Selecciona 2 o mas anuncios desde tus favoritos para compararlos aqui.
+          Selecciona de 2 a 3 anuncios desde tus favoritos para compararlos aquí.
         </p>
       </ng-template>
     </section>
@@ -59,7 +59,8 @@ export class ComparacionComponent implements OnInit {
     const ids = idsParam
       .split(',')
       .map(Number)
-      .filter((id) => !Number.isNaN(id));
+      .filter((id) => !Number.isNaN(id))
+      .slice(0, 3);
     if (!ids.length) return;
 
     forkJoin(ids.map((id) => this.anuncioService.detalle(id))).subscribe((res) => (this.anuncios = res));

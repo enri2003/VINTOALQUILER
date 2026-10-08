@@ -11,9 +11,9 @@ import { NotificacionService } from '../notificacion/notificacion.service';
 type AccionImpulso = 'activar' | 'rechazar';
 
 export const PLANES_IMPULSO: Record<PlanImpulso, { dias: number; precio: number; fotosMax: number; portada: boolean }> = {
-  7: { dias: 7, precio: 20, fotosMax: 8, portada: false },
-  15: { dias: 15, precio: 35, fotosMax: 10, portada: true },
-  30: { dias: 30, precio: 55, fotosMax: 12, portada: true },
+  7: { dias: 7, precio: 20, fotosMax: 20, portada: false },
+  15: { dias: 15, precio: 35, fotosMax: 25, portada: true },
+  30: { dias: 30, precio: 55, fotosMax: 30, portada: true },
 };
 
 @Injectable()
@@ -155,6 +155,7 @@ export class ImpulsoService {
       fotosMax: configuracion.fotosMax,
       impulsadoHasta: finEn,
       enPortada: configuracion.portada,
+      plan: impulso.plan,
     });
 
     return impulso;
@@ -171,6 +172,24 @@ export class ImpulsoService {
     impulso.estado = 'rechazado' as EstadoImpulso;
     impulso.motivoRechazo = motivo || 'Comprobante no válido';
     return this.impulsoRepo.save(impulso);
+  }
+
+  async marcarVencidos(): Promise<number> {
+    const vencidos = await this.impulsoRepo.find({
+      where: { estado: 'activo' },
+      relations: ['anuncio'],
+    });
+    const ahora = new Date();
+    let contador = 0;
+    for (const impulso of vencidos) {
+      if (impulso.finEn && impulso.finEn < ahora) {
+        impulso.estado = 'vencido' as EstadoImpulso;
+        await this.impulsoRepo.save(impulso);
+        await this.anuncioService.revertirImpulso(impulso.anuncio.id);
+        contador++;
+      }
+    }
+    return contador;
   }
 
   async reimpulsarVencimientoMedio(): Promise<number> {

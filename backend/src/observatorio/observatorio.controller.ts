@@ -24,4 +24,9 @@ export class ObservatorioController {
   ofertaDemanda() {
     return this.observatorioService.ofertaDemandaPorZona();
   }
+
+  @Get('demanda-agregada')
+  demandaAgregada() {
+    return this.observatorioService.demandaAgregada();
+  }
 }

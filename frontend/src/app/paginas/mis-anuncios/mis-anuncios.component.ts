@@ -28,7 +28,7 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
             {{ anuncioEditando === anuncio.id ? 'Cancelar edicion' : 'Editar' }}
           </button>
           <button class="boton-secundario" (click)="alternarFotos(anuncio.id)">
-            {{ gestionFotosAbierta === anuncio.id ? 'Cerrar fotos' : 'Gestionar fotos' }} ({{ anuncio.fotos.length }}/{{ anuncio.fotosMax || 5 }})
+            {{ gestionFotosAbierta === anuncio.id ? 'Cerrar fotos' : 'Gestionar fotos' }} ({{ anuncio.fotos.length }}/{{ anuncio.fotosMax || 15 }})
           </button>
           <button class="boton-secundario" (click)="alternarOcupado(anuncio)">
             {{ anuncio.estado === 'ocupado' ? 'Marcar disponible' : 'Marcar ocupado' }}
@@ -62,7 +62,7 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
             type="file"
             accept="image/jpeg,image/png,image/webp"
             multiple
-            [disabled]="anuncio.fotos.length >= (anuncio.fotosMax || 5)"
+            [disabled]="anuncio.fotos.length >= (anuncio.fotosMax || 15)"
             (change)="seleccionarFotosNuevas($event)"
           />
           <button

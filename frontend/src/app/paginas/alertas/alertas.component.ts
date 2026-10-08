@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -11,52 +11,138 @@ interface Zona {
 
 interface Alerta {
   id: number;
-  tipo: string;
-  precioMax: number;
+  tipo: string | null;
+  precioMax: number | null;
   activa: boolean;
-  zona?: Zona;
+  zona?: Zona | null;
 }
+
+const NOMBRES_TIPO: Record<string, string> = {
+  cuarto: 'Cuarto',
+  garzonier: 'Garzonier',
+  departamento: 'Departamento',
+};
 
 @Component({
   selector: 'app-alertas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DecimalPipe],
   template: `
     <section class="alertas">
-      <h1>Mis alertas</h1>
-      <form (ngSubmit)="crear()">
-        <select name="tipo" [(ngModel)]="tipo">
-          <option value="cuarto">Cuarto</option>
-          <option value="garzonier">Garzonier</option>
-          <option value="departamento">Departamento</option>
-        </select>
-        <select name="zonaId" [(ngModel)]="zonaId">
-          <option [ngValue]="null">Todas las zonas</option>
-          <option *ngFor="let zona of zonas" [ngValue]="zona.id">{{ zona.nombre }}</option>
-        </select>
-        <input type="number" name="precioMax" placeholder="Precio maximo" [(ngModel)]="precioMax" />
-        <button type="submit">Crear alerta</button>
-      </form>
-      <p class="mensaje-error" *ngIf="error">{{ error }}</p>
-      <div *ngFor="let alerta of alertas" class="tarjeta">
-        <p>
-          {{ alerta.tipo }} hasta Bs. {{ alerta.precioMax }}
-          <ng-container *ngIf="alerta.zona"> en {{ alerta.zona.nombre }}</ng-container>
-        </p>
-        <p class="texto-suave">Estado: {{ alerta.activa ? 'Activa' : 'Desactivada' }}</p>
-        <button class="boton-secundario" (click)="alternarActiva(alerta)">
-          {{ alerta.activa ? 'Desactivar' : 'Activar' }}
-        </button>
+      <h1>Alertas de búsqueda</h1>
+      <p class="texto-suave">
+        Guarda los criterios que buscas. Te avisaremos por correo cuando se publique un anuncio
+        destacado que coincida con tu alerta.
+      </p>
+
+      <div class="panel-alerta">
+        <h2>Crear nueva alerta</h2>
+        <form (ngSubmit)="crear()" #formulario="ngForm">
+          <label>
+            <span class="etiqueta">Tipo de inmueble</span>
+            <select name="tipo" [(ngModel)]="tipo">
+              <option value="">Todos los tipos</option>
+              <option value="cuarto">Cuarto</option>
+              <option value="garzonier">Garzonier</option>
+              <option value="departamento">Departamento</option>
+            </select>
+          </label>
+          <label>
+            <span class="etiqueta">Zona</span>
+            <select name="zonaId" [(ngModel)]="zonaId">
+              <option [ngValue]="null">Todas las zonas</option>
+              <option *ngFor="let zona of zonas" [ngValue]="zona.id">{{ zona.nombre }}</option>
+            </select>
+          </label>
+          <label>
+            <span class="etiqueta">Precio máximo mensual (Bs.)</span>
+            <input
+              type="number"
+              name="precioMax"
+              min="1"
+              step="50"
+              placeholder="Ejemplo: 1200"
+              [(ngModel)]="precioMax"
+              [class.invalido]="precioMax !== null && precioMax <= 0"
+            />
+            <small class="ayuda-campo" *ngIf="precioMax !== null && precioMax <= 0">Ingresa un precio mayor a cero.</small>
+          </label>
+          <button type="submit" class="boton-principal" [disabled]="precioMax !== null && precioMax <= 0">Crear alerta</button>
+        </form>
+        <p class="mensaje-error" *ngIf="error">{{ error }}</p>
       </div>
-      <p class="texto-suave" *ngIf="!alertas.length">Aun no tienes alertas configuradas.</p>
+
+      <h2 class="titulo-guardadas">Mis alertas guardadas</h2>
+      <p class="texto-suave" *ngIf="!alertas.length">Aún no tienes alertas guardadas.</p>
+
+      <div class="lista-alertas">
+        <div *ngFor="let alerta of alertas" class="tarjeta-alerta">
+          <div class="cabecera-alerta">
+            <strong>{{ describir(alerta) }}</strong>
+            <span class="estado" [class.activa]="alerta.activa">
+              <i class="punto" [class.punto-activo]="alerta.activa"></i>
+              {{ alerta.activa ? 'Activa' : 'Desactivada' }}
+            </span>
+          </div>
+          <button class="boton-secundario" (click)="alternarActiva(alerta)">
+            {{ alerta.activa ? 'Desactivar' : 'Activar' }}
+          </button>
+        </div>
+      </div>
     </section>
   `,
+  styles: [
+    `
+      .alertas { max-width: 720px; margin: 0 auto; padding: 32px 20px 60px; }
+      .panel-alerta {
+        background: #fff;
+        border: 1px solid var(--borde, #ECE1D2);
+        border-radius: 16px;
+        padding: 20px;
+        margin: 16px 0 28px;
+      }
+      .panel-alerta h2 { font-size: 17px; margin: 0 0 12px; }
+      .panel-alerta form { display: flex; flex-direction: column; gap: 12px; }
+      .invalido { border-color: var(--rojo, #A34848) !important; }
+      .ayuda-campo { color: var(--rojo, #A34848); font-size: 12px; }
+      .titulo-guardadas { font-size: 17px; margin: 0 0 12px; }
+      .lista-alertas { display: flex; flex-direction: column; gap: 10px; }
+      .tarjeta-alerta {
+        background: #fff;
+        border: 1px solid var(--borde, #ECE1D2);
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .cabecera-alerta { display: flex; flex-direction: column; gap: 4px; }
+      .estado {
+        font-size: 12px;
+        color: var(--texto-suave, #6E6255);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .estado.activa { color: #3E8E5B; font-weight: 700; }
+      .punto {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #B9B1A3;
+        display: inline-block;
+      }
+      .punto-activo { background: #3E8E5B; box-shadow: 0 0 6px rgba(62, 142, 91, 0.6); }
+    `,
+  ],
 })
 export class AlertasComponent implements OnInit {
   private readonly apiUrl = '/api';
   alertas: Alerta[] = [];
   zonas: Zona[] = [];
-  tipo = 'cuarto';
+  tipo = '';
   zonaId: number | null = null;
   precioMax: number | null = null;
   error = '';
@@ -81,16 +167,38 @@ export class AlertasComponent implements OnInit {
       .subscribe((res) => (this.alertas = res));
   }
 
+  describir(alerta: Alerta): string {
+    const tipo = alerta.tipo ? NOMBRES_TIPO[alerta.tipo] ?? alerta.tipo : 'Cualquier tipo';
+    const zona = alerta.zona ? `en ${alerta.zona.nombre}` : 'en cualquier zona';
+    const precio = alerta.precioMax !== null && alerta.precioMax !== undefined
+      ? ` hasta Bs. ${Number(alerta.precioMax).toLocaleString('es-BO', { maximumFractionDigits: 0 })}/mes`
+      : '';
+    return `${tipo} ${zona}${precio}`;
+  }
+
   crear(): void {
     this.error = '';
+    if (this.precioMax !== null && this.precioMax <= 0) {
+      this.error = 'Ingresa un precio máximo mayor a cero.';
+      return;
+    }
     this.http
       .post(
         `${this.apiUrl}/alertas`,
-        { tipo: this.tipo, zonaId: this.zonaId, precioMax: this.precioMax },
+        {
+          tipo: this.tipo || null,
+          zonaId: this.zonaId,
+          precioMax: this.precioMax ?? null,
+        },
         { headers: this.cabeceras() },
       )
       .subscribe({
-        next: () => this.cargar(),
+        next: () => {
+          this.tipo = '';
+          this.zonaId = null;
+          this.precioMax = null;
+          this.cargar();
+        },
         error: (err) => (this.error = err?.error?.message || 'No se pudo crear la alerta.'),
       });
   }

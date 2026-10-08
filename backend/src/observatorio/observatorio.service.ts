@@ -2,12 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Anuncio } from '../anuncio/anuncio.entity';
+import { Usuario } from '../usuario/usuario.entity';
+
+const MINIMO_REGISTROS_AGREGADOS = 10;
 
 @Injectable()
 export class ObservatorioService {
   constructor(
     @InjectRepository(Anuncio)
     private readonly anuncioRepo: Repository<Anuncio>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepo: Repository<Usuario>,
   ) {}
 
   async indicadores() {
@@ -45,6 +50,53 @@ export class ObservatorioService {
       .where('anuncio.estado = :estado', { estado: 'disponible' })
       .groupBy('anuncio.tipo')
       .getRawMany();
+  }
+
+  async demandaAgregada() {
+    const base = () =>
+      this.usuarioRepo
+        .createQueryBuilder('usuario')
+        .where('usuario.autorizaUsoEstadistico = true');
+
+    const porMotivo = await base()
+      .select('usuario.motivoBusqueda', 'motivo')
+      .addSelect('COUNT(*)', 'total')
+      .andWhere('usuario.motivoBusqueda IS NOT NULL')
+      .groupBy('usuario.motivoBusqueda')
+      .having('COUNT(*) >= :minimo', { minimo: MINIMO_REGISTROS_AGREGADOS })
+      .getRawMany();
+
+    const porTipoPreferido = await base()
+      .select('usuario.tipoPreferido', 'tipo')
+      .addSelect('COUNT(*)', 'total')
+      .andWhere('usuario.tipoPreferido IS NOT NULL')
+      .groupBy('usuario.tipoPreferido')
+      .having('COUNT(*) >= :minimo', { minimo: MINIMO_REGISTROS_AGREGADOS })
+      .getRawMany();
+
+    const porRangoPresupuesto = await base()
+      .select('usuario.rangoPresupuesto', 'rango')
+      .addSelect('COUNT(*)', 'total')
+      .andWhere('usuario.rangoPresupuesto IS NOT NULL')
+      .groupBy('usuario.rangoPresupuesto')
+      .having('COUNT(*) >= :minimo', { minimo: MINIMO_REGISTROS_AGREGADOS })
+      .getRawMany();
+
+    const porZonaInteres = await base()
+      .leftJoin('usuario.zonaInteres', 'zona')
+      .select('zona.nombre', 'zona')
+      .addSelect('COUNT(*)', 'total')
+      .andWhere('usuario.zonaInteresId IS NOT NULL')
+      .groupBy('zona.nombre')
+      .having('COUNT(*) >= :minimo', { minimo: MINIMO_REGISTROS_AGREGADOS })
+      .getRawMany();
+
+    return {
+      porMotivo: porMotivo.map((fila) => ({ motivo: fila.motivo, total: Number(fila.total) })),
+      porTipoPreferido: porTipoPreferido.map((fila) => ({ tipo: fila.tipo, total: Number(fila.total) })),
+      porRangoPresupuesto: porRangoPresupuesto.map((fila) => ({ rango: fila.rango, total: Number(fila.total) })),
+      porZonaInteres: porZonaInteres.map((fila) => ({ zona: fila.zona, total: Number(fila.total) })),
+    };
   }
 
   ofertaDemandaPorZona() {

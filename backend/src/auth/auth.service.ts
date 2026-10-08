@@ -17,24 +17,29 @@ export class AuthService {
     clave: string;
     celular: string;
     rol: RolUsuario;
-    perfilHogar?: string;
-    presupuestoMax?: number;
+    motivoBusqueda?: string;
     tipoPreferido?: string;
+    rangoPresupuesto?: string;
+    zonaInteresId?: number;
+    autorizaUsoEstadistico?: boolean;
   }) {
     const existente = await this.usuarioService.buscarPorCorreo(datos.correo);
     if (existente) {
       throw new BadRequestException('El correo ya esta registrado');
     }
     const claveHash = await bcrypt.hash(datos.clave, 10);
+    const esInteresado = datos.rol === 'interesado';
     const usuario = await this.usuarioService.crear({
       nombre: datos.nombre,
       correo: datos.correo,
       claveHash,
       celular: datos.celular,
       rol: datos.rol,
-      perfilHogar: datos.rol === 'interesado' ? datos.perfilHogar : undefined,
-      presupuestoMax: datos.rol === 'interesado' ? datos.presupuestoMax : undefined,
-      tipoPreferido: datos.rol === 'interesado' ? datos.tipoPreferido : undefined,
+      motivoBusqueda: esInteresado ? (datos.motivoBusqueda as any) : undefined,
+      tipoPreferido: esInteresado ? datos.tipoPreferido : undefined,
+      rangoPresupuesto: esInteresado ? (datos.rangoPresupuesto as any) : undefined,
+      zonaInteres: esInteresado && datos.zonaInteresId ? ({ id: datos.zonaInteresId } as any) : undefined,
+      autorizaUsoEstadistico: esInteresado ? !!datos.autorizaUsoEstadistico : false,
     });
     return this.generarToken(usuario);
   }

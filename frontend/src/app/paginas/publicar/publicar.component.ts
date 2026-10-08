@@ -2,7 +2,8 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { VerificacionService } from '../../servicios/verificacion.service';
 import { AnuncioService } from '../../servicios/anuncio.service';
 
 interface Zona {
@@ -10,16 +11,23 @@ interface Zona {
   nombre: string;
 }
 
-const LIMITE_FOTOS_GRATIS = 5;
+const LIMITE_FOTOS_GRATIS = 15;
 
 @Component({
   selector: 'app-publicar',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <section class="publicar">
       <h1>Publicar anuncio</h1>
-      <form (ngSubmit)="enviar()">
+      <div class="aviso-verificar" *ngIf="verificado === false">
+        <h2>Verifica tu identidad para publicar</h2>
+        <p class="texto-suave">
+          La verificación es gratuita y protege a quienes buscan alquiler. Tus anuncios mostrarán el sello de publicador verificado.
+        </p>
+        <a class="boton-principal" routerLink="/verificacion">Verificar mi identidad</a>
+      </div>
+      <form (ngSubmit)="enviar()" *ngIf="verificado">
         <label>
           Zona
           <select name="zonaId" [(ngModel)]="zonaId" required>
@@ -116,7 +124,11 @@ const LIMITE_FOTOS_GRATIS = 5;
         </label>
 
         <label>
-          Fotos (hasta 5 en el plan gratuito)
+          Fotos (hasta 15 en el plan gratuito)
+          <span class="ayuda-campo">
+            Sube fotografías reales del inmueble (JPG, PNG o WebP, máximo 5 MB cada una). No se permiten documentos,
+            diagramas, capturas de pantalla ni imágenes que no correspondan al anuncio.
+          </span>
           <input type="file" accept="image/jpeg,image/png,image/webp" multiple (change)="seleccionarFotos($event)" />
           <span class="ayuda-campo" *ngIf="fotosSeleccionadas.length">
             {{ fotosSeleccionadas.length }} de {{ LIMITE_FOTOS_GRATIS }} fotos seleccionadas
@@ -130,6 +142,21 @@ const LIMITE_FOTOS_GRATIS = 5;
   `,
   styles: [
     `
+      .aviso-verificar {
+        max-width: 480px;
+        margin: 32px auto 0;
+        background: #fff;
+        border: 1px solid var(--borde, #ECE1D2);
+        border-radius: 18px;
+        padding: 28px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .aviso-verificar h2 { margin: 0; font-size: 19px; }
+      .aviso-verificar p { margin: 0 0 6px; }
       form {
         display: flex;
         flex-direction: column;
@@ -172,15 +199,21 @@ export class PublicarComponent implements OnInit {
   error = '';
   enviando = false;
   fotosSeleccionadas: File[] = [];
+  verificado: boolean | null = null;
 
   constructor(
     private readonly http: HttpClient,
     private readonly anuncioService: AnuncioService,
     private readonly router: Router,
+    private readonly verificacionService: VerificacionService,
   ) {}
 
   ngOnInit(): void {
     this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
+    this.verificacionService.estado().subscribe({
+      next: (res) => (this.verificado = res.verificado),
+      error: () => (this.verificado = false),
+    });
   }
 
   seleccionarFotos(evento: Event): void {

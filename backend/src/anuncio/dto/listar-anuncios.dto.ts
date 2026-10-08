@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsPositive, Max, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsPositive, IsString, Max, Min } from 'class-validator';
 import { TipoAnuncio } from '../anuncio.entity';
 
 export class ListarAnunciosDto {
@@ -17,6 +17,21 @@ export class ListarAnunciosDto {
   @Type(() => Number)
   @Min(0)
   precioMax?: number;
+
+  @IsOptional()
+  @IsString()
+  servicio?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  ambientesMin?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  superficieMin?: number;
 
   @IsOptional()
   @Type(() => Number)

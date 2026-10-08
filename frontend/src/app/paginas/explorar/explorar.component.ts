@@ -6,6 +6,10 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import * as maplibregl from 'maplibre-gl';
 import { Anuncio, AnuncioService } from '../../servicios/anuncio.service';
 import { dispersarCoordenada } from '../../utilidades/coordenadas.util';
+import { crearAccionesMapa, crearMarcadorAnuncio } from '../../utilidades/mapa-popup.util';
+import { AuthService } from '../../servicios/auth.service';
+import { FavoritoService } from '../../servicios/favorito.service';
+import { obtenerSelloImpulso } from '../../utilidades/sello-impulso.util';
 
 interface Zona {
   id: number;
@@ -15,8 +19,6 @@ interface Zona {
 }
 
 const CENTRO_VINTO: [number, number] = [-66.317, -17.397];
-const ICONO_CASA =
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /></svg>';
 
 const ESTILO_OSM_CLARO: maplibregl.StyleSpecification = {
   version: 8,
@@ -52,7 +54,7 @@ const RANGOS_PRECIO = [
     <section class="hero-ancho hero-portada">
       <div class="hero hero-izquierda">
         <h1>Alquileres en Vinto</h1>
-        <p>Encuentra tu proximo hogar en Vinto, Bolivia</p>
+        <p>Encuentra tu próximo hogar cerca de la UAB y del centro de Vinto.</p>
 
         <form class="buscador" (ngSubmit)="buscar()">
           <div class="segmento-buscador">
@@ -112,20 +114,25 @@ const RANGOS_PRECIO = [
       <ng-container *ngIf="destacados.length">
         <div class="encabezado-seccion">
           <div>
-            <h2>Destacados ⭐</h2>
+            <h2>Destacados</h2>
+            <p class="subtitulo">Anuncios con mayor visibilidad en este momento.</p>
           </div>
         </div>
-        <div class="grilla">
-          <a *ngFor="let anuncio of destacados" [routerLink]="['/anuncio', anuncio.id]" class="tarjeta">
+        <div class="carrusel-destacados">
+          <a *ngFor="let anuncio of destacados" [routerLink]="['/anuncio', anuncio.id]" class="tarjeta tarjeta-carrusel">
             <div class="contenedor-imagen">
-              <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" alt="" />
-              <span class="insignia-destacado">DESTACADO</span>
+              <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" [alt]="'Foto de ' + anuncio.tipo + ' en ' + (anuncio.zona?.nombre ?? 'Vinto')" (error)="$any($event.target).hidden = true" />
+              <span class="insignia-sello" *ngIf="sello(anuncio) as s" [ngClass]="s.clase">{{ s.texto }}</span>
               <span class="insignia-verificado" *ngIf="anuncio.publicador?.verificado">✓ Verificado</span>
+              <span class="insignia-pendiente" *ngIf="anuncio.publicador && !anuncio.publicador.verificado">Publicador no verificado</span>
             </div>
             <h2>{{ anuncio.titulo }}</h2>
-            <p class="texto-suave fila-ubicacion">📍 {{ anuncio.zona?.nombre }}</p>
+            <p class="texto-suave fila-ubicacion">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+              {{ anuncio.zona?.nombre }}
+            </p>
             <div class="fila-tarjeta">
-              <p class="precio">Bs {{ anuncio.precio | number: '1.0-0' }} <span class="por-mes">/mes</span></p>
+              <p class="precio">Bs. {{ anuncio.precio | number: '1.0-0' }}<span class="por-mes">/mes</span></p>
               <span class="chip">{{ anuncio.tipo }}</span>
             </div>
           </a>
@@ -134,7 +141,7 @@ const RANGOS_PRECIO = [
 
       <div class="encabezado-seccion">
         <div>
-          <h2>En el mapa 📍</h2>
+          <h2>En el mapa</h2>
           <p class="subtitulo">Explora alquileres cerca de ti en Vinto y sus zonas.</p>
         </div>
         <a routerLink="/mapa">Ver todos los avisos →</a>
@@ -151,13 +158,18 @@ const RANGOS_PRECIO = [
       <div class="grilla" *ngIf="anuncios.length; else sinResultados">
         <a *ngFor="let anuncio of anuncios" [routerLink]="['/anuncio', anuncio.id]" class="tarjeta">
           <div class="contenedor-imagen">
-            <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" alt="" />
+            <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" [alt]="'Foto de ' + anuncio.tipo + ' en ' + (anuncio.zona?.nombre ?? 'Vinto')" (error)="$any($event.target).hidden = true" />
+            <span class="insignia-sello" *ngIf="sello(anuncio) as s" [ngClass]="s.clase">{{ s.texto }}</span>
             <span class="insignia-verificado" *ngIf="anuncio.publicador?.verificado">✓ Verificado</span>
+            <span class="insignia-pendiente" *ngIf="anuncio.publicador && !anuncio.publicador.verificado">Publicador no verificado</span>
           </div>
           <h2>{{ anuncio.titulo }}</h2>
-          <p class="texto-suave fila-ubicacion">📍 {{ anuncio.zona?.nombre }}</p>
+          <p class="texto-suave fila-ubicacion">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+            {{ anuncio.zona?.nombre }}
+          </p>
           <div class="fila-tarjeta">
-            <p class="precio">Bs {{ anuncio.precio | number: '1.0-0' }} <span class="por-mes">/mes</span></p>
+            <p class="precio">Bs. {{ anuncio.precio | number: '1.0-0' }}<span class="por-mes">/mes</span></p>
             <span class="chip">{{ anuncio.tipo }}</span>
           </div>
         </a>
@@ -187,6 +199,8 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
     private readonly anuncioService: AnuncioService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly authService: AuthService,
+    private readonly favoritoService: FavoritoService,
   ) {}
 
   ngOnInit(): void {
@@ -219,25 +233,12 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
     if (!this.mapa || !this.mapaListo) return;
     this.marcadores.forEach((marcador) => marcador.remove());
     this.marcadores = [];
+    const acciones = crearAccionesMapa(this.router, this.authService, this.favoritoService);
     this.anuncios.forEach((anuncio) => {
       const zona = anuncio.zona as Zona;
       if (zona?.latitud && zona?.longitud) {
-        const elemento = document.createElement('div');
-        elemento.className = 'pin-anuncio';
-        elemento.innerHTML = ICONO_CASA;
-        elemento.addEventListener('click', () => this.router.navigate(['/anuncio', anuncio.id]));
-
-        const verificado = anuncio.publicador?.verificado;
         const punto = dispersarCoordenada(Number(zona.latitud), Number(zona.longitud), anuncio.id);
-        const marcador = new maplibregl.Marker({ element: elemento })
-          .setLngLat([punto.lng, punto.lat])
-          .setPopup(
-            new maplibregl.Popup({ offset: 24 }).setHTML(
-              `<strong>${anuncio.titulo}</strong><br/>${anuncio.tipo.charAt(0).toUpperCase() + anuncio.tipo.slice(1)} · Bs ${anuncio.precio}/mes${verificado ? ' · <span style="color:#3E8E5B">✓ Verificado</span>' : ''}`,
-            ),
-          )
-          .addTo(this.mapa!);
-        this.marcadores.push(marcador);
+        this.marcadores.push(crearMarcadorAnuncio(this.mapa!, anuncio, punto, acciones));
       }
     });
   }
@@ -254,6 +255,10 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
         this.destacados = res.filter((anuncio) => anuncio.enPortada);
         this.pintarMarcadores();
       });
+  }
+
+  sello(anuncio: Anuncio) {
+    return obtenerSelloImpulso(anuncio);
   }
 
   buscar(): void {

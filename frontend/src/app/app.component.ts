@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from './servicios/auth.service';
+import { VerificacionService } from './servicios/verificacion.service';
 
 const RUTAS_SIN_NAV = ['/login', '/registro'];
 
@@ -33,7 +34,7 @@ const RUTAS_SIN_NAV = ['/login', '/registro'];
 
       <div class="acciones-cabecera">
         <ng-container *ngIf="authService.estaAutenticado(); else invitado">
-          <a routerLink="/verificacion" class="insignia-verificacion">Identidad sin verificar</a>
+          <a routerLink="/verificacion" class="insignia-verificacion" *ngIf="verificado === false">Identidad pendiente</a>
           <button class="boton-salir" (click)="salir()">Salir</button>
         </ng-container>
         <ng-template #invitado>
@@ -72,17 +73,33 @@ const RUTAS_SIN_NAV = ['/login', '/registro'];
 })
 export class AppComponent {
   ocultarNav = false;
+  verificado: boolean | null = null;
 
   constructor(
     readonly authService: AuthService,
     private readonly router: Router,
+    private readonly verificacionService: VerificacionService,
   ) {
     this.router.events.pipe(filter((evento) => evento instanceof NavigationEnd)).subscribe(() => {
       this.ocultarNav = RUTAS_SIN_NAV.includes(this.router.url.split('?')[0]);
+      this.actualizarVerificacion();
+    });
+  }
+
+  private actualizarVerificacion(): void {
+    if (!this.authService.estaAutenticado()) {
+      this.verificado = null;
+      return;
+    }
+    if (this.verificado) return;
+    this.verificacionService.estado().subscribe({
+      next: (res) => (this.verificado = res.verificado),
+      error: () => (this.verificado = null),
     });
   }
 
   salir(): void {
+    this.verificado = null;
     this.authService.cerrarSesion();
     this.router.navigate(['/']);
   }

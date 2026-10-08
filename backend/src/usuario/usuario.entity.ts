@@ -1,6 +1,9 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Zona } from '../zona/zona.entity';
 
 export type RolUsuario = 'interesado' | 'publicador' | 'admin';
+export type MotivoBusqueda = 'estudios' | 'trabajo' | 'familia' | 'traslado_temporal' | 'otro';
+export type RangoPresupuesto = 'hasta_500' | '501_800' | '801_1200' | 'mas_1200';
 
 @Entity('usuario')
 export class Usuario {
@@ -23,13 +26,19 @@ export class Usuario {
   rol: RolUsuario;
 
   @Column({ nullable: true })
-  perfilHogar: string;
-
-  @Column('numeric', { precision: 10, scale: 2, nullable: true })
-  presupuestoMax: number;
+  motivoBusqueda: MotivoBusqueda;
 
   @Column({ nullable: true })
   tipoPreferido: string;
+
+  @Column({ nullable: true })
+  rangoPresupuesto: RangoPresupuesto;
+
+  @ManyToOne(() => Zona, { nullable: true })
+  zonaInteres: Zona;
+
+  @Column({ default: false })
+  autorizaUsoEstadistico: boolean;
 
   @Column({ default: false })
   verificado: boolean;

@@ -13,6 +13,7 @@ export interface Anuncio {
   fotos: { id: number; url: string }[];
   creadoEn?: string;
   enPortada?: boolean;
+  planImpulso?: 7 | 15 | 30 | null;
   estado?: string;
   fotosMax?: number;
   publicador?: { verificado: boolean };

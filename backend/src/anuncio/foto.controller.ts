@@ -15,6 +15,8 @@ import { FotoService } from './foto.service';
 
 const TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
 const TAMANO_MAXIMO_BYTES = 5 * 1024 * 1024;
+// Tope tecnico por envio = plan mas alto (Impulso 30 dias); el limite real por anuncio lo aplica FotoService.
+const MAX_ARCHIVOS_POR_ENVIO = 30;
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('anuncios/:id/fotos')
@@ -22,7 +24,7 @@ export class FotoController {
   constructor(private readonly fotoService: FotoService) {}
 
   @Post()
-  @UseInterceptors(FilesInterceptor('fotos', 12))
+  @UseInterceptors(FilesInterceptor('fotos', MAX_ARCHIVOS_POR_ENVIO))
   async subir(
     @Param('id') id: string,
     @Req() req: any,

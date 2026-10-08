@@ -15,4 +15,12 @@ export class ImpulsoTareas {
       this.logger.log(`Se reimpulsaron ${cantidad} anuncio(s) con plan de 30 dias`);
     }
   }
+
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  async marcarImpulsosVencidos(): Promise<void> {
+    const cantidad = await this.impulsoService.marcarVencidos();
+    if (cantidad > 0) {
+      this.logger.log(`${cantidad} impulso(s) marcados como vencidos.`);
+    }
+  }
 }

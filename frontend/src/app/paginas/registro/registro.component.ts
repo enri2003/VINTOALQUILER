@@ -1,31 +1,42 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../servicios/auth.service';
 
-const PERFILES = [
+interface Zona {
+  id: number;
+  nombre: string;
+}
+
+const MOTIVOS = [
   {
-    valor: 'Estudiante',
-    etiqueta: 'Soy estudiante',
+    valor: 'estudios',
+    etiqueta: 'Estudios',
     icono: '<path d="M12 3 2 8l10 5 10-5Z" /><path d="M6 10.5V16c0 1 2.5 3 6 3s6-2 6-3v-5.5" />',
   },
   {
-    valor: 'Pareja',
-    etiqueta: 'Con mi pareja',
+    valor: 'trabajo',
+    etiqueta: 'Trabajo',
+    icono: '<rect x="3" y="8" width="18" height="12" rx="2" /><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />',
+  },
+  {
+    valor: 'familia',
+    etiqueta: 'Familia',
     icono:
       '<circle cx="8" cy="8" r="3" /><circle cx="16" cy="8" r="3" /><path d="M2 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1" /><path d="M13 14h2a5 5 0 0 1 5 5v1" />',
   },
   {
-    valor: 'Familia',
-    etiqueta: 'Con mi familia',
+    valor: 'traslado_temporal',
+    etiqueta: 'Traslado temporal',
     icono: '<path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" />',
   },
   {
-    valor: 'Trabajador',
-    etiqueta: 'Vine por trabajo',
-    icono: '<rect x="3" y="8" width="18" height="12" rx="2" /><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />',
+    valor: 'otro',
+    etiqueta: 'Otro',
+    icono: '<circle cx="12" cy="12" r="9" /><path d="M12 16h.01M12 8v5" />',
   },
 ];
 
@@ -44,10 +55,10 @@ const TIPOS_LUGAR = [
 ];
 
 const RANGOS_PRESUPUESTO = [
-  { etiqueta: 'Hasta Bs 800', valor: 800 },
-  { etiqueta: 'Bs 800 a 1.500', valor: 1500 },
-  { etiqueta: 'Bs 1.500 a 2.500', valor: 2500 },
-  { etiqueta: 'Mas de Bs 2.500', valor: 999999 },
+  { etiqueta: 'Hasta Bs 500', valor: 'hasta_500' },
+  { etiqueta: 'Bs 501 a 800', valor: '501_800' },
+  { etiqueta: 'Bs 801 a 1.200', valor: '801_1200' },
+  { etiqueta: 'Más de Bs 1.200', valor: 'mas_1200' },
 ];
 
 @Component({
@@ -61,14 +72,14 @@ const RANGOS_PRESUPUESTO = [
           <img src="/assets/icono-logo.png" alt="" />
         </div>
         <h2>Vinto<span class="acento-marca">Alquiler</span></h2>
-        <p>Publica gratis en minutos o encuentra tu proximo lugar cerca de la UAB y del centro de Vinto.</p>
+        <p>Publica gratis en minutos o encuentra tu próximo lugar cerca de la UAB y del centro de Vinto.</p>
       </div>
       <div class="panel-formulario">
         <div class="contenido-formulario">
           <a routerLink="/" class="enlace-volver">← Volver</a>
           <h1 class="titulo-registro">Crear cuenta</h1>
           <p class="subtitulo subtitulo-centrado">
-            {{ rol === 'interesado' ? 'Buscas alquiler en Vinto.' : 'Publicas inmuebles en alquiler en Vinto.' }}
+            {{ rol === 'interesado' ? 'Busca alquiler en Vinto.' : 'Publica gratis tu inmueble y encuentra inquilinos en Vinto.' }}
           </p>
 
           <div class="selector-rol">
@@ -99,35 +110,39 @@ const RANGOS_PRESUPUESTO = [
             </label>
             <label>
               <span class="etiqueta">Correo</span>
-              <input type="email" name="correo" placeholder="tu correo electronico" [(ngModel)]="correo" />
+              <input type="email" name="correo" placeholder="tu correo electrónico" [(ngModel)]="correo" />
             </label>
             <label>
-              <span class="etiqueta">Contrasena</span>
-              <input type="password" name="clave" placeholder="Crea tu contrasena" [(ngModel)]="clave" />
+              <span class="etiqueta">Contraseña</span>
+              <input type="password" name="clave" placeholder="Crea tu contraseña" [(ngModel)]="clave" />
             </label>
             <label>
-              <span class="etiqueta">Celular (WhatsApp)</span>
+              <span class="etiqueta">Confirmar contraseña</span>
+              <input type="password" name="confirmarClave" placeholder="Repite tu contraseña" [(ngModel)]="confirmarClave" />
+            </label>
+            <label>
+              <span class="etiqueta">Celular / WhatsApp</span>
               <input type="tel" name="celular" placeholder="+591 7XXXXXXX" [(ngModel)]="celular" />
             </label>
 
             <div *ngIf="rol === 'interesado'" class="campo-perfil">
-              <span class="etiqueta">¿Con quien vas a vivir?</span>
+              <span class="etiqueta">¿Cuál es tu motivo principal de búsqueda?</span>
               <div class="chips-perfil">
                 <button
                   type="button"
-                  *ngFor="let perfil of perfiles"
+                  *ngFor="let motivo of motivos"
                   class="chip-seleccionable chip-con-icono"
-                  [class.activo]="perfilHogar === perfil.valor"
-                  (click)="elegirPerfil(perfil.valor)"
+                  [class.activo]="motivoBusqueda === motivo.valor"
+                  (click)="elegirMotivo(motivo.valor)"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" [innerHTML]="iconoSeguro(perfil.icono)"></svg>
-                  {{ perfil.etiqueta }}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" [innerHTML]="iconoSeguro(motivo.icono)"></svg>
+                  {{ motivo.etiqueta }}
                 </button>
               </div>
             </div>
 
             <div *ngIf="rol === 'interesado'" class="campo-perfil">
-              <span class="etiqueta">¿Que tipo de lugar buscas?</span>
+              <span class="etiqueta">¿Qué tipo de lugar buscas?</span>
               <div class="chips-perfil chips-tipo-lugar">
                 <button
                   type="button"
@@ -143,13 +158,13 @@ const RANGOS_PRESUPUESTO = [
             </div>
 
             <div *ngIf="rol === 'interesado'" class="campo-perfil">
-              <span class="etiqueta">¿Hasta cuanto puedes pagar al mes?</span>
+              <span class="etiqueta">¿Hasta cuánto puedes pagar al mes?</span>
               <div class="grilla-presupuesto">
                 <button
                   type="button"
                   *ngFor="let rango of rangosPresupuesto"
                   class="chip-seleccionable chip-con-icono"
-                  [class.activo]="presupuestoMax === rango.valor"
+                  [class.activo]="rangoPresupuesto === rango.valor"
                   (click)="elegirPresupuesto(rango.valor)"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -162,9 +177,25 @@ const RANGOS_PRESUPUESTO = [
               </div>
             </div>
 
+            <div *ngIf="rol === 'interesado'" class="campo-perfil">
+              <span class="etiqueta">¿En qué zona te interesa buscar?</span>
+              <select name="zonaInteres" class="selector-zona" [(ngModel)]="zonaInteresId">
+                <option [ngValue]="null">Cualquier zona</option>
+                <option *ngFor="let zona of zonas" [ngValue]="zona.id">{{ zona.nombre }}</option>
+              </select>
+            </div>
+
             <label class="fila-terminos">
               <input type="checkbox" name="acepta" [(ngModel)]="aceptaTerminos" />
-              <span>Acepto los terminos de uso y la politica de privacidad.</span>
+              <span>
+                Acepto los <a routerLink="/terminos" target="_blank" (click)="$event.stopPropagation()">Términos de uso</a>
+                y la <a routerLink="/privacidad" target="_blank" (click)="$event.stopPropagation()">Política de privacidad</a>.
+              </span>
+            </label>
+
+            <label class="fila-terminos" *ngIf="rol === 'interesado'">
+              <input type="checkbox" name="autorizaEstadistico" [(ngModel)]="autorizaUsoEstadistico" />
+              <span><strong>Uso estadístico opcional:</strong> autorizo el uso de mis preferencias, de forma agregada y sin datos personales identificables, para generar estadísticas sobre vivienda en Vinto.</span>
             </label>
 
             <button type="submit" class="boton-principal boton-ancho" [disabled]="cargando">
@@ -178,29 +209,43 @@ const RANGOS_PRESUPUESTO = [
               <circle cx="12" cy="12" r="10" />
               <path d="M8 15v-3M12 15V9M16 15v-5" />
             </svg>
-            <span>Tus respuestas sirven solo para estadisticas de vivienda.</span>
+            <span>Tus preferencias ayudan a personalizar tus recomendaciones. El uso estadístico agregado es opcional.</span>
+          </div>
+
+          <div class="nota-privacidad" *ngIf="rol === 'publicador'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2 20 7v6c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7Z" /><path d="m9 12 2 2 4-4" />
+            </svg>
+            <span>Después de crear tu cuenta, verifica tu identidad gratis para empezar a publicar. Tus anuncios mostrarán el sello de publicador verificado.</span>
           </div>
 
           <p class="pie">
-            ¿Ya tienes cuenta? <a routerLink="/login">Inicia sesion</a>
+            ¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a>
           </p>
         </div>
       </div>
     </section>
   `,
 })
-export class RegistroComponent {
-  perfiles = PERFILES;
+export class RegistroComponent implements OnInit {
+  private readonly apiUrl = '/api';
+
+  motivos = MOTIVOS;
   tiposLugar = TIPOS_LUGAR;
   rangosPresupuesto = RANGOS_PRESUPUESTO;
+  zonas: Zona[] = [];
+
   nombre = '';
   correo = '';
   clave = '';
+  confirmarClave = '';
   celular = '';
   rol: 'interesado' | 'publicador' = 'interesado';
-  perfilHogar = '';
-  presupuestoMax: number | null = null;
+  motivoBusqueda = '';
   tipoPreferido = '';
+  rangoPresupuesto = '';
+  zonaInteresId: number | null = null;
+  autorizaUsoEstadistico = false;
   aceptaTerminos = false;
   error = '';
   cargando = false;
@@ -209,22 +254,27 @@ export class RegistroComponent {
     private readonly authService: AuthService,
     private readonly router: Router,
     private readonly sanitizer: DomSanitizer,
+    private readonly http: HttpClient,
   ) {}
+
+  ngOnInit(): void {
+    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
+  }
 
   iconoSeguro(svgInterno: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(svgInterno);
   }
 
-  elegirPerfil(perfil: string): void {
-    this.perfilHogar = this.perfilHogar === perfil ? '' : perfil;
+  elegirMotivo(motivo: string): void {
+    this.motivoBusqueda = this.motivoBusqueda === motivo ? '' : motivo;
   }
 
   elegirTipoLugar(tipo: string): void {
     this.tipoPreferido = this.tipoPreferido === tipo ? '' : tipo;
   }
 
-  elegirPresupuesto(valor: number): void {
-    this.presupuestoMax = this.presupuestoMax === valor ? null : valor;
+  elegirPresupuesto(valor: string): void {
+    this.rangoPresupuesto = this.rangoPresupuesto === valor ? '' : valor;
   }
 
   enviar(): void {
@@ -234,7 +284,11 @@ export class RegistroComponent {
       return;
     }
     if (this.clave.length < 8) {
-      this.error = 'La contrasena debe tener al menos 8 caracteres.';
+      this.error = 'La contraseña debe tener al menos 8 caracteres.';
+      return;
+    }
+    if (this.clave !== this.confirmarClave) {
+      this.error = 'Las contraseñas no coinciden.';
       return;
     }
     if (!this.aceptaTerminos) {
@@ -249,9 +303,11 @@ export class RegistroComponent {
         clave: this.clave,
         celular: this.celular.replace(/[\s()-]/g, ''),
         rol: this.rol,
-        perfilHogar: this.rol === 'interesado' ? this.perfilHogar || undefined : undefined,
-        presupuestoMax: this.rol === 'interesado' ? this.presupuestoMax || undefined : undefined,
+        motivoBusqueda: this.rol === 'interesado' ? this.motivoBusqueda || undefined : undefined,
         tipoPreferido: this.rol === 'interesado' ? this.tipoPreferido || undefined : undefined,
+        rangoPresupuesto: this.rol === 'interesado' ? this.rangoPresupuesto || undefined : undefined,
+        zonaInteresId: this.rol === 'interesado' && this.zonaInteresId ? this.zonaInteresId : undefined,
+        autorizaUsoEstadistico: this.rol === 'interesado' ? this.autorizaUsoEstadistico : undefined,
       })
       .subscribe({
         next: () => this.router.navigate(['/verificacion']),

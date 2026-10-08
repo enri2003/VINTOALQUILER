@@ -23,6 +23,9 @@ const ETIQUETAS_SENALES: Record<string, string> = {
       </div>
 
       <h1>{{ anuncio.titulo }}</h1>
+      <span class="insignia-estado-publicador" [class.insignia-estado-verificado]="anuncio.publicador?.verificado">
+        {{ anuncio.publicador?.verificado ? '✓ Identidad verificada' : 'Publicador no verificado' }}
+      </span>
       <p class="precio">Bs. {{ anuncio.precio }}/mes</p>
       <p class="texto-suave">📍 {{ anuncio.referencia }} · {{ anuncio.zona?.nombre }}</p>
       <p *ngIf="anuncio.direccionExacta" class="texto-suave">Dirección exacta: {{ anuncio.direccionExacta }}</p>
@@ -79,6 +82,21 @@ const ETIQUETAS_SENALES: Record<string, string> = {
         border-radius: 12px;
         object-fit: cover;
         flex-shrink: 0;
+      }
+      .insignia-estado-publicador {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #F3EEDD;
+        color: #7A5E1F;
+        font: 700 11.5px 'Manrope', sans-serif;
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 8px;
+      }
+      .insignia-estado-verificado {
+        background: #3E8E5B;
+        color: #fff;
       }
       .detalles-tecnicos {
         display: flex;

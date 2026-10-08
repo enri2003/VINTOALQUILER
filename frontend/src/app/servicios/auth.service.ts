@@ -24,9 +24,11 @@ export class AuthService {
     clave: string;
     celular: string;
     rol: 'interesado' | 'publicador';
-    perfilHogar?: string;
-    presupuestoMax?: number;
+    motivoBusqueda?: string;
     tipoPreferido?: string;
+    rangoPresupuesto?: string;
+    zonaInteresId?: number;
+    autorizaUsoEstadistico?: boolean;
   }): Observable<RespuestaToken> {
     return this.http
       .post<RespuestaToken>(`${this.apiUrl}/auth/registro`, datos)

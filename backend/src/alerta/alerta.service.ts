@@ -1,9 +1,11 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Alerta } from './alerta.entity';
 import { TipoAnuncio } from '../anuncio/anuncio.entity';
 import { UsuarioService } from '../usuario/usuario.service';
+
+const MAX_ALERTAS_POR_USUARIO = 5;
 
 interface DatosAlerta {
   tipo?: TipoAnuncio;
@@ -35,6 +37,26 @@ export class AlertaService {
     if (!usuario?.verificado) {
       throw new ForbiddenException('Debes verificar tu identidad para crear alertas');
     }
+    const existentes = await this.alertaRepo.find({
+      where: { usuario: { id: usuarioId } as any },
+      relations: ['zona'],
+    });
+    if (existentes.length >= MAX_ALERTAS_POR_USUARIO) {
+      throw new BadRequestException(`Puedes tener hasta ${MAX_ALERTAS_POR_USUARIO} alertas.`);
+    }
+    const tipoNuevo = datos.tipo ?? null;
+    const zonaNueva = datos.zonaId ?? null;
+    const precioNuevo = datos.precioMax ?? null;
+    const duplicada = existentes.some(
+      (a) =>
+        (a.tipo ?? null) === tipoNuevo &&
+        (a.zona?.id ?? null) === zonaNueva &&
+        (a.precioMax === null || a.precioMax === undefined ? null : Number(a.precioMax)) === precioNuevo,
+    );
+    if (duplicada) {
+      throw new BadRequestException('Ya tienes una alerta con estos mismos criterios.');
+    }
+
     const { zonaId, ...resto } = datos;
     const alerta = this.alertaRepo.create({
       ...resto,
