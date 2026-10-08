@@ -2,7 +2,7 @@
 
 Implementación de una plataforma web con APIs de inteligencia artificial para la gestión segura y análisis del mercado de alquileres habitacionales en el municipio de Vinto, incorporando verificación automática de identidad, detección temprana de anuncios de riesgo y análisis estructurado del mercado habitacional.
 
-**Autor:** Elger Enrique Marquez Arze ([@enri2003](https://github.com/enri2003))
+**Autor:** Elger Enrique Marquez Arze ([@enri2003](https://github.com/enri2003))  
 **Proyecto de grado** — Ingeniería de Sistemas, Universidad Adventista de Bolivia
 
 ## Stack tecnológico
