@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, ViewChild } from '@angular/core';
 import type { FaceLandmarker } from '@mediapipe/tasks-vision';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../servicios/auth.service';
 import { VerificacionService } from '../../servicios/verificacion.service';
 import { cargarSeguidorRostro, LecturaRostro, leerRostro } from '../../utilidades/seguimiento-rostro';
 
@@ -68,7 +70,7 @@ const PASOS: PasoCaptura[] = [
 @Component({
   selector: 'app-verificacion',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <section class="pantalla-verificacion">
       <span class="destello destello-1"></span>
@@ -123,6 +125,22 @@ const PASOS: PasoCaptura[] = [
               <div class="relleno-progreso" [style.width.%]="progreso()"></div>
             </div>
             <p class="nota-progreso">{{ notaProgreso() }}</p>
+          </div>
+
+          <!-- Siguiente paso al terminar: depende del rol del usuario -->
+          <div class="acciones-final" *ngIf="fase === 'aprobado'">
+            <ng-container *ngIf="authService.esPublicador()">
+              <a class="boton-degradado" routerLink="/publicar">Publicar mi primer anuncio</a>
+              <a class="boton-fantasma-verif" routerLink="/mis-anuncios">Ir a mis anuncios</a>
+            </ng-container>
+            <ng-container *ngIf="!authService.esPublicador()">
+              <a class="boton-degradado" routerLink="/explorar">Explorar alquileres</a>
+              <a class="boton-fantasma-verif" routerLink="/mapa">Ver el mapa</a>
+            </ng-container>
+          </div>
+          <div class="acciones-final" *ngIf="fase === 'rechazado'">
+            <button class="boton-degradado" (click)="iniciarCaptura()">Intentar de nuevo</button>
+            <a class="boton-fantasma-verif" routerLink="/explorar">Volver al inicio</a>
           </div>
         </ng-container>
 
@@ -331,6 +349,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
 
   constructor(
     private readonly verificacionService: VerificacionService,
+    readonly authService: AuthService,
     private readonly zona: NgZone,
     private readonly cdr: ChangeDetectorRef,
   ) {}
@@ -566,7 +585,8 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     // Captura automática: el trazo solo avanza con buena luz y la imagen quieta; si no, se reinicia.
     const quieta = cuadro.movimiento <= MOVIMIENTO_MAXIMO;
     if (luzAdecuada) {
-      this.fraseMagica = quieta ? 'No te muevas…' : esDocumento ? 'Mantén la cédula quieta' : 'Quédate quieto';
+      const pedirQuietud = esDocumento ? 'Mantén la cédula quieta' : 'Quédate quieto';
+      this.fraseMagica = quieta ? 'No te muevas…' : pedirQuietud;
     }
     if (luzAdecuada && quieta) {
       this.muestrasConBuenaLuz += 1;

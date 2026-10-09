@@ -1673,6 +1673,18 @@ input:focus, select:focus, textarea:focus {
 .boton-degradado:disabled::after {
   display: none;
 }
+.acciones-final {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+.acciones-final a {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
 .boton-fantasma-verif {
   width: 100%;
   background: transparent;
