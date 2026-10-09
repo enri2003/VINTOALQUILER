@@ -24,8 +24,8 @@ import { RouterLink } from '@angular/router';
       <h2>4. Uso estadístico agregado (opcional)</h2>
       <p>Si autorizas expresamente el uso estadístico al registrarte, tus preferencias pueden incluirse en los indicadores agregados del Observatorio Digital del Mercado Habitacional (ODMH-Vinto). Estos indicadores nunca muestran datos individuales: solo se publican cuando una categoría reúne un mínimo de diez registros autorizados, y nunca incluyen tu nombre, correo, celular, número de Cédula de Identidad ni dirección. Esta autorización es independiente de la aceptación de los Términos de uso y puedes registrarte sin marcarla.</p>
 
-      <h2>5. Dirección exacta y datos de contacto</h2>
-      <p>La dirección exacta de un anuncio y el número de contacto del publicador solo son visibles para interesados con identidad verificada, y nunca se muestran públicamente en el mapa ni en el listado de anuncios.</p>
+      <h2>5. Ubicación exacta y datos de contacto</h2>
+      <p>La ubicación exacta de un anuncio (el punto marcado en el mapa) y el número de contacto del publicador solo son visibles para interesados con identidad verificada, y nunca se muestran públicamente en el mapa ni en el listado de anuncios.</p>
 
       <h2>6. Seguridad</h2>
       <p>Usamos cifrado en tránsito (HTTPS/TLS), contraseñas con hash bcrypt y cifrado en reposo para el número de Cédula de Identidad, en línea con los principios de protección de datos de la Ley N.º 164 de Telecomunicaciones y Tecnologías de Información y Comunicación de Bolivia.</p>

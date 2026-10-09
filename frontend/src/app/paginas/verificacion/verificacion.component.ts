@@ -183,7 +183,7 @@ const PASOS: PasoCaptura[] = [
           </div>
           <p class="nota-cifrado">Las imágenes se analizan en el momento y se descartan al terminar. Solo se guarda tu número de cédula cifrado.</p>
           <button class="boton-degradado" (click)="iniciarCaptura()">Comenzar verificación</button>
-          <p class="nota-beneficios">Al verificarte puedes contactar, guardar favoritos, comparar, crear alertas y ver la dirección exacta.</p>
+          <p class="nota-beneficios">Al verificarte puedes contactar, guardar favoritos, comparar, crear alertas y ver la ubicación exacta en el mapa.</p>
         </div>
 
         <!-- Captura en vivo (documento y selfie) -->
