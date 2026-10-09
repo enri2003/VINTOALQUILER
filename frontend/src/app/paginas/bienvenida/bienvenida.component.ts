@@ -16,7 +16,7 @@ import { RouterLink } from '@angular/router';
 
       <div class="acciones-bienvenida">
         <a routerLink="/registro" class="boton-principal">Crear cuenta</a>
-        <a routerLink="/login" class="boton-fantasma">Iniciar sesion</a>
+        <a routerLink="/login" class="boton-fantasma">Iniciar sesión</a>
         <a routerLink="/explorar" class="enlace-visitante">Mirar como visitante</a>
       </div>
 

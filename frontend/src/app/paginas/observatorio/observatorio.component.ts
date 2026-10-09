@@ -95,44 +95,38 @@ const UMBRAL_DEMOSTRATIVO = 30;
       </div>
 
       <div class="panel-grafico panel-ancho" *ngIf="ofertaDemanda.length">
-        <h2>Oferta e interés registrado por zona</h2>
+        <h2>¿Dónde hay más interés que oferta?</h2>
+        <p class="explicacion-grafico">
+          Para cada zona se compara cuántos <strong>anuncios disponibles</strong> hay con cuánto <strong>interés</strong> recibieron:
+          las veces que alguien guardó un anuncio en favoritos o pidió el contacto del publicador.
+        </p>
         <div class="leyenda">
-          <span class="punto punto-oferta"></span> Oferta (anuncios activos)
-          <span class="punto punto-interes"></span> Interés registrado (favoritos + contactos)
+          <span><span class="punto punto-oferta"></span> Anuncios disponibles</span>
+          <span><span class="punto punto-interes"></span> Interés (favoritos y contactos)</span>
         </div>
-        <div class="grupo-barras" *ngFor="let fila of ofertaDemanda">
-          <span class="barra-etiqueta">{{ fila.zona }}</span>
-          <div class="pares">
-            <div class="barra-pista"><div class="barra-relleno barra-oferta" [style.width.%]="porcentajeOferta(fila.oferta)"></div></div>
-            <div class="barra-pista"><div class="barra-relleno barra-interes" [style.width.%]="porcentajeInteres(fila.demanda)"></div></div>
+
+        <div class="tarjetas-zona">
+          <div class="tarjeta-zona" *ngFor="let fila of ofertaDemandaOrdenada">
+            <div class="cabecera-zona">
+              <strong>{{ fila.zona }}</strong>
+              <span class="estado-zona" [ngClass]="'estado-' + lectura(fila).clase">{{ lectura(fila).texto }}</span>
+            </div>
+            <div class="fila-medida">
+              <span class="nombre-medida">{{ fila.oferta }} {{ fila.oferta === 1 ? 'anuncio' : 'anuncios' }}</span>
+              <div class="barra-pista"><div class="barra-relleno barra-oferta" [style.width.%]="porcentajeComun(fila.oferta)"></div></div>
+            </div>
+            <div class="fila-medida">
+              <span class="nombre-medida">{{ fila.demanda }} {{ fila.demanda === 1 ? 'interacción' : 'interacciones' }}</span>
+              <div class="barra-pista"><div class="barra-relleno barra-interes" [style.width.%]="porcentajeComun(fila.demanda)"></div></div>
+            </div>
           </div>
-          <span class="barra-valor">{{ fila.oferta }} / {{ fila.demanda }}</span>
         </div>
+
         <p class="texto-suave nota-indicador">
-          El interés registrado es un indicador aproximado calculado a partir de favoritos y contactos. No representa necesariamente la cantidad de personas únicas interesadas.
+          Las dos barras usan la misma escala, así que se pueden comparar directamente. Una misma persona puede generar varias
+          interacciones, por eso el interés no equivale a la cantidad de personas interesadas.
         </p>
       </div>
-
-      <h2>Detalle por zona</h2>
-      <table class="tabla-oferta-demanda" *ngIf="ofertaDemanda.length">
-        <thead>
-          <tr>
-            <th>Zona</th>
-            <th>Oferta (anuncios activos)</th>
-            <th>Interés registrado (favoritos + contactos)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let fila of ofertaDemanda">
-            <td>{{ fila.zona }}</td>
-            <td>{{ fila.oferta }}</td>
-            <td>{{ fila.demanda }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <p class="texto-suave nota-indicador" *ngIf="ofertaDemanda.length">
-        La oferta se expresa en cantidad de anuncios activos y el interés registrado en cantidad de interacciones.
-      </p>
     </section>
   `,
   styles: [
@@ -183,14 +177,28 @@ const UMBRAL_DEMOSTRATIVO = 30;
       }
       .panel-ancho { margin-bottom: 16px; }
       .panel-grafico h2 { font-size: 16px; margin: 0 0 12px; }
-      .barra, .grupo-barras {
+      .barra {
         display: grid;
         grid-template-columns: 130px 1fr 110px;
         align-items: center;
         gap: 10px;
         margin-bottom: 8px;
       }
-      .grupo-barras .pares { display: flex; flex-direction: column; gap: 4px; }
+      .explicacion-grafico { font-size: 14px; line-height: 1.6; color: var(--texto, #2A2118); margin: 0 0 12px; }
+      .tarjetas-zona { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+      .tarjeta-zona {
+        border: 1px solid var(--borde, #ECE1D2); border-radius: 12px; padding: 14px;
+        display: flex; flex-direction: column; gap: 10px; background: #FFFCF8;
+      }
+      .cabecera-zona { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .cabecera-zona strong { font-size: 15px; }
+      .estado-zona { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+      .estado-alta { background: #E3EBFB; color: #2F5FC4; }
+      .estado-pareja { background: #EEF0F3; color: #4A5565; }
+      .estado-baja { background: #FBEDE3; color: #A94F22; }
+      .estado-sin-interes { background: #F3F1EE; color: #8A8178; }
+      .fila-medida { display: grid; grid-template-columns: 120px 1fr; align-items: center; gap: 10px; }
+      .nombre-medida { font-size: 13.5px; color: var(--texto, #2A2118); }
       .barra-etiqueta { font-size: 13px; color: var(--texto, #2A2118); }
       .barra-valor { font-size: 12.5px; color: var(--texto-suave, #6E6255); text-align: right; }
       .barra-pista { height: 12px; background: #F3ECE0; border-radius: 999px; overflow: hidden; }
@@ -202,17 +210,11 @@ const UMBRAL_DEMOSTRATIVO = 30;
       }
       .barra-oferta { background: linear-gradient(90deg, #C9622D, #A94F22); }
       .barra-interes { background: linear-gradient(90deg, #5B8DEF, #2F5FC4); }
-      .leyenda { font-size: 12.5px; color: var(--texto-suave, #6E6255); margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+      .leyenda { font-size: 13.5px; color: var(--texto-suave, #6E6255); margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
       .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
       .punto-oferta { background: #C9622D; }
       .punto-interes { background: #2F5FC4; }
       .nota-indicador { font-size: 12.5px; margin: 8px 0 0; }
-      .tabla-oferta-demanda { border-collapse: collapse; margin-top: 8px; width: 100%; }
-      .tabla-oferta-demanda th, .tabla-oferta-demanda td {
-        padding: 6px 12px;
-        border-bottom: 1px solid var(--borde, #E2E6EA);
-        text-align: left;
-      }
     `,
   ],
 })
@@ -245,14 +247,24 @@ export class ObservatorioComponent implements OnInit {
     return [...this.barrasZona].sort((a, b) => b.valor - a.valor)[0] ?? null;
   }
 
-  porcentajeOferta(valor: number): number {
-    const maximo = Math.max(1, ...this.ofertaDemanda.map((f) => f.oferta));
+  /** Una sola escala para anuncios e interés: así las dos barras de cada zona son comparables. */
+  porcentajeComun(valor: number): number {
+    const maximo = Math.max(1, ...this.ofertaDemanda.flatMap((f) => [f.oferta, f.demanda]));
     return (valor / maximo) * 100;
   }
 
-  porcentajeInteres(valor: number): number {
-    const maximo = Math.max(1, ...this.ofertaDemanda.map((f) => f.demanda));
-    return (valor / maximo) * 100;
+  /** Zonas con más interés por anuncio primero. */
+  get ofertaDemandaOrdenada(): OfertaDemanda[] {
+    const razon = (f: OfertaDemanda) => f.demanda / Math.max(1, f.oferta);
+    return [...this.ofertaDemanda].sort((a, b) => razon(b) - razon(a) || b.demanda - a.demanda);
+  }
+
+  /** Conclusión en palabras simples para cada zona. */
+  lectura(fila: OfertaDemanda): { texto: string; clase: string } {
+    if (fila.demanda === 0) return { texto: 'Aún sin interés', clase: 'sin-interes' };
+    if (fila.demanda > fila.oferta) return { texto: 'Más interés que anuncios', clase: 'alta' };
+    if (fila.demanda === fila.oferta) return { texto: 'Interés parejo', clase: 'pareja' };
+    return { texto: 'Más anuncios que interés', clase: 'baja' };
   }
 
   ngOnInit(): void {

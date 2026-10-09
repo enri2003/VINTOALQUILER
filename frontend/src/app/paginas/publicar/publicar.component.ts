@@ -298,41 +298,42 @@ const PRECIO_INUSUAL_ALTO = 10000;
       .detalle-verificacion li { margin-bottom: 6px; }
       @media (max-width: 560px) { .aviso-verificar { padding: 20px 16px; } }
 
-      .publicar { max-width: 660px; margin: 0 auto; padding: 24px 20px 60px; }
-      form, .resumen-publicacion { display: flex; flex-direction: column; gap: 18px; }
+      .publicar { max-width: 720px; margin: 0 auto; padding: 28px 20px 70px; }
+      .publicar h1 { margin: 0 0 18px; }
+      form, .resumen-publicacion { display: flex; flex-direction: column; gap: 22px; }
       .seccion {
         border: 1px solid var(--borde, #ECE1D2); border-radius: 16px; background: #fff;
-        padding: 18px 18px 20px; margin: 0; display: flex; flex-direction: column; gap: 16px; min-width: 0;
+        padding: 22px 22px 24px; margin: 0; display: flex; flex-direction: column; gap: 20px; min-width: 0;
       }
-      .seccion legend { font: 700 16px 'Bricolage Grotesque', sans-serif; padding: 0 6px; display: flex; align-items: center; gap: 8px; }
+      .seccion legend { font: 700 18px 'Bricolage Grotesque', sans-serif; padding: 0 6px; display: flex; align-items: center; gap: 8px; }
       .numero-seccion {
-        width: 24px; height: 24px; border-radius: 50%; background: var(--acento); color: #fff;
+        width: 28px; height: 28px; border-radius: 50%; background: var(--acento); color: #fff;
         display: inline-flex; align-items: center; justify-content: center; font-size: 13px;
       }
-      label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; font-size: 0.9rem; }
-      .ayuda-campo { font-weight: 400; font-size: 0.8rem; color: var(--texto-suave, #67717B); margin: 0; }
-      .aviso-privado { font-weight: 400; font-size: 0.8rem; color: #1F6B3A; margin: 0; }
-      input, select, textarea { font-weight: 400; }
-      textarea { min-height: 110px; }
-      .contador { align-self: flex-end; font-weight: 400; font-size: 0.75rem; color: var(--texto-suave); }
+      label { display: flex; flex-direction: column; gap: 7px; font-weight: 700; font-size: 15px; }
+      .ayuda-campo { font-weight: 400; font-size: 13.5px; line-height: 1.55; color: var(--texto-suave, #67717B); margin: 0; }
+      .aviso-privado { font-weight: 500; font-size: 13.5px; line-height: 1.55; color: #1F6B3A; margin: 0; }
+      input, select, textarea { font-weight: 400; font-size: 15px; }
+      textarea { min-height: 130px; line-height: 1.55; }
+      .contador { align-self: flex-end; font-weight: 400; font-size: 12.5px; color: var(--texto-suave); }
       .contador.alerta { color: #8A5A12; }
-      .error-campo { font-weight: 500; font-size: 0.8rem; color: var(--rojo, #B42318); }
+      .error-campo { font-weight: 600; font-size: 13.5px; color: var(--rojo, #B42318); }
 
-      .fila-servicio { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.9rem; }
+      .fila-servicio { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 15px; padding: 6px 0; border-bottom: 1px solid #F3ECE0; }
       .selector-modo { display: inline-flex; border: 1px solid var(--borde); border-radius: 999px; overflow: hidden; }
-      .selector-modo button { border: none; background: #fff; padding: 6px 12px; font-size: 12.5px; cursor: pointer; color: var(--texto-suave); }
+      .selector-modo button { border: none; background: #fff; padding: 8px 14px; font-size: 13.5px; cursor: pointer; color: var(--texto-suave); }
       .selector-modo button + button { border-left: 1px solid var(--borde); }
       .selector-modo button.activo { background: var(--acento); color: #fff; font-weight: 700; }
 
-      .titulo-grupo { font-weight: 700; font-size: 0.85rem; }
-      .grupo-caracteristicas { display: flex; flex-direction: column; gap: 8px; }
-      .chips-seleccion { display: flex; flex-wrap: wrap; gap: 8px; }
+      .titulo-grupo { font-weight: 700; font-size: 15px; }
+      .grupo-caracteristicas { display: flex; flex-direction: column; gap: 10px; }
+      .chips-seleccion { display: flex; flex-wrap: wrap; gap: 10px; }
       .chip-seleccion {
         border: 1.5px solid var(--borde-fuerte, #D9CBB6); background: #fff; border-radius: 999px;
-        padding: 6px 12px; font-size: 13px; cursor: pointer;
+        padding: 9px 16px; font-size: 14px; cursor: pointer;
       }
       .chip-seleccion.activo { border-color: var(--acento); background: var(--superficie-alt, #F7EFE3); color: var(--acento-oscuro); font-weight: 700; }
-      .fila-numeros { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .fila-numeros { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
       .caja-portada {
         position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden;
@@ -343,7 +344,8 @@ const PRECIO_INUSUAL_ALTO = 10000;
         border-style: dashed; display: flex; flex-direction: column; align-items: center; justify-content: center;
         gap: 4px; cursor: pointer; color: var(--acento-oscuro);
       }
-      .caja-portada.vacia small { font-weight: 400; color: var(--texto-suave); }
+      .caja-portada.vacia span { font-size: 16px; font-weight: 700; }
+      .caja-portada.vacia small { font-weight: 400; font-size: 13.5px; color: var(--texto-suave); }
       .etiqueta-portada {
         position: absolute; top: 8px; left: 8px; background: var(--acento); color: #fff;
         font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
@@ -362,8 +364,8 @@ const PRECIO_INUSUAL_ALTO = 10000;
       .acciones-miniatura { display: flex; background: #F7EFE3; }
       .acciones-miniatura button { flex: 1; border: none; background: none; cursor: pointer; padding: 4px 0; font-size: 13px; }
       .acciones-miniatura button:hover { background: #EEDFC9; }
-      .contador-total { font-size: 0.8rem; color: var(--texto-suave); }
-      .motivo-deshabilitado { margin: 0; font-size: 0.85rem; color: var(--texto-suave); }
+      .contador-total { font-size: 13.5px; color: var(--texto-suave); }
+      .motivo-deshabilitado { margin: 0; font-size: 14px; line-height: 1.5; color: var(--texto-suave); text-align: center; }
 
       .resumen-publicacion h2 { margin: 0; }
       .tarjeta-resumen { padding: 0; }

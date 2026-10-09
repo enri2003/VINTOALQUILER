@@ -38,7 +38,7 @@ const RUTAS_SIN_NAV = ['/login', '/registro'];
           <button class="boton-salir" (click)="salir()">Salir</button>
         </ng-container>
         <ng-template #invitado>
-          <a routerLink="/login" class="cta-registro">Iniciar sesion</a>
+          <a routerLink="/login" class="cta-registro">Iniciar sesión</a>
         </ng-template>
       </div>
     </header>
