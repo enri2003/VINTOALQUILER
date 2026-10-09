@@ -10,7 +10,7 @@ export class Impulso {
   id: number;
 
   @Index()
-  @ManyToOne(() => Anuncio, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Anuncio, { onDelete: 'CASCADE', nullable: false })
   anuncio: Anuncio;
 
   @Column('int')

@@ -8,11 +8,11 @@ export class Contacto {
   id: number;
 
   @Index()
-  @ManyToOne(() => Anuncio, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Anuncio, { onDelete: 'CASCADE', nullable: false })
   anuncio: Anuncio;
 
   @Index()
-  @ManyToOne(() => Usuario)
+  @ManyToOne(() => Usuario, { nullable: false })
   interesado: Usuario;
 
   @CreateDateColumn()

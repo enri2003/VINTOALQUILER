@@ -22,11 +22,11 @@ export class Anuncio {
   id: number;
 
   @Index()
-  @ManyToOne(() => Usuario)
+  @ManyToOne(() => Usuario, { nullable: false })
   publicador: Usuario;
 
   @Index()
-  @ManyToOne(() => Zona)
+  @ManyToOne(() => Zona, { nullable: false })
   zona: Zona;
 
   @Column()

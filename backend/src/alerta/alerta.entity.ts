@@ -8,7 +8,7 @@ export class Alerta {
   id: number;
 
   @Index()
-  @ManyToOne(() => Usuario, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Usuario, { onDelete: 'CASCADE', nullable: false })
   usuario: Usuario;
 
   @Column({ nullable: true })

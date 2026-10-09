@@ -9,7 +9,7 @@ export class Verificacion {
   id: number;
 
   @Index()
-  @ManyToOne(() => Usuario)
+  @ManyToOne(() => Usuario, { nullable: false })
   usuario: Usuario;
 
   @Column()

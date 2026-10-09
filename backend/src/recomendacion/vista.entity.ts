@@ -8,11 +8,11 @@ export class Vista {
   id: number;
 
   @Index()
-  @ManyToOne(() => Usuario, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Usuario, { onDelete: 'CASCADE', nullable: false })
   usuario: Usuario;
 
   @Index()
-  @ManyToOne(() => Anuncio, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Anuncio, { onDelete: 'CASCADE', nullable: false })
   anuncio: Anuncio;
 
   @CreateDateColumn()
