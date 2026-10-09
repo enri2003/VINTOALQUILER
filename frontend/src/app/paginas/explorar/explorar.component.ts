@@ -10,6 +10,7 @@ import { crearAccionesMapa, crearMarcadorAnuncio } from '../../utilidades/mapa-p
 import { AuthService } from '../../servicios/auth.service';
 import { FavoritoService } from '../../servicios/favorito.service';
 import { obtenerSelloImpulso } from '../../utilidades/sello-impulso.util';
+import { OpcionSelector, SelectorBuscadorComponent } from '../../componentes/selector-buscador.component';
 
 interface Zona {
   id: number;
@@ -49,7 +50,7 @@ const RANGOS_PRECIO = [
 @Component({
   selector: 'app-explorar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, SelectorBuscadorComponent],
   template: `
     <section class="hero-ancho hero-portada">
       <div class="hero hero-izquierda">
@@ -57,48 +58,25 @@ const RANGOS_PRECIO = [
         <p>Encuentra tu próximo hogar cerca de la UAB y del centro de Vinto.</p>
 
         <form class="buscador" (ngSubmit)="buscar()">
-          <div class="segmento-buscador">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-segmento">
+          <app-selector-buscador etiqueta="Tipo" [opciones]="opcionesTipo" [(valor)]="tipo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-segmento" aria-hidden="true">
               <path d="M12 2 20 10v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10Z" />
               <path d="M2 10 12 2l10 8" />
             </svg>
-            <div class="texto-segmento">
-              <span class="etiqueta-segmento">Tipo</span>
-              <select [(ngModel)]="tipo" name="tipo">
-                <option value="">Todos los tipos</option>
-                <option value="cuarto">Cuarto</option>
-                <option value="garzonier">Garzonier</option>
-                <option value="departamento">Departamento</option>
-              </select>
-            </div>
-          </div>
-          <div class="segmento-buscador">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-segmento">
+          </app-selector-buscador>
+          <app-selector-buscador etiqueta="Zona" [opciones]="opcionesZona" [(valor)]="zonaId">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-segmento" aria-hidden="true">
               <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            <div class="texto-segmento">
-              <span class="etiqueta-segmento">Zona</span>
-              <select [(ngModel)]="zonaId" name="zonaId">
-                <option [ngValue]="null">Todas las zonas</option>
-                <option *ngFor="let zona of zonas" [ngValue]="zona.id">{{ zona.nombre }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="segmento-buscador">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-segmento">
+          </app-selector-buscador>
+          <app-selector-buscador etiqueta="Precio mensual" [opciones]="opcionesPrecio" [(valor)]="precioMax">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-segmento" aria-hidden="true">
               <path d="M12 2 20 10v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10Z" />
               <path d="M2 10 12 2l10 8" />
               <path d="M9 15h6" />
             </svg>
-            <div class="texto-segmento">
-              <span class="etiqueta-segmento">Precio mensual</span>
-              <select [(ngModel)]="precioMax" name="precioMax">
-                <option [ngValue]="null">Selecciona un rango</option>
-                <option *ngFor="let rango of rangosPrecio" [ngValue]="rango.valor">{{ rango.etiqueta }}</option>
-              </select>
-            </div>
-          </div>
+          </app-selector-buscador>
           <button type="submit" class="boton-principal boton-buscar">
             Buscar
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -192,7 +170,17 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
   anuncios: Anuncio[] = [];
   destacados: Anuncio[] = [];
   zonas: Zona[] = [];
-  rangosPrecio = RANGOS_PRECIO;
+  readonly opcionesTipo: OpcionSelector<string>[] = [
+    { valor: '', texto: 'Todos los tipos' },
+    { valor: 'cuarto', texto: 'Cuarto' },
+    { valor: 'garzonier', texto: 'Garzonier' },
+    { valor: 'departamento', texto: 'Departamento' },
+  ];
+  readonly opcionesPrecio: OpcionSelector<number | null>[] = [
+    { valor: null, texto: 'Cualquier precio' },
+    ...RANGOS_PRECIO.map((rango) => ({ valor: rango.valor, texto: rango.etiqueta })),
+  ];
+  opcionesZona: OpcionSelector<number | null>[] = [{ valor: null, texto: 'Todas las zonas' }];
   termino = '';
   tipo = '';
   zonaId: number | null = null;
@@ -214,7 +202,10 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
     const precioParam = this.route.snapshot.queryParamMap.get('precioMax');
     this.precioMax = precioParam ? Number(precioParam) : null;
 
-    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
+    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => {
+      this.zonas = res;
+      this.opcionesZona = [{ valor: null, texto: 'Todas las zonas' }, ...res.map((zona) => ({ valor: zona.id, texto: zona.nombre }))];
+    });
 
     this.cargarAnuncios();
   }
