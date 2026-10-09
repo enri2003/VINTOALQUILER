@@ -100,7 +100,7 @@ export class ImpulsoService {
              &nbsp;·&nbsp;
              <a href="${enlaceRechazar}" style="color:#c62828;font-weight:bold;">Rechazar</a>
            </p>
-           <p style="color:#888;font-size:12px;">Estos enlaces son de un solo uso y expiran en 3 dias. Verifica el pago en tu banco antes de activar.</p>`,
+           <p style="color:#888;font-size:12px;">Estos enlaces son de un solo uso y expiran en 7 dias. Verifica el pago en tu banco antes de activar.</p>`,
         )
         .catch((error) => this.logger.error('No se pudo notificar al admin sobre el nuevo impulso', error));
     }

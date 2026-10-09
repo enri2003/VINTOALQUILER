@@ -1,5 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ObservatorioService } from './observatorio.service';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('observatorio')
 export class ObservatorioController {
@@ -25,6 +28,9 @@ export class ObservatorioController {
     return this.observatorioService.ofertaDemandaPorZona();
   }
 
+  /** Indicadores de demanda agregada: solo para el administrador o una institución autorizada. */
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   @Get('demanda-agregada')
   demandaAgregada() {
     return this.observatorioService.demandaAgregada();
