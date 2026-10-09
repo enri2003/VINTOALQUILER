@@ -215,6 +215,11 @@ export class AnuncioService {
       anuncio.zona = { id: zonaId } as any;
     }
     anuncio.completitud = this.calcularCompletitud(anuncio);
+    // El vencimiento es "por inactividad": cada edición del publicador cuenta como actividad
+    // y reinicia el plazo de 60 días, igual que al publicar.
+    const venceEn = new Date();
+    venceEn.setDate(venceEn.getDate() + DIAS_VENCIMIENTO);
+    anuncio.venceEn = venceEn;
     return this.anuncioRepo.save(anuncio);
   }
 
