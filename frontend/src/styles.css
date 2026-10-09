@@ -1959,6 +1959,69 @@ input:focus, select:focus, textarea:focus {
   .chispas-captura, .destello-captura { display: none; }
   .foto-materializada, .foto-analisis, .escaneo-foto { animation: none; }
 }
+/* Anillo estilo Face ID alrededor del rostro */
+.anillo-faceid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 94%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+}
+.anillo-faceid line {
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  transition: stroke 0.25s ease, filter 0.25s ease;
+}
+.anillo-faceid line.encendido {
+  stroke: #F2C879;
+  filter: drop-shadow(0 0 3px #FFF1C9) drop-shadow(0 0 7px rgba(242, 200, 121, 0.9));
+}
+.anillo-faceid.completo line {
+  stroke: #FFE7AE;
+  animation: pulso-anillo 1.1s ease-in-out infinite;
+}
+@keyframes pulso-anillo {
+  0%, 100% { filter: drop-shadow(0 0 4px #F2C879); }
+  50% { filter: drop-shadow(0 0 10px #F2C879) drop-shadow(0 0 18px rgba(201, 98, 45, 0.8)); }
+}
+.pista-rostro {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  background: rgba(10, 12, 16, 0.65);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radio-chip);
+  padding: 6px 14px;
+  font: 700 12px 'Manrope', sans-serif;
+  color: #FFF4D6;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anillo-faceid.completo line { animation: none; }
+}
+.aviso-calidad {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(242, 200, 121, 0.1);
+  border: 1px solid rgba(242, 200, 121, 0.45);
+  color: #F5DBA3;
+  font-size: 13.5px;
+  text-align: left;
+}
+.aviso-calidad small {
+  opacity: 0.75;
+}
 .boton-texto-verif {
   background: none;
   border: none;

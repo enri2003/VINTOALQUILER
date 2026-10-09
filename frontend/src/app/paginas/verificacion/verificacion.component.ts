@@ -1,6 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewChecked, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, ViewChild } from '@angular/core';
+import type { FaceLandmarker } from '@mediapipe/tasks-vision';
 import { VerificacionService } from '../../servicios/verificacion.service';
+import { cargarSeguidorRostro, LecturaRostro, leerRostro } from '../../utilidades/seguimiento-rostro';
+
+// Anillo estilo Face ID para la selfie: se encienden segmentos al girar la cabeza en círculo.
+const SEGMENTOS_ANILLO = 32;
+const SEGMENTOS_PARA_COMPLETAR = 26; // ~80 % del círculo
+const GIRO_MINIMO = 0.12; // cuánto debe girar la cabeza para encender un segmento
+const FACTOR_VERTICAL = 1.8; // el giro vertical se ve más pequeño que el horizontal
+const GIRO_FRENTE = 0.06; // margen para considerar que mira de frente
+const CUADROS_DE_FRENTE = 8; // cuadros seguidos de frente antes de tomar la foto
+const MUESTRAS_BASE = 10; // cuadros iniciales para calibrar la posición natural de la cabeza
 
 type Fase = 'resumen' | 'captura' | 'enviando' | 'aprobado' | 'rechazado';
 
@@ -159,6 +170,11 @@ const PASOS: PasoCaptura[] = [
               <h2>{{ pasoActual.titulo }}</h2>
             </div>
           </div>
+          <div class="aviso-calidad" *ngIf="mensajeCalidad" role="alert">
+            <strong>Repite esta foto</strong>
+            <span>{{ mensajeCalidad }}</span>
+            <small>No se descontó ningún intento.</small>
+          </div>
 
           <!-- Camara en vivo: siempre para selfie; para el carnet, solo en celular -->
           <ng-container *ngIf="usaCamara()">
@@ -189,6 +205,13 @@ const PASOS: PasoCaptura[] = [
                           class="trazo-aura" [attr.stroke-dashoffset]="100 - progresoCaptura * 100" />
                   </svg>
                 </span>
+                <!-- Anillo estilo Face ID: se ilumina mientras giras la cabeza en círculo -->
+                <svg class="anillo-faceid" *ngIf="modoAnillo && pasoActual.marco === 'rostro' && !fotoActual"
+                     [class.completo]="etapaRostro === 'frente'" viewBox="-60 -60 120 120" aria-hidden="true">
+                  <line *ngFor="let encendido of segmentos; let i = index" x1="0" y1="-50" x2="0" y2="-58"
+                        [attr.transform]="'rotate(' + i * (360 / segmentos.length) + ')'" [class.encendido]="encendido" />
+                </svg>
+                <span class="pista-rostro" *ngIf="modoAnillo && pistaRostro && !fotoActual">{{ pistaRostro }}</span>
                 <span class="destello-captura" *ngIf="destello"></span>
                 <!-- Chispas que salen del marco al tomar la foto -->
                 <span class="chispas-captura" *ngIf="destello" aria-hidden="true">
@@ -267,6 +290,8 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   /** Avance del trazo de luz alrededor del marco (0 a 1); null cuando no se está capturando. */
   progresoCaptura: number | null = null;
   destello = false;
+  /** Motivo por el que una foto no pasó el control de calidad del servidor (no gasta intentos). */
+  mensajeCalidad = '';
   /** Ángulos de las chispas que salen al tomar la foto (una cada 30 grados). */
   readonly chispas = Array.from({ length: 12 }, (_, i) => i * 30);
   mostrarCapturaManual = false;
@@ -280,7 +305,130 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   /** Detecta dispositivo tactil (celular/tablet) vs mouse (computadora). */
   private readonly esMovil = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 
-  constructor(private readonly verificacionService: VerificacionService) {}
+  // Estado del anillo estilo Face ID (solo en el paso de la selfie).
+  modoAnillo = false;
+  segmentos: boolean[] = new Array(SEGMENTOS_ANILLO).fill(false);
+  etapaRostro: 'girando' | 'frente' = 'girando';
+  pistaRostro = '';
+  private esperandoAnillo = false;
+  private modeloRostro?: FaceLandmarker;
+  private cuadroAnimacion: number | null = null;
+  private basePitch: number | null = null;
+  private muestrasBase: number[] = [];
+  private cuadrosDeFrente = 0;
+  private luzActualAdecuada = false;
+
+  constructor(
+    private readonly verificacionService: VerificacionService,
+    private readonly zona: NgZone,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
+
+  private async iniciarSeguimiento(): Promise<void> {
+    this.esperandoAnillo = true;
+    try {
+      this.modeloRostro = await cargarSeguidorRostro();
+      this.reiniciarAnillo();
+      this.modoAnillo = true;
+      // El seguimiento corre fuera de Angular; la vista solo se actualiza cuando algo cambia.
+      this.zona.runOutsideAngular(() => (this.cuadroAnimacion = requestAnimationFrame(this.seguirRostro)));
+    } catch {
+      // Si el modelo no carga (sin GPU/CPU compatible), se usa la captura con el trazo de luz.
+      this.modoAnillo = false;
+    } finally {
+      this.esperandoAnillo = false;
+    }
+  }
+
+  private readonly seguirRostro = (): void => {
+    const video = this.videoRef?.nativeElement;
+    if (!this.modeloRostro || !video || !this.stream || this.fotoActual) return;
+    if (video.readyState >= 2) {
+      this.procesarLectura(leerRostro(this.modeloRostro, video, performance.now()));
+    }
+    this.cuadroAnimacion = requestAnimationFrame(this.seguirRostro);
+  };
+
+  private procesarLectura(lectura: LecturaRostro): void {
+    if (lectura.caras === 0) return this.actualizarPista('Coloca tu rostro dentro del círculo');
+    if (lectura.caras > 1) return this.actualizarPista('Solo una persona frente a la cámara');
+    if (!lectura.centrada) return this.actualizarPista('Acerca tu rostro al centro del círculo');
+
+    if (this.basePitch === null) return this.calibrar(lectura.giroY);
+
+    const x = lectura.giroX;
+    const y = (lectura.giroY - this.basePitch) * FACTOR_VERTICAL;
+    if (this.etapaRostro === 'girando') {
+      this.avanzarGiro(x, y);
+    } else {
+      this.esperarFrente(Math.hypot(x, y));
+    }
+  }
+
+  /** La posición natural de la nariz al mirar al frente varía según la persona: se mide al inicio. */
+  private calibrar(giroY: number): void {
+    this.muestrasBase.push(giroY);
+    if (this.muestrasBase.length >= MUESTRAS_BASE) {
+      this.basePitch = this.muestrasBase.reduce((a, b) => a + b, 0) / this.muestrasBase.length;
+    }
+    this.actualizarPista('Mira al frente');
+  }
+
+  private avanzarGiro(x: number, y: number): void {
+    if (Math.hypot(x, y) > GIRO_MINIMO) this.encenderSegmento(x, y);
+    if (this.segmentos.filter(Boolean).length >= SEGMENTOS_PARA_COMPLETAR) {
+      this.etapaRostro = 'frente';
+      this.cdr.detectChanges();
+    }
+    this.actualizarPista(this.etapaRostro === 'frente' ? 'Ahora mira al frente' : 'Gira la cabeza lentamente en círculo');
+  }
+
+  /** Círculo completo: la foto se toma sola cuando mira de frente, quieto y con buena luz. */
+  private esperarFrente(magnitud: number): void {
+    this.actualizarPista('Ahora mira al frente');
+    this.cuadrosDeFrente = magnitud < GIRO_FRENTE && this.luzActualAdecuada ? this.cuadrosDeFrente + 1 : 0;
+    if (this.cuadrosDeFrente >= CUADROS_DE_FRENTE) {
+      this.zona.run(() => this.capturar());
+    }
+  }
+
+  private encenderSegmento(x: number, y: number): void {
+    // Ángulo medido desde arriba en sentido horario, igual que los segmentos del anillo.
+    const angulo = (Math.atan2(y, x) * 180) / Math.PI + 90;
+    const indice = Math.round((((angulo % 360) + 360) % 360) / (360 / SEGMENTOS_ANILLO)) % SEGMENTOS_ANILLO;
+    let cambio = false;
+    for (const i of [indice - 1, indice, indice + 1]) {
+      const posicion = (i + SEGMENTOS_ANILLO) % SEGMENTOS_ANILLO;
+      if (!this.segmentos[posicion]) {
+        this.segmentos[posicion] = true;
+        cambio = true;
+      }
+    }
+    if (cambio) this.cdr.detectChanges();
+  }
+
+  private actualizarPista(texto: string): void {
+    if (this.pistaRostro === texto) return;
+    this.pistaRostro = texto;
+    this.cdr.detectChanges();
+  }
+
+  private reiniciarAnillo(): void {
+    this.segmentos = new Array(SEGMENTOS_ANILLO).fill(false);
+    this.etapaRostro = 'girando';
+    this.pistaRostro = '';
+    this.basePitch = null;
+    this.muestrasBase = [];
+    this.cuadrosDeFrente = 0;
+  }
+
+  private detenerSeguimiento(): void {
+    if (this.cuadroAnimacion !== null) {
+      cancelAnimationFrame(this.cuadroAnimacion);
+      this.cuadroAnimacion = null;
+    }
+    this.modoAnillo = false;
+  }
 
   get pasoActual(): PasoCaptura {
     return this.pasos[this.indice];
@@ -319,6 +467,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
         this.videoRef.nativeElement.srcObject = this.stream;
         this.camaraLista = true;
         this.iniciarMuestreoLuz();
+        if (this.pasoActual.marco === 'rostro') void this.iniciarSeguimiento();
         // Si en este tiempo la luz nunca llega a ser adecuada, se ofrece tomar la foto igual.
         this.temporizadorManual = setTimeout(() => (this.mostrarCapturaManual = true), ESPERA_CAPTURA_MANUAL_MS);
       }
@@ -372,6 +521,10 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     if (brillo === null) return;
     const luzAdecuada = brillo >= BRILLO_MINIMO && brillo <= BRILLO_MAXIMO;
     this.fraseMagica = this.avisoDeLuz(brillo);
+    this.luzActualAdecuada = luzAdecuada;
+
+    // En la selfie con anillo, la captura la decide el seguimiento del rostro, no el trazo de luz.
+    if (this.pasoActual.marco === 'rostro' && (this.modoAnillo || this.esperandoAnillo)) return;
 
     // Captura automática: con buena luz estable el trazo recorre el marco; si la luz empeora, se reinicia.
     if (luzAdecuada) {
@@ -416,6 +569,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     this.camaraLista = false;
     this.detenerMuestreoLuz();
     this.cancelarTrazo();
+    this.detenerSeguimiento();
     if (this.temporizadorManual) {
       clearTimeout(this.temporizadorManual);
       this.temporizadorManual = null;
@@ -471,6 +625,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   }
 
   siguientePaso(): void {
+    this.mensajeCalidad = '';
     if (this.indice < this.pasos.length - 1) {
       this.indice += 1;
       this.fotoActual = null;
@@ -487,10 +642,23 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     this.verificacionService.enviarVerificacion(anverso, reverso, selfie).subscribe({
       next: (res) => (this.fase = res.resultado === 'aprobado' ? 'aprobado' : 'rechazado'),
       error: (err) => {
+        // Foto de mala calidad: se vuelve a ese paso sin gastar un intento.
+        if (err?.error?.codigo === 'CALIDAD') {
+          this.repetirDesde(err.error.paso, err.error.message);
+          return;
+        }
         this.fase = 'rechazado';
         this.error = err?.error?.message || 'No se pudo completar la verificación. Intenta de nuevo.';
       },
     });
+  }
+
+  private repetirDesde(paso: PasoCaptura['clave'], mensaje: string): void {
+    const indice = this.pasos.findIndex((p) => p.clave === paso);
+    this.indice = indice >= 0 ? indice : 0;
+    this.fotoActual = null;
+    this.mensajeCalidad = mensaje;
+    this.fase = 'captura';
   }
 
   estadoTexto(): string {
