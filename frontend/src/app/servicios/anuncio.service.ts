@@ -9,7 +9,7 @@ export interface Anuncio {
   titulo: string;
   descripcion: string;
   precio: number;
-  zona: { id: number; nombre: string };
+  zona?: { id: number; nombre: string };
   fotos: { id: number; url: string }[];
   creadoEn?: string;
   enPortada?: boolean;
