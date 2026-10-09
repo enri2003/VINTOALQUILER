@@ -40,8 +40,10 @@ const UMBRAL_DEMOSTRATIVO = 30;
       </header>
 
       <div class="metodologia">
-        <strong>Metodología:</strong>
-        Los indicadores se calculan a partir de los anuncios activos registrados en VintoAlquiler. El precio promedio es la media aritmética de los alquileres publicados (suma de precios entre cantidad de anuncios), no un promedio de promedios por zona. El interés registrado se aproxima con la suma de favoritos y contactos; cada registro cuenta como una interacción, no necesariamente como una persona distinta.
+        <strong>Metodología</strong>
+        <p>Los indicadores se calculan a partir de los anuncios activos registrados en VintoAlquiler. Todos los precios corresponden a alquileres mensuales.</p>
+        <p>El precio promedio es la media aritmética de los precios publicados: la suma de los precios dividida entre el número de anuncios. No se calcula promediando los promedios de cada zona.</p>
+        <p>El interés registrado corresponde a la suma de favoritos y contactos. Cada registro representa una interacción y no necesariamente una persona única.</p>
         <p *ngIf="indicadores && indicadores.totalAnuncios < umbralDemostrativo" class="nota-demostrativa">
           Nota: los resultados son demostrativos mientras aumenta el número de anuncios y usuarios registrados.
         </p>
@@ -49,8 +51,8 @@ const UMBRAL_DEMOSTRATIVO = 30;
 
       <div class="tarjetas-resumen">
         <div class="tarjeta-resumen">
-          <span>Precio promedio</span>
-          <strong>Bs. {{ indicadores?.precioPromedio | number: '1.0-0' }}</strong>
+          <span>Precio promedio mensual</span>
+          <strong>Bs. {{ indicadores?.precioPromedio | number: '1.0-0' }}/mes</strong>
         </div>
         <div class="tarjeta-resumen">
           <span>Anuncios activos</span>
@@ -63,16 +65,18 @@ const UMBRAL_DEMOSTRATIVO = 30;
         <div class="tarjeta-resumen">
           <span>Tipo más económico</span>
           <strong>{{ tipoMasEconomico?.etiqueta ?? '—' }}</strong>
+          <small *ngIf="tipoMasEconomico">Bs. {{ tipoMasEconomico.valor | number: '1.0-0' }}/mes</small>
         </div>
         <div class="tarjeta-resumen">
           <span>Zona con mayor precio</span>
           <strong>{{ zonaMasCara?.etiqueta ?? '—' }}</strong>
+          <small *ngIf="zonaMasCara">Bs. {{ zonaMasCara.valor | number: '1.0-0' }}/mes</small>
         </div>
       </div>
 
       <div class="grilla-graficos">
         <div class="panel-grafico">
-          <h2>Precio promedio por zona</h2>
+          <h2>Precio promedio mensual por zona</h2>
           <div class="barra" *ngFor="let b of barrasZona">
             <span class="barra-etiqueta">{{ b.etiqueta }}</span>
             <div class="barra-pista"><div class="barra-relleno" [style.width.%]="b.porcentaje"></div></div>
@@ -81,7 +85,7 @@ const UMBRAL_DEMOSTRATIVO = 30;
         </div>
 
         <div class="panel-grafico">
-          <h2>Precio promedio por tipo</h2>
+          <h2>Precio promedio mensual por tipo</h2>
           <div class="barra" *ngFor="let b of barrasTipo">
             <span class="barra-etiqueta">{{ b.etiqueta }}</span>
             <div class="barra-pista"><div class="barra-relleno" [style.width.%]="b.porcentaje"></div></div>
@@ -126,6 +130,9 @@ const UMBRAL_DEMOSTRATIVO = 30;
           </tr>
         </tbody>
       </table>
+      <p class="texto-suave nota-indicador" *ngIf="ofertaDemanda.length">
+        La oferta se expresa en cantidad de anuncios activos y el interés registrado en cantidad de interacciones.
+      </p>
     </section>
   `,
   styles: [
@@ -142,6 +149,7 @@ const UMBRAL_DEMOSTRATIVO = 30;
         color: var(--texto, #2A2118);
         margin: 16px 0 20px;
       }
+      .metodologia p { margin: 6px 0 0; }
       .nota-demostrativa { margin: 8px 0 0; color: var(--acento-oscuro); font-weight: 600; }
       .tarjetas-resumen {
         display: grid;
@@ -160,6 +168,7 @@ const UMBRAL_DEMOSTRATIVO = 30;
       }
       .tarjeta-resumen span { font-size: 12px; color: var(--texto-suave, #6E6255); }
       .tarjeta-resumen strong { font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; color: var(--acento-oscuro); }
+      .tarjeta-resumen small { font-size: 12.5px; color: var(--texto-suave, #6E6255); }
       .grilla-graficos {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -192,11 +201,11 @@ const UMBRAL_DEMOSTRATIVO = 30;
         transition: width 0.4s ease;
       }
       .barra-oferta { background: linear-gradient(90deg, #C9622D, #A94F22); }
-      .barra-interes { background: linear-gradient(90deg, #F2C879, #E08A5B); }
+      .barra-interes { background: linear-gradient(90deg, #5B8DEF, #2F5FC4); }
       .leyenda { font-size: 12.5px; color: var(--texto-suave, #6E6255); margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
       .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
       .punto-oferta { background: #C9622D; }
-      .punto-interes { background: #F2C879; }
+      .punto-interes { background: #2F5FC4; }
       .nota-indicador { font-size: 12.5px; margin: 8px 0 0; }
       .tabla-oferta-demanda { border-collapse: collapse; margin-top: 8px; width: 100%; }
       .tabla-oferta-demanda th, .tabla-oferta-demanda td {
@@ -228,14 +237,12 @@ export class ObservatorioComponent implements OnInit {
     );
   }
 
-  get tipoMasEconomico(): { etiqueta: string } | null {
-    const menor = [...this.barrasTipo].sort((a, b) => a.valor - b.valor)[0];
-    return menor ? { etiqueta: menor.etiqueta } : null;
+  get tipoMasEconomico(): BarraDatos | null {
+    return [...this.barrasTipo].sort((a, b) => a.valor - b.valor)[0] ?? null;
   }
 
-  get zonaMasCara(): { etiqueta: string } | null {
-    const mayor = [...this.barrasZona].sort((a, b) => b.valor - a.valor)[0];
-    return mayor ? { etiqueta: mayor.etiqueta } : null;
+  get zonaMasCara(): BarraDatos | null {
+    return [...this.barrasZona].sort((a, b) => b.valor - a.valor)[0] ?? null;
   }
 
   porcentajeOferta(valor: number): number {
