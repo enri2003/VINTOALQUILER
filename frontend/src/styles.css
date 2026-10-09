@@ -435,7 +435,7 @@ app-selector-buscador.abierto .disparador-selector {
   color: var(--acento);
   flex-shrink: 0;
 }
-/* Vista previa del área aproximada del anuncio en el formulario de publicar */
+/* Área aproximada de un anuncio en el mapa (lo que ve el público en lugar del punto exacto) */
 .area-aproximada {
   width: 120px;
   height: 120px;
@@ -445,13 +445,6 @@ app-selector-buscador.abierto .disparador-selector {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.punto-area {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--acento, #C9622D);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9);
 }
 
 /* Lista desplegable de formularios (app-selector-campo): se ve como un campo de texto */

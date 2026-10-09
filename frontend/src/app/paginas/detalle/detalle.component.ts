@@ -5,6 +5,7 @@ import { Anuncio, AnuncioService } from '../../servicios/anuncio.service';
 import { FavoritoService } from '../../servicios/favorito.service';
 import { AuthService } from '../../servicios/auth.service';
 import { clasificarServicios } from '../../utilidades/catalogo-anuncio';
+import { MapaUbicacionComponent } from '../../componentes/mapa-ubicacion.component';
 
 const ETIQUETAS_SENALES: Record<string, string> = {
   precio_atipico_para_la_zona: 'Precio fuera de lo habitual para la zona',
@@ -16,7 +17,7 @@ const ETIQUETAS_SENALES: Record<string, string> = {
 @Component({
   selector: 'app-detalle',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, MapaUbicacionComponent],
   template: `
     <section class="detalle" *ngIf="anuncio">
       <a routerLink="/mapa" class="enlace-volver">← Volver al mapa</a>
@@ -82,6 +83,23 @@ const ETIQUETAS_SENALES: Record<string, string> = {
         <p *ngIf="anuncio.contratoMinimo"><strong>Tiempo mínimo de alquiler:</strong> {{ anuncio.contratoMinimo }}</p>
       </div>
 
+      <div class="seccion-ubicacion" *ngIf="anuncio.latitud || anuncio.ubicacionAprox">
+        <h2 class="titulo-seccion">Ubicación</h2>
+        <ng-container *ngIf="anuncio.latitud && anuncio.longitud; else ubicacionPublica">
+          <app-mapa-ubicacion modo="exacta" [latitud]="anuncio.latitud" [longitud]="anuncio.longitud"></app-mapa-ubicacion>
+          <a class="boton-secundario boton-como-llegar" target="_blank" rel="noopener"
+            [href]="'https://www.google.com/maps/dir/?api=1&destination=' + anuncio.latitud + ',' + anuncio.longitud">
+            Cómo llegar (Google Maps)
+          </a>
+        </ng-container>
+        <ng-template #ubicacionPublica>
+          <app-mapa-ubicacion modo="aproximada" [latitud]="anuncio.ubicacionAprox?.lat" [longitud]="anuncio.ubicacionAprox?.lng"></app-mapa-ubicacion>
+          <p class="texto-suave nota-privacidad">
+            El inmueble está dentro de esta área. El punto exacto lo ven los interesados con identidad verificada.
+          </p>
+        </ng-template>
+      </div>
+
       <div class="resumen-seguridad" *ngIf="riesgo" [ngClass]="'nivel-' + riesgo.nivel">
         <h2>Evaluación automática de seguridad</h2>
         <p class="nivel-texto">
@@ -144,6 +162,9 @@ const ETIQUETAS_SENALES: Record<string, string> = {
       .detalle { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
       .enlace-volver { display: inline-block; margin-bottom: 14px; font-weight: 600; color: var(--acento-oscuro); text-decoration: none; }
       .nota-privacidad { font-size: 13px; }
+      .seccion-ubicacion { margin: 20px 0; display: flex; flex-direction: column; gap: 10px; }
+      .seccion-ubicacion .titulo-seccion { margin: 0; }
+      .boton-como-llegar { align-self: flex-start; text-decoration: none; }
       .descripcion { line-height: 1.6; margin: 20px 0; }
       .titulo-seccion { font-size: 17px; margin: 20px 0 4px; }
       .nota-referencial { font-size: 12.5px; margin: 10px 0 0; opacity: 0.85; }

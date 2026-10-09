@@ -54,6 +54,14 @@ export class Anuncio {
   @Column({ select: false })
   direccionExacta: string;
 
+  // Ubicación exacta marcada por el publicador en el mapa. Igual que la dirección exacta, no se carga
+  // por defecto: el público solo recibe una ubicación aproximada calculada en el servidor.
+  @Column('numeric', { precision: 9, scale: 6, nullable: true, select: false })
+  latitud: number | null;
+
+  @Column('numeric', { precision: 9, scale: 6, nullable: true, select: false })
+  longitud: number | null;
+
   @Column('text', { array: true, default: () => "'{}'" })
   servicios: string[];
 

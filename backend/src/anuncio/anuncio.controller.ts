@@ -18,6 +18,7 @@ import { RecomendacionService } from '../recomendacion/recomendacion.service';
 import { CrearAnuncioDto } from './dto/crear-anuncio.dto';
 import { ActualizarAnuncioDto } from './dto/actualizar-anuncio.dto';
 import { ListarAnunciosDto } from './dto/listar-anuncios.dto';
+import { ubicacionAproximada } from './ubicacion.util';
 
 function limpiarPublicador(anuncio: Anuncio): Anuncio {
   if (!anuncio.publicador) {
@@ -29,13 +30,19 @@ function limpiarPublicador(anuncio: Anuncio): Anuncio {
   };
 }
 
-function ocultarDireccion(anuncio: Anuncio, verificado: boolean) {
+/**
+ * Prepara el anuncio para responder: siempre agrega la ubicación aproximada (para el mapa público)
+ * y solo deja la dirección y las coordenadas exactas si el usuario tiene permiso para verlas.
+ */
+function ocultarDireccion(anuncio: Anuncio, puedeVerExacta: boolean) {
   const limpio = limpiarPublicador(anuncio);
-  if (verificado) {
-    return limpio;
+  const { direccionExacta, latitud, longitud, ...resto } = limpio;
+  const tieneUbicacion = latitud !== null && latitud !== undefined && longitud !== null && longitud !== undefined;
+  const ubicacionAprox = tieneUbicacion ? ubicacionAproximada(anuncio.id, Number(latitud), Number(longitud)) : null;
+  if (puedeVerExacta) {
+    return { ...resto, direccionExacta, latitud, longitud, ubicacionAprox };
   }
-  const { direccionExacta, ...resto } = limpio;
-  return resto;
+  return { ...resto, ubicacionAprox };
 }
 
 @Controller('anuncios')

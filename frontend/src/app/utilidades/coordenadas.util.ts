@@ -6,6 +6,21 @@
  * anuncio) para separarlos visualmente sin dejar de representar la zona
  * aproximada.
  */
+/**
+ * Dónde dibujar un anuncio en el mapa público: su ubicación aproximada (calculada en el servidor a
+ * unas cuadras del punto real) o, si es un anuncio antiguo sin punto marcado, el centro de su zona.
+ */
+export function puntoEnMapa(anuncio: {
+  id: number;
+  ubicacionAprox?: { lat: number; lng: number } | null;
+  zona?: { latitud?: number | string; longitud?: number | string } | null;
+}): { lat: number; lng: number } | null {
+  if (anuncio.ubicacionAprox) return anuncio.ubicacionAprox;
+  const zona = anuncio.zona;
+  if (!zona?.latitud || !zona?.longitud) return null;
+  return dispersarCoordenada(Number(zona.latitud), Number(zona.longitud), anuncio.id);
+}
+
 export function dispersarCoordenada(
   latitud: number,
   longitud: number,

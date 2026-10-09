@@ -20,6 +20,11 @@ export interface Anuncio {
   publicador?: { verificado: boolean };
   referencia?: string;
   direccionExacta?: string;
+  /** Punto exacto: el backend solo lo envía al publicador, al admin y a interesados verificados. */
+  latitud?: number | string | null;
+  longitud?: number | string | null;
+  /** Punto aproximado (a unas cuadras del real), el que se usa en el mapa público. */
+  ubicacionAprox?: { lat: number; lng: number } | null;
   garantia?: string;
   contratoMinimo?: string;
   superficieM2?: number;

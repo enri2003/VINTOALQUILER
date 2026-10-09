@@ -29,6 +29,8 @@ interface DatosAnuncio {
   ambientes?: number;
   referencia?: string;
   direccionExacta?: string;
+  latitud?: number;
+  longitud?: number;
   servicios?: string[];
   garantia?: string;
   contratoMinimo?: string;
@@ -62,6 +64,7 @@ export class AnuncioService {
 
     const consulta = this.anuncioRepo
       .createQueryBuilder('anuncio')
+      .addSelect(['anuncio.latitud', 'anuncio.longitud']) // solo para calcular la ubicacion aproximada
       .leftJoinAndSelect('anuncio.zona', 'zona')
       .leftJoinAndSelect('anuncio.fotos', 'fotos')
       .leftJoinAndSelect('anuncio.publicador', 'publicador')
@@ -109,7 +112,7 @@ export class AnuncioService {
   async buscarPorId(id: number) {
     const anuncio = await this.anuncioRepo
       .createQueryBuilder('anuncio')
-      .addSelect('anuncio.direccionExacta')
+      .addSelect(['anuncio.direccionExacta', 'anuncio.latitud', 'anuncio.longitud'])
       .leftJoinAndSelect('anuncio.zona', 'zona')
       .leftJoinAndSelect('anuncio.fotos', 'fotos')
       .leftJoinAndSelect('anuncio.publicador', 'publicador')
@@ -233,7 +236,7 @@ export class AnuncioService {
   listarPorPublicador(publicadorId: number) {
     return this.anuncioRepo
       .createQueryBuilder('anuncio')
-      .addSelect('anuncio.direccionExacta')
+      .addSelect(['anuncio.direccionExacta', 'anuncio.latitud', 'anuncio.longitud'])
       .leftJoinAndSelect('anuncio.zona', 'zona')
       .leftJoinAndSelect('anuncio.fotos', 'fotos')
       .where('anuncio.publicadorId = :publicadorId', { publicadorId })

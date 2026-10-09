@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import * as maplibregl from 'maplibre-gl';
 import { Anuncio, AnuncioService } from '../../servicios/anuncio.service';
-import { dispersarCoordenada } from '../../utilidades/coordenadas.util';
+import { puntoEnMapa } from '../../utilidades/coordenadas.util';
 import { crearAccionesMapa, crearMarcadorAnuncio } from '../../utilidades/mapa-popup.util';
 import { AuthService } from '../../servicios/auth.service';
 import { FavoritoService } from '../../servicios/favorito.service';
@@ -230,11 +230,8 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
     this.marcadores = [];
     const acciones = crearAccionesMapa(this.router, this.authService, this.favoritoService);
     this.anuncios.forEach((anuncio) => {
-      const zona = anuncio.zona as Zona;
-      if (zona?.latitud && zona?.longitud) {
-        const punto = dispersarCoordenada(Number(zona.latitud), Number(zona.longitud), anuncio.id);
-        this.marcadores.push(crearMarcadorAnuncio(this.mapa!, anuncio, punto, acciones));
-      }
+      const punto = puntoEnMapa(anuncio as any);
+      if (punto) this.marcadores.push(crearMarcadorAnuncio(this.mapa!, anuncio, punto, acciones));
     });
   }
 

@@ -30,6 +30,7 @@ import {
   TITULO_MIN,
   VALORES_SERVICIOS,
 } from './reglas-anuncio';
+import { LIMITES_VINTO } from '../ubicacion.util';
 
 export class CrearAnuncioDto {
   @Type(() => Number)
@@ -77,6 +78,18 @@ export class CrearAnuncioDto {
   @IsString()
   @MinLength(3)
   direccionExacta: string;
+
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Marca en el mapa la ubicación del inmueble.' })
+  @Min(LIMITES_VINTO.latMin, { message: 'La ubicación marcada debe estar en Vinto o sus alrededores.' })
+  @Max(LIMITES_VINTO.latMax, { message: 'La ubicación marcada debe estar en Vinto o sus alrededores.' })
+  latitud: number;
+
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Marca en el mapa la ubicación del inmueble.' })
+  @Min(LIMITES_VINTO.lngMin, { message: 'La ubicación marcada debe estar en Vinto o sus alrededores.' })
+  @Max(LIMITES_VINTO.lngMax, { message: 'La ubicación marcada debe estar en Vinto o sus alrededores.' })
+  longitud: number;
 
   @IsOptional()
   @IsArray()

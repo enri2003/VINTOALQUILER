@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { AnuncioService } from '../../servicios/anuncio.service';
 import { AuthService } from '../../servicios/auth.service';
 import { FavoritoService } from '../../servicios/favorito.service';
-import { dispersarCoordenada } from '../../utilidades/coordenadas.util';
+import { puntoEnMapa } from '../../utilidades/coordenadas.util';
 import { crearAccionesMapa, crearMarcadorAnuncio } from '../../utilidades/mapa-popup.util';
 
 const CENTRO_VINTO: [number, number] = [-66.317, -17.397];
@@ -56,10 +56,8 @@ export class MapaComponent implements AfterViewInit {
     const acciones = crearAccionesMapa(this.router, this.authService, this.favoritoService);
     this.anuncioService.listar().subscribe((anuncios) => {
       anuncios.forEach((anuncio) => {
-        const zona = anuncio.zona as any;
-        if (!zona?.latitud || !zona?.longitud) return;
-        const punto = dispersarCoordenada(Number(zona.latitud), Number(zona.longitud), anuncio.id);
-        crearMarcadorAnuncio(this.mapa, anuncio, punto, acciones);
+        const punto = puntoEnMapa(anuncio as any);
+        if (punto) crearMarcadorAnuncio(this.mapa, anuncio, punto, acciones);
       });
     });
   }

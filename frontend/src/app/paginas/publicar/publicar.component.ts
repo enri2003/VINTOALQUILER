@@ -7,7 +7,7 @@ import { VerificacionService } from '../../servicios/verificacion.service';
 import { AnuncioService } from '../../servicios/anuncio.service';
 import { clasificarServicios, GRUPOS_CARACTERISTICAS, SERVICIOS } from '../../utilidades/catalogo-anuncio';
 import { SelectorCampoComponent } from '../../componentes/selector-campo.component';
-import { MapaZonaComponent } from '../../componentes/mapa-zona.component';
+import { MapaUbicacionComponent } from '../../componentes/mapa-ubicacion.component';
 import { OpcionSelector } from '../../componentes/selector-buscador.component';
 
 interface Zona {
@@ -47,7 +47,7 @@ const PRECIO_INUSUAL_ALTO = 10000;
 @Component({
   selector: 'app-publicar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SelectorCampoComponent, MapaZonaComponent],
+  imports: [CommonModule, FormsModule, RouterLink, SelectorCampoComponent, MapaUbicacionComponent],
   template: `
     <section class="publicar">
       <h1>Publicar anuncio</h1>
@@ -128,19 +128,24 @@ const PRECIO_INUSUAL_ALTO = 10000;
           <fieldset class="seccion">
             <legend><span class="numero-seccion">2</span> ¿Dónde está el inmueble?</legend>
             <p class="ayuda-campo">
-              Por seguridad, el mapa público nunca muestra la dirección exacta: tu anuncio aparece en un área aproximada de la zona
-              que elijas. La dirección exacta solo la verán los interesados con identidad verificada.
+              Por seguridad, el mapa público muestra tu anuncio a unas cuadras del punto real, nunca en tu casa exacta.
+              El punto exacto y la dirección solo los verán los interesados con identidad verificada.
             </p>
 
             <label>
               <span class="fila-etiqueta">Zona <span class="visibilidad publica">👁 La ve todo el mundo</span></span>
-              <span class="ayuda-campo">Define en qué parte del mapa aparecerá tu anuncio.</span>
+              <span class="ayuda-campo">Sirve para que te encuentren al filtrar por zona.</span>
               <app-selector-campo name="zonaId" [(ngModel)]="zonaId" [opciones]="opcionesZona" marcador="Selecciona una zona"></app-selector-campo>
             </label>
+
             <div class="vista-mapa">
-              <app-mapa-zona [latitud]="zonaElegida?.latitud" [longitud]="zonaElegida?.longitud"></app-mapa-zona>
-              <p class="nota-mapa" *ngIf="zonaElegida">Así aparecerá tu anuncio en el mapa: dentro de este círculo, no en tu casa exacta.</p>
-              <p class="nota-mapa" *ngIf="!zonaElegida">Elige una zona para ver dónde aparecerá tu anuncio.</p>
+              <span class="fila-etiqueta etiqueta-tipo">Ubicación en el mapa <span class="visibilidad privada">🔒 Punto exacto: solo verificados</span></span>
+              <span class="ayuda-campo">Toca en el mapa dónde está tu inmueble. Puedes arrastrar el pin para ajustarlo.</span>
+              <app-mapa-ubicacion modo="elegir" [latitud]="latitud" [longitud]="longitud"
+                [centro]="zonaElegida ? { lat: zonaElegida.latitud!, lng: zonaElegida.longitud! } : null"
+                (ubicacionChange)="latitud = $event.lat; longitud = $event.lng"></app-mapa-ubicacion>
+              <p class="nota-mapa" *ngIf="latitud">✓ Ubicación marcada. En el mapa público aparecerá a unas cuadras de este punto.</p>
+              <p class="error-campo" *ngIf="!latitud && intentoEnviar">Marca en el mapa dónde está tu inmueble.</p>
             </div>
 
             <label>
@@ -493,6 +498,8 @@ export class PublicarComponent implements OnInit, OnDestroy {
   servicios: Record<string, ModoServicio> = {};
   caracteristicas = new Set<string>();
   superficieM2: number | null = null;
+  latitud: number | null = null;
+  longitud: number | null = null;
   ambientes: number | null = null;
   referencia = '';
   direccionExacta = '';
@@ -559,6 +566,8 @@ export class PublicarComponent implements OnInit, OnDestroy {
       !this.errorPrecio &&
       this.referencia.trim().length >= 3 &&
       this.direccionExacta.trim().length >= 3 &&
+      this.latitud !== null &&
+      this.longitud !== null &&
       this.garantia.trim().length >= 2 &&
       this.contratoMinimo.trim().length >= 2 &&
       this.fotos.length >= 1
@@ -689,6 +698,8 @@ export class PublicarComponent implements OnInit, OnDestroy {
         ambientes: this.ambientes ? Math.round(Number(this.ambientes)) : undefined,
         referencia: this.referencia.trim(),
         direccionExacta: this.direccionExacta.trim(),
+        latitud: this.latitud,
+        longitud: this.longitud,
         garantia: this.garantia.trim(),
         contratoMinimo: this.contratoMinimo.trim(),
       } as any)
