@@ -18,23 +18,46 @@ const ETIQUETAS_SENALES: Record<string, string> = {
   imports: [CommonModule, RouterLink],
   template: `
     <section class="detalle" *ngIf="anuncio">
+      <a routerLink="/mapa" class="enlace-volver">← Volver al mapa</a>
+
       <div class="galeria" *ngIf="anuncio.fotos?.length">
-        <img *ngFor="let foto of anuncio.fotos" [src]="foto.url" alt="" />
+        <img
+          *ngFor="let foto of anuncio.fotos; let i = index"
+          [src]="foto.url"
+          [alt]="'Foto ' + (i + 1) + ' de ' + anuncio.fotos.length + ': ' + anuncio.titulo"
+        />
       </div>
 
       <h1>{{ anuncio.titulo }}</h1>
       <span class="insignia-estado-publicador" [class.insignia-estado-verificado]="anuncio.publicador?.verificado">
         {{ anuncio.publicador?.verificado ? '✓ Publicador verificado' : 'Publicador no verificado' }}
       </span>
-      <p class="precio">Bs. {{ anuncio.precio }}/mes</p>
-      <p class="texto-suave">📍 {{ anuncio.referencia }} · {{ anuncio.zona?.nombre }}</p>
+      <p class="precio">Bs. {{ anuncio.precio | number: '1.0-0' }}/mes</p>
+      <p class="texto-suave fila-ubicacion">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-pin" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+        {{ anuncio.referencia }} · {{ anuncio.zona?.nombre }}
+      </p>
       <p *ngIf="anuncio.direccionExacta" class="texto-suave">Dirección exacta: {{ anuncio.direccionExacta }}</p>
+      <p *ngIf="!anuncio.direccionExacta" class="texto-suave nota-privacidad">
+        Ubicación aproximada por privacidad. La dirección exacta solo es visible para interesados con identidad verificada.
+      </p>
 
-      <p>{{ anuncio.descripcion }}</p>
+      <div class="acciones">
+        <ng-container *ngIf="authService.esInteresado()">
+          <a class="boton-principal" [routerLink]="['/anuncio', anuncio.id, 'contacto']">Contactar al publicador</a>
+          <button class="boton-secundario" (click)="alternarFavorito()">
+            {{ esFavorito ? '♥ Quitar de favoritos' : '♡ Guardar en favoritos' }}
+          </button>
+        </ng-container>
+      </div>
+      <p class="mensaje-error" *ngIf="errorFavorito">{{ errorFavorito }}</p>
 
+      <p class="descripcion">{{ anuncio.descripcion }}</p>
+
+      <h2 class="titulo-seccion">Características</h2>
       <div class="detalles-tecnicos">
         <span class="chip">{{ anuncio.tipo }}</span>
-        <span class="chip" *ngIf="anuncio.ambientes">{{ anuncio.ambientes }} ambiente(s)</span>
+        <span class="chip" *ngIf="anuncio.ambientes">{{ anuncio.ambientes }} {{ anuncio.ambientes === 1 ? 'ambiente' : 'ambientes' }}</span>
         <span class="chip" *ngIf="anuncio.superficieM2">{{ anuncio.superficieM2 }} m²</span>
       </div>
 
@@ -47,25 +70,21 @@ const ETIQUETAS_SENALES: Record<string, string> = {
         <p *ngIf="anuncio.contratoMinimo"><strong>Contrato mínimo:</strong> {{ anuncio.contratoMinimo }}</p>
       </div>
 
-      <div class="acciones" *ngIf="authService.esInteresado()">
-        <button class="boton-secundario" (click)="alternarFavorito()">
-          {{ esFavorito ? '♥ Quitar de favoritos' : '♡ Guardar en favoritos' }}
-        </button>
-        <a class="boton-secundario" [routerLink]="['/anuncio', anuncio.id, 'contacto']">Contactar publicador</a>
-      </div>
-      <p class="mensaje-error" *ngIf="errorFavorito">{{ errorFavorito }}</p>
-      <a class="enlace-reportar" [routerLink]="['/anuncio', anuncio.id, 'reportar']">Reportar este anuncio</a>
-
       <div class="resumen-seguridad" *ngIf="riesgo" [ngClass]="'nivel-' + riesgo.nivel">
-        <h2>Resumen de seguridad</h2>
+        <h2>Evaluación automática de seguridad</h2>
         <p class="nivel-texto">
-          Nivel de riesgo: <strong>{{ riesgo.nivel }}</strong>
+          Nivel de riesgo estimado: <strong>{{ riesgo.nivel }}</strong>
         </p>
         <ul *ngIf="riesgo.senales.length" class="lista-senales">
           <li *ngFor="let senal of riesgo.senales">{{ etiqueta(senal) }}</li>
         </ul>
-        <p *ngIf="!riesgo.senales.length">No se detectaron señales de riesgo en este anuncio.</p>
+        <p *ngIf="!riesgo.senales.length">No se identificaron señales de riesgo según los datos disponibles.</p>
+        <p class="nota-referencial">
+          Esta evaluación es referencial y no reemplaza la visita al inmueble ni la revisión del contrato y del publicador.
+        </p>
       </div>
+
+      <a class="enlace-reportar" [routerLink]="['/anuncio', anuncio.id, 'reportar']">Reportar este anuncio</a>
     </section>
   `,
   styles: [
@@ -111,8 +130,15 @@ const ETIQUETAS_SENALES: Record<string, string> = {
       .condiciones p {
         margin: 4px 0;
       }
+      .detalle { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
+      .enlace-volver { display: inline-block; margin-bottom: 14px; font-weight: 600; color: var(--acento-oscuro); text-decoration: none; }
+      .nota-privacidad { font-size: 13px; }
+      .descripcion { line-height: 1.6; margin: 20px 0; }
+      .titulo-seccion { font-size: 17px; margin: 20px 0 4px; }
+      .nota-referencial { font-size: 12.5px; margin: 10px 0 0; opacity: 0.85; }
       .acciones {
         display: flex;
+        flex-wrap: wrap;
         gap: 12px;
         margin-top: 16px;
       }
