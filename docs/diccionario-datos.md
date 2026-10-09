@@ -60,7 +60,9 @@
 | ambientes | int | NULLABLE | Número de ambientes |
 | referencia | string | NULLABLE | Ubicación aproximada (pública) |
 | direccion_exacta | string | NULLABLE | Dirección exacta (solo verificados) |
-| servicios | text_array | NULLABLE | Servicios incluidos |
+| latitud | numeric | NULLABLE | Latitud exacta marcada en el mapa (solo verificados; el público recibe una ubicación aproximada) |
+| longitud | numeric | NULLABLE | Longitud exacta marcada en el mapa (solo verificados; el público recibe una ubicación aproximada) |
+| servicios | text_array | NULLABLE | Servicios (incluidos en el precio o con pago aparte) y características del inmueble |
 | garantia | string | NULLABLE | Condición de garantía |
 | contrato_minimo | string | NULLABLE | Duración mínima del contrato |
 | estado | string | DEFAULT 'disponible', ENUM(disponible, ocupado, pausado) | Estado del anuncio |
