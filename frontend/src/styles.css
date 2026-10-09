@@ -1348,19 +1348,32 @@ input:focus, select:focus, textarea:focus {
   0%, 100% { box-shadow: 0 0 0 0 rgba(242, 200, 121, 0.5); }
   50% { box-shadow: 0 0 0 14px rgba(242, 200, 121, 0); }
 }
+/* La línea se mueve con transform (la anima la GPU), así no se traba mientras se analiza el rostro.
+   El elemento ocupa todo el alto y la línea visible se dibuja con ::before. */
 .linea-escaneo {
   position: absolute;
   left: 6%;
   width: 88%;
+  top: 0;
+  height: 100%;
+  pointer-events: none;
+  will-change: transform;
+  animation: escanear 1.8s ease-in-out infinite;
+}
+.linea-escaneo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 2px;
   background: linear-gradient(90deg, transparent, #F2C879, #C9622D, transparent);
   box-shadow: 0 0 8px 1px rgba(201, 98, 45, 0.6);
-  animation: escanear 1.8s ease-in-out infinite;
 }
 @keyframes escanear {
-  0% { top: 12%; }
-  50% { top: 85%; }
-  100% { top: 12%; }
+  0% { transform: translateY(12%); }
+  50% { transform: translateY(85%); }
+  100% { transform: translateY(12%); }
 }
 .etiqueta-aura {
   position: absolute;
@@ -1725,7 +1738,7 @@ input:focus, select:focus, textarea:focus {
 /* Visor de camara: aro de luz giratorio detras + interior recortado para la imagen */
 .visor-camara {
   width: 100%;
-  max-width: 300px;
+  max-width: 380px;
   aspect-ratio: 3 / 4;
   margin: 0 auto;
   border-radius: var(--radio-panel);
@@ -1771,7 +1784,7 @@ input:focus, select:focus, textarea:focus {
 /* Zona de subida de archivo: carnet en computadora, mismo lenguaje visual que la camara */
 .zona-subida {
   width: 100%;
-  max-width: 300px;
+  max-width: 380px;
   aspect-ratio: 3 / 4;
   margin: 0 auto;
   border-radius: var(--radio-panel);
@@ -2055,9 +2068,11 @@ input:focus, select:focus, textarea:focus {
 .linea-escaneo-camara {
   left: 4%;
   width: 92%;
+  z-index: 2;
+}
+.linea-escaneo-camara::before {
   height: 2.5px;
   box-shadow: 0 0 14px 2px rgba(201, 98, 45, 0.8);
-  z-index: 2;
 }
 
 .marco-guia {

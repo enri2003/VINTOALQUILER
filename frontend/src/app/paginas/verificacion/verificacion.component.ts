@@ -20,11 +20,13 @@ type Fase = 'resumen' | 'captura' | 'enviando' | 'aprobado' | 'rechazado';
 // la foto. Si la imagen se mueve, el trazo se borra y vuelve a empezar: así la foto nunca sale movida.
 const INTERVALO_MUESTREO_MS = 250;
 const PAUSA_INICIAL_MS = 1500; // tiempo para acomodar o dar vuelta la cédula antes de empezar
-const MUESTRAS_ESTABLES = 4; // ~1 segundo quieto antes de que empiece el trazo
+const MUESTRAS_ESTABLES = 2; // ~medio segundo quieto antes de que empiece el trazo
 const MOVIMIENTO_MAXIMO = 7; // diferencia media de brillo entre cuadros (0 a 255) para considerarla quieta
 const BRILLO_MINIMO = 55;
 const BRILLO_MAXIMO = 225;
-const DURACION_TRAZO_MS = 1600;
+const DURACION_TRAZO_MS = 1000;
+// El análisis del rostro corre como máximo ~15 veces por segundo para no saturar el celular.
+const INTERVALO_ANALISIS_ROSTRO_MS = 66;
 const CALIDAD_JPEG = 0.95;
 const PASO_TRAZO_MS = 30;
 const DURACION_DESTELLO_MS = 600;
@@ -308,6 +310,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   private temporizadorManual: ReturnType<typeof setTimeout> | null = null;
   private muestrasConBuenaLuz = 0;
   private cuadroAnterior: Float32Array | null = null;
+  private ultimoAnalisis = 0;
   private pausaInicialHasta = 0;
 
   /** Detecta dispositivo tactil (celular/tablet) vs mouse (computadora). */
@@ -351,9 +354,11 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   private readonly seguirRostro = (): void => {
     const video = this.videoRef?.nativeElement;
     if (!this.modeloRostro || !video || !this.stream || this.fotoActual) return;
+    const ahora = performance.now();
     try {
-      if (video.readyState >= 2) {
-        this.procesarLectura(leerRostro(this.modeloRostro, video, performance.now()));
+      if (video.readyState >= 2 && ahora - this.ultimoAnalisis >= INTERVALO_ANALISIS_ROSTRO_MS) {
+        this.ultimoAnalisis = ahora;
+        this.procesarLectura(leerRostro(this.modeloRostro, video, ahora));
       }
     } catch {
       // Un cuadro que no se pudo analizar no debe detener el seguimiento.
@@ -545,15 +550,24 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     const cuadro = this.medirCuadro();
     if (!cuadro) return;
     const luzAdecuada = cuadro.brillo >= BRILLO_MINIMO && cuadro.brillo <= BRILLO_MAXIMO;
-    this.fraseMagica = this.avisoDeLuz(cuadro.brillo);
+    const avisoLuz = this.avisoDeLuz(cuadro.brillo);
+    this.fraseMagica = avisoLuz;
     this.luzActualAdecuada = luzAdecuada;
 
     // En la selfie con anillo, la captura la decide el seguimiento del rostro, no el trazo de luz.
     if (this.pasoActual.marco === 'rostro' && (this.modoAnillo || this.esperandoAnillo)) return;
-    if (Date.now() < this.pausaInicialHasta) return;
+
+    const esDocumento = this.pasoActual.marco === 'documento';
+    if (Date.now() < this.pausaInicialHasta) {
+      this.fraseMagica = avisoLuz || (esDocumento ? 'Coloca tu cédula dentro del marco' : 'Centra tu rostro');
+      return;
+    }
 
     // Captura automática: el trazo solo avanza con buena luz y la imagen quieta; si no, se reinicia.
     const quieta = cuadro.movimiento <= MOVIMIENTO_MAXIMO;
+    if (luzAdecuada) {
+      this.fraseMagica = quieta ? 'No te muevas…' : esDocumento ? 'Mantén la cédula quieta' : 'Quédate quieto';
+    }
     if (luzAdecuada && quieta) {
       this.muestrasConBuenaLuz += 1;
       if (this.muestrasConBuenaLuz >= MUESTRAS_ESTABLES && this.progresoCaptura === null) {
