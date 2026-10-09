@@ -178,9 +178,13 @@ const ETIQUETAS_ESTADO: Record<string, string> = {
         padding: 18px 20px;
         margin: 16px 0;
       }
-      .aviso-verificar-publicador p, .estado-vacio p { margin: 6px 0 14px; }
-      .nota-datos { font-size: 12.5px; color: var(--texto-suave); margin-top: 12px !important; }
-      .beneficios-verificacion { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--borde); font-size: 13.5px; }
+      .aviso-verificar-publicador, .estado-vacio { display: flex; flex-direction: column; gap: 14px; }
+      .aviso-verificar-publicador { align-items: flex-start; }
+      .estado-vacio { align-items: center; }
+      .aviso-verificar-publicador p, .estado-vacio p, .estado-vacio h2 { margin: 0; line-height: 1.55; }
+      .aviso-verificar-publicador .boton-principal, .estado-vacio .boton-principal { display: inline-block; }
+      .nota-datos { font-size: 12.5px; color: var(--texto-suave); }
+      .beneficios-verificacion { align-self: stretch; padding-top: 14px; border-top: 1px dashed var(--borde); font-size: 13.5px; }
       .beneficios-verificacion ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.6; }
       .estado-vacio { text-align: center; padding: 32px 20px; }
       .estado-vacio h2 { margin: 0; }

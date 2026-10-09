@@ -30,7 +30,7 @@ function formatearPrecio(precio: number): string {
  * Tarjeta del anuncio en el mapa. Solo datos publicos (foto, precio, tipo, zona, insignias);
  * nunca direccion exacta, celular, correo u otro dato personal.
  */
-function construirContenido(anuncio: Anuncio, conAcciones: boolean): string {
+function construirContenido(anuncio: Anuncio): string {
   const verificado = anuncio.publicador?.verificado;
   const foto = anuncio.fotos?.[0]?.url;
 
@@ -48,16 +48,14 @@ function construirContenido(anuncio: Anuncio, conAcciones: boolean): string {
     .filter(Boolean)
     .join('');
 
-  const acciones = conAcciones
-    ? `<div class="popup-acciones">
+  const acciones = `<div class="popup-acciones">
          <button type="button" class="popup-boton popup-ver" data-accion="ver">Ver anuncio</button>
          <button type="button" class="popup-boton popup-guardar" data-accion="guardar">Guardar ♡</button>
        </div>
-       <p class="popup-mensaje" data-rol="mensaje"></p>`
-    : '';
+       <p class="popup-mensaje" data-rol="mensaje"></p>`;
 
   return `
-    <div class="popup-anuncio${conAcciones ? ' popup-fijo' : ''}">
+    <div class="popup-anuncio popup-fijo">
       ${imagenHtml}
       <div class="popup-cuerpo">
         <strong>${escapar(anuncio.titulo)}</strong>
@@ -96,10 +94,17 @@ export function crearAccionesMapa(
   };
 }
 
+// Margen para pasar el mouse de la casita a la tarjeta sin que esta se cierre en el camino.
+const ESPERA_CIERRE_MS = 250;
+
+// Solo una tarjeta abierta a la vez en todo el mapa.
+let tarjetaAbierta: maplibregl.Popup | null = null;
+
 /**
- * Crea el marcador de un anuncio con dos comportamientos:
- * - pasar el mouse: vista previa rapida (desaparece al salir);
- * - clic o toque: tarjeta fija con "Ver anuncio" y "Guardar", util tambien en celular donde no hay hover.
+ * Crea el marcador de un anuncio:
+ * - computadora: la tarjeta aparece al pasar el mouse, sigue abierta mientras el mouse
+ *   esté sobre la casita o la tarjeta (para poder usar sus botones) y se cierra sola al salir;
+ * - celular (sin mouse): se abre con un toque y se cierra al tocar el mapa.
  */
 export function crearMarcadorAnuncio(
   mapa: maplibregl.Map,
@@ -113,36 +118,46 @@ export function crearMarcadorAnuncio(
 
   const marcador = new maplibregl.Marker({ element: elemento }).setLngLat([punto.lng, punto.lat]).addTo(mapa);
 
-  const vistaPrevia = new maplibregl.Popup({ offset: 24, closeButton: false, closeOnClick: false }).setHTML(
-    construirContenido(anuncio, false),
-  );
-  // El contenido fijo se arma una sola vez y sus botones se conectan una sola vez,
+  // El contenido se arma una sola vez y sus botones se conectan una sola vez,
   // para no acumular listeners (y peticiones duplicadas) cada vez que se reabre la tarjeta.
-  const nodoFijo = document.createElement('div');
-  nodoFijo.innerHTML = construirContenido(anuncio, true);
-  const mensaje = nodoFijo.querySelector<HTMLElement>('[data-rol="mensaje"]');
+  const nodo = document.createElement('div');
+  nodo.innerHTML = construirContenido(anuncio);
+  const mensaje = nodo.querySelector<HTMLElement>('[data-rol="mensaje"]');
   const mostrarMensaje = (texto: string) => {
     if (mensaje) mensaje.textContent = texto;
   };
-  nodoFijo.querySelector('[data-accion="ver"]')?.addEventListener('click', () => acciones.alVer(anuncio));
-  nodoFijo
-    .querySelector('[data-accion="guardar"]')
-    ?.addEventListener('click', () => acciones.alGuardar(anuncio, mostrarMensaje));
+  nodo.querySelector('[data-accion="ver"]')?.addEventListener('click', () => acciones.alVer(anuncio));
+  nodo.querySelector('[data-accion="guardar"]')?.addEventListener('click', () => acciones.alGuardar(anuncio, mostrarMensaje));
 
-  const tarjetaFija = new maplibregl.Popup({ offset: 24, closeButton: true, closeOnClick: true, maxWidth: '240px' }).setDOMContent(
-    nodoFijo,
-  );
+  const tarjeta = new maplibregl.Popup({ offset: 24, closeButton: false, closeOnClick: true, maxWidth: '240px' }).setDOMContent(nodo);
 
-  elemento.addEventListener('mouseenter', () => {
-    if (!tarjetaFija.isOpen()) vistaPrevia.setLngLat(marcador.getLngLat()).addTo(mapa);
+  let temporizador: ReturnType<typeof setTimeout> | undefined;
+  const cancelarCierre = () => clearTimeout(temporizador);
+  const programarCierre = () => {
+    cancelarCierre();
+    temporizador = setTimeout(() => tarjeta.remove(), ESPERA_CIERRE_MS);
+  };
+  const abrir = () => {
+    cancelarCierre();
+    if (tarjeta.isOpen()) return;
+    if (tarjetaAbierta && tarjetaAbierta !== tarjeta) tarjetaAbierta.remove();
+    mostrarMensaje('');
+    tarjeta.setLngLat(marcador.getLngLat()).addTo(mapa);
+    tarjetaAbierta = tarjeta;
+  };
+
+  tarjeta.on('close', () => {
+    if (tarjetaAbierta === tarjeta) tarjetaAbierta = null;
   });
-  elemento.addEventListener('mouseleave', () => vistaPrevia.remove());
+  // Mientras el mouse esté sobre la tarjeta, no se cierra.
+  nodo.addEventListener('mouseenter', cancelarCierre);
+  nodo.addEventListener('mouseleave', programarCierre);
 
+  elemento.addEventListener('mouseenter', abrir);
+  elemento.addEventListener('mouseleave', programarCierre);
   elemento.addEventListener('click', (evento) => {
     evento.stopPropagation();
-    vistaPrevia.remove();
-    mostrarMensaje('');
-    tarjetaFija.setLngLat(marcador.getLngLat()).addTo(mapa);
+    abrir();
   });
 
   return marcador;

@@ -1836,6 +1836,31 @@ input:focus, select:focus, textarea:focus {
   border-radius: calc(var(--radio-panel) - 3px);
 }
 
+/* Cuenta regresiva de la captura automática */
+.cuenta-regresiva {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font: 800 72px 'Bricolage Grotesque', sans-serif;
+  color: #FFFFFF;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
+  z-index: 4;
+  pointer-events: none;
+}
+.nota-automatica {
+  font-size: 12.5px;
+  opacity: 0.8;
+}
+.boton-texto-verif {
+  background: none;
+  border: none;
+  color: #F5DBA3;
+  text-decoration: underline;
+  font: 600 13px 'Manrope', sans-serif;
+  cursor: pointer;
+  padding: 6px;
+}
 .frase-magica {
   position: absolute;
   left: 50%;

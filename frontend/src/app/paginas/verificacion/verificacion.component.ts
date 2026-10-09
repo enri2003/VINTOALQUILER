@@ -4,6 +4,11 @@ import { VerificacionService } from '../../servicios/verificacion.service';
 
 type Fase = 'resumen' | 'captura' | 'enviando' | 'aprobado' | 'rechazado';
 
+// Captura automática: la luz se mide cada 550 ms; con 2 mediciones buenas seguidas empieza la cuenta de 3 segundos.
+const MUESTRAS_ESTABLES = 2;
+const SEGUNDOS_CUENTA = 3;
+const ESPERA_CAPTURA_MANUAL_MS = 15000;
+
 interface PasoCaptura {
   clave: 'anverso' | 'reverso' | 'selfie';
   facing: 'environment' | 'user';
@@ -17,7 +22,7 @@ const PASOS: PasoCaptura[] = [
     clave: 'anverso',
     facing: 'environment',
     marco: 'documento',
-    titulo: 'Escanea el anverso de tu cedula',
+    titulo: 'Escanea el anverso de tu cédula',
     instruccion: 'Encuadra el documento dentro del marco.',
   },
   {
@@ -25,14 +30,14 @@ const PASOS: PasoCaptura[] = [
     facing: 'environment',
     marco: 'documento',
     titulo: 'Ahora el reverso',
-    instruccion: 'Da vuelta tu cedula y encuadrala igual.',
+    instruccion: 'Da vuelta tu cédula y encuádrala igual.',
   },
   {
     clave: 'selfie',
     facing: 'user',
     marco: 'rostro',
     titulo: 'Ahora tu rostro',
-    instruccion: 'Centra tu cara dentro del circulo y mira a la camara.',
+    instruccion: 'Centra tu cara dentro del círculo y mira a la cámara.',
   },
 ];
 
@@ -70,7 +75,7 @@ const PASOS: PasoCaptura[] = [
         </div>
 
         <ng-container *ngIf="fase !== 'captura'">
-          <h1>Verificacion de identidad</h1>
+          <h1>Verificación de identidad</h1>
           <p>Escaneamos tu documento y tu rostro en vivo. Nada se guarda como archivo, solo el resultado.</p>
 
           <div class="tarjeta-estado-verif">
@@ -100,8 +105,8 @@ const PASOS: PasoCaptura[] = [
                 </svg>
               </span>
               <div>
-                <h3>Cedula de identidad</h3>
-                <p>Escaneo en vivo del anverso y reverso. Leemos los datos y detectamos si fue alterada.</p>
+                <h3>Cédula de identidad</h3>
+                <p>Escaneo del anverso y reverso. Leemos los datos del documento.</p>
               </div>
             </div>
             <div class="paso-verif"><span class="destello-tarjeta"></span>
@@ -123,13 +128,13 @@ const PASOS: PasoCaptura[] = [
               </span>
               <div>
                 <h3>Resultado inmediato</h3>
-                <p>En segundos sabes si tu identidad coincide y quedo verificada.</p>
+                <p>En segundos sabes si tu identidad coincide y quedó verificada.</p>
               </div>
             </div>
           </div>
-          <p class="nota-cifrado">Todo el analisis ocurre en vivo, cifrado, y se descarta al terminar la verificacion.</p>
-          <button class="boton-degradado" (click)="iniciarCaptura()">Comenzar verificacion</button>
-          <p class="nota-beneficios">Al verificarte puedes contactar, guardar favoritos, comparar, crear alertas y ver la direccion exacta.</p>
+          <p class="nota-cifrado">Las imágenes se analizan en el momento y se descartan al terminar. Solo se guarda tu número de cédula cifrado.</p>
+          <button class="boton-degradado" (click)="iniciarCaptura()">Comenzar verificación</button>
+          <p class="nota-beneficios">Al verificarte puedes contactar, guardar favoritos, comparar, crear alertas y ver la dirección exacta.</p>
         </div>
 
         <!-- Captura en vivo (documento y selfie) -->
@@ -154,14 +159,19 @@ const PASOS: PasoCaptura[] = [
                 <span class="esquina esquina-tr"></span>
                 <span class="esquina esquina-bl"></span>
                 <span class="esquina esquina-br"></span>
-                <span class="frase-magica" *ngIf="camaraLista && !fotoActual">{{ fraseMagica }}</span>
+                <span class="cuenta-regresiva" *ngIf="cuentaRegresiva !== null && !fotoActual">{{ cuentaRegresiva }}</span>
+                <span class="frase-magica" *ngIf="camaraLista && !fotoActual">
+                  {{ cuentaRegresiva !== null ? 'No te muevas…' : fraseMagica }}
+                </span>
               </div>
             </div>
             <p class="instruccion-captura">{{ pasoActual.instruccion }}</p>
+            <p class="instruccion-captura nota-automatica" *ngIf="!fotoActual">
+              {{ camaraLista ? 'La foto se toma sola cuando la luz es adecuada.' : 'Activando cámara...' }}
+            </p>
             <p class="error-camara" *ngIf="errorCamara">{{ errorCamara }}</p>
-
-            <button class="boton-degradado" *ngIf="!fotoActual" [disabled]="!camaraLista" (click)="capturar()">
-              {{ camaraLista ? 'Capturar' : 'Activando camara...' }}
+            <button class="boton-texto-verif" *ngIf="mostrarCapturaManual && !fotoActual" (click)="capturar()">
+              Tomar la foto de todos modos
             </button>
           </ng-container>
 
@@ -188,7 +198,7 @@ const PASOS: PasoCaptura[] = [
           <div class="acciones-captura" *ngIf="fotoActual && usaCamara()">
             <button class="boton-fantasma-verif" (click)="reintentar()">Repetir</button>
             <button class="boton-degradado" (click)="siguientePaso()">
-              {{ indice === pasos.length - 1 ? 'Enviar a analisis' : 'Continuar' }}
+              {{ indice === pasos.length - 1 ? 'Enviar a análisis' : 'Siguiente' }}
             </button>
           </div>
           <button
@@ -196,7 +206,7 @@ const PASOS: PasoCaptura[] = [
             *ngIf="fotoActual && !usaCamara()"
             (click)="siguientePaso()"
           >
-            {{ indice === pasos.length - 1 ? 'Enviar a analisis' : 'Continuar' }}
+            {{ indice === pasos.length - 1 ? 'Enviar a análisis' : 'Siguiente' }}
           </button>
         </div>
 
@@ -219,9 +229,14 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   errorCamara = '';
   error = '';
   fraseMagica = '';
+  cuentaRegresiva: number | null = null;
+  mostrarCapturaManual = false;
 
   private stream: MediaStream | null = null;
   private muestreoLuz: ReturnType<typeof setInterval> | null = null;
+  private temporizadorCuenta: ReturnType<typeof setInterval> | null = null;
+  private temporizadorManual: ReturnType<typeof setTimeout> | null = null;
+  private muestrasConBuenaLuz = 0;
 
   /** Detecta dispositivo tactil (celular/tablet) vs mouse (computadora). */
   private readonly esMovil = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
@@ -232,7 +247,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     return this.pasos[this.indice];
   }
 
-  /** El carnet se sube como archivo en computadora; la selfie siempre es con camara en vivo. */
+  /** El carnet se sube como archivo en computadora; la selfie siempre es con cámara en vivo. */
   usaCamara(): boolean {
     return this.pasoActual.marco === 'rostro' || this.esMovil;
   }
@@ -265,9 +280,11 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
         this.videoRef.nativeElement.srcObject = this.stream;
         this.camaraLista = true;
         this.iniciarMuestreoLuz();
+        // Si en este tiempo la luz nunca llega a ser adecuada, se ofrece tomar la foto igual.
+        this.temporizadorManual = setTimeout(() => (this.mostrarCapturaManual = true), ESPERA_CAPTURA_MANUAL_MS);
       }
     } catch {
-      this.errorCamara = 'No pudimos acceder a tu camara. Revisa los permisos del navegador.';
+      this.errorCamara = 'No pudimos acceder a tu cámara. Revisa los permisos del navegador.';
     }
   }
 
@@ -299,14 +316,43 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     }
     const brillo = total / (datos.length / 4);
     const esDocumento = this.pasoActual.marco === 'documento';
+    const luzAdecuada = brillo >= 55 && brillo <= 225;
 
     if (brillo < 55) {
       this.fraseMagica = 'Muy oscuro. Busca mejor luz.';
     } else if (brillo > 225) {
       this.fraseMagica = esDocumento ? 'Demasiado reflejo. Inclina el documento.' : 'Demasiada luz. Aléjate un poco de la fuente de luz.';
     } else {
-      this.fraseMagica = esDocumento ? 'Buena luz. Encuadra y captura.' : 'Buena luz. Mira a la cámara y captura.';
+      this.fraseMagica = esDocumento ? 'Buena luz. Mantén el documento dentro del marco.' : 'Buena luz. Mira a la cámara.';
     }
+
+    // Captura automática: con buena luz estable empieza la cuenta; si la luz empeora, se cancela.
+    if (luzAdecuada) {
+      this.muestrasConBuenaLuz += 1;
+      if (this.muestrasConBuenaLuz >= MUESTRAS_ESTABLES && this.cuentaRegresiva === null) {
+        this.iniciarCuentaRegresiva();
+      }
+    } else {
+      this.muestrasConBuenaLuz = 0;
+      this.cancelarCuentaRegresiva();
+    }
+  }
+
+  private iniciarCuentaRegresiva(): void {
+    this.cuentaRegresiva = SEGUNDOS_CUENTA;
+    this.temporizadorCuenta = setInterval(() => {
+      if (this.cuentaRegresiva === null) return;
+      this.cuentaRegresiva -= 1;
+      if (this.cuentaRegresiva <= 0) this.capturar();
+    }, 1000);
+  }
+
+  private cancelarCuentaRegresiva(): void {
+    if (this.temporizadorCuenta) {
+      clearInterval(this.temporizadorCuenta);
+      this.temporizadorCuenta = null;
+    }
+    this.cuentaRegresiva = null;
   }
 
   private detenerMuestreoLuz(): void {
@@ -322,6 +368,13 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     this.stream = null;
     this.camaraLista = false;
     this.detenerMuestreoLuz();
+    this.cancelarCuentaRegresiva();
+    if (this.temporizadorManual) {
+      clearTimeout(this.temporizadorManual);
+      this.temporizadorManual = null;
+    }
+    this.mostrarCapturaManual = false;
+    this.muestrasConBuenaLuz = 0;
   }
 
   capturar(): void {
@@ -379,7 +432,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
       next: (res) => (this.fase = res.resultado === 'aprobado' ? 'aprobado' : 'rechazado'),
       error: (err) => {
         this.fase = 'rechazado';
-        this.error = err?.error?.message || 'No se pudo completar la verificacion. Intenta de nuevo.';
+        this.error = err?.error?.message || 'No se pudo completar la verificación. Intenta de nuevo.';
       },
     });
   }
@@ -398,7 +451,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   }
 
   notaProgreso(): string {
-    if (this.fase === 'aprobado') return 'Ya puedes contactar, guardar favoritos y publicar sin limites.';
+    if (this.fase === 'aprobado') return 'Ya tienes acceso a las funciones que requieren identidad verificada.';
     if (this.fase === 'rechazado') return this.error || 'No pudimos verificarte. Intenta de nuevo con mejor luz.';
     if (this.fase === 'enviando') return 'Comparando tu documento con tu rostro en vivo...';
     return 'Falta escanear tu documento para continuar.';
