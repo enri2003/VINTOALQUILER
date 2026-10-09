@@ -1,31 +1,77 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Anuncio, AnuncioService } from '../../servicios/anuncio.service';
 import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impulso.service';
+import { VerificacionService } from '../../servicios/verificacion.service';
+import { obtenerSelloImpulso } from '../../utilidades/sello-impulso.util';
+
+const ETIQUETAS_ESTADO: Record<string, string> = {
+  disponible: 'Disponible',
+  ocupado: 'Ocupado',
+  pausado: 'Pausado',
+};
 
 @Component({
   selector: 'app-mis-anuncios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <section class="mis-anuncios">
-      <h1>Mis anuncios</h1>
-      <div *ngFor="let anuncio of anuncios" class="tarjeta">
-        <h2>{{ anuncio.titulo }}</h2>
-        <p class="precio">Bs. {{ anuncio.precio }}</p>
-        <p class="texto-suave">Estado: {{ anuncio.estado }}</p>
+      <div class="cabecera-mis-anuncios">
+        <h1>Mis anuncios</h1>
+        <a routerLink="/publicar" class="boton-principal" *ngIf="verificado">+ Publicar aviso</a>
+      </div>
+
+      <div class="aviso-verificar-publicador" *ngIf="verificado === false">
+        <strong>Identidad pendiente</strong>
+        <p>Para publicar anuncios debes verificar tu identidad. La verificación es gratuita y tus anuncios mostrarán el sello de publicador verificado.</p>
+        <a routerLink="/verificacion" class="boton-principal">Verificar mi identidad</a>
+      </div>
+
+      <div class="resumen-publicador" *ngIf="anuncios.length">
+        <div><span>Disponibles</span><strong>{{ contar('disponible') }}</strong></div>
+        <div><span>Ocupados</span><strong>{{ contar('ocupado') }}</strong></div>
+        <div><span>Pausados</span><strong>{{ contar('pausado') }}</strong></div>
+      </div>
+
+      <div *ngFor="let anuncio of anuncios" class="tarjeta tarjeta-publicador">
+        <div class="cuerpo-publicador">
+          <div class="foto-publicador">
+            <img *ngIf="anuncio.fotos.length" [src]="anuncio.fotos[0].url" [alt]="'Foto de ' + anuncio.titulo" />
+            <span *ngIf="!anuncio.fotos.length">Sin fotografía</span>
+          </div>
+          <div class="datos-publicador">
+            <h2>{{ anuncio.titulo }}</h2>
+            <p class="texto-suave">
+              <span class="tipo-anuncio">{{ anuncio.tipo }}</span> · {{ anuncio.zona?.nombre }} ·
+              <strong class="precio-linea">Bs. {{ anuncio.precio | number: '1.0-0' }}/mes</strong>
+            </p>
+            <div class="etiquetas-estado">
+              <span class="estado-anuncio" [ngClass]="'estado-' + anuncio.estado">{{ etiquetaEstado(anuncio.estado) }}</span>
+              <span class="insignia-sello" *ngIf="sello(anuncio) as s" [ngClass]="s.clase">{{ s.texto }}</span>
+            </div>
+            <p class="texto-suave fechas-anuncio">
+              <span *ngIf="anuncio.creadoEn">Publicado: {{ anuncio.creadoEn | date: 'd MMM y' }}</span>
+              <span *ngIf="anuncio.venceEn"> · Vence por inactividad: {{ anuncio.venceEn | date: 'd MMM y' }}</span>
+            </p>
+            <p class="aviso-fotos" *ngIf="!anuncio.fotos.length">Agrega fotografías para mejorar la presentación de tu anuncio.</p>
+          </div>
+        </div>
+
         <p class="texto-suave" *ngIf="impulsoActivo(anuncio.id) as impulso">
-          Impulso plan {{ impulso.plan }} dias ·
-          {{ impulso.estado === 'pendiente' ? 'Pendiente de confirmacion (se activa el mismo dia habil tras validar el pago)' : impulso.estado }}
+          Impulso de {{ impulso.plan }} días ·
+          {{ impulso.estado === 'pendiente' ? 'Pendiente de confirmación (se activa el mismo día hábil tras validar el pago)' : impulso.estado }}
         </p>
         <p class="mensaje-error" *ngIf="impulsoRechazado(anuncio.id) as rechazado">
           Impulso rechazado: {{ rechazado.motivoRechazo }}. Puedes intentar de nuevo con otro comprobante.
         </p>
 
         <div class="acciones">
+          <a [routerLink]="['/anuncio', anuncio.id]" class="boton-principal">Ver anuncio</a>
           <button class="boton-secundario" (click)="alternarEdicion(anuncio)">
-            {{ anuncioEditando === anuncio.id ? 'Cancelar edicion' : 'Editar' }}
+            {{ anuncioEditando === anuncio.id ? 'Cancelar edición' : 'Editar' }}
           </button>
           <button class="boton-secundario" (click)="alternarFotos(anuncio.id)">
             {{ gestionFotosAbierta === anuncio.id ? 'Cerrar fotos' : 'Gestionar fotos' }} ({{ anuncio.fotos.length }}/{{ anuncio.fotosMax || 15 }})
@@ -33,20 +79,18 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
           <button class="boton-secundario" (click)="alternarOcupado(anuncio)">
             {{ anuncio.estado === 'ocupado' ? 'Marcar disponible' : 'Marcar ocupado' }}
           </button>
-          <button class="boton-secundario" (click)="eliminar(anuncio)">Eliminar</button>
-          <button
-            class="boton-secundario"
-            (click)="alternarFormulario(anuncio.id)"
-            *ngIf="!impulsoActivo(anuncio.id)"
-          >
+          <button class="boton-texto-peligro" (click)="eliminar(anuncio)">Eliminar</button>
+        </div>
+        <div class="accion-impulso" *ngIf="!impulsoActivo(anuncio.id)">
+          <button class="boton-impulso" (click)="alternarFormulario(anuncio.id)">
             {{ formularioAbierto === anuncio.id ? 'Cancelar' : 'Impulsar anuncio' }}
           </button>
         </div>
 
         <div class="formulario-edicion" *ngIf="anuncioEditando === anuncio.id">
-          <input type="text" [(ngModel)]="edicionTitulo" placeholder="Titulo" />
-          <input type="number" [(ngModel)]="edicionPrecio" placeholder="Precio en bolivianos" />
-          <textarea [(ngModel)]="edicionDescripcion" placeholder="Descripcion"></textarea>
+          <input type="text" [(ngModel)]="edicionTitulo" placeholder="Título" />
+          <input type="number" [(ngModel)]="edicionPrecio" placeholder="Precio mensual en bolivianos" />
+          <textarea [(ngModel)]="edicionDescripcion" placeholder="Descripción"></textarea>
           <button class="boton-secundario" (click)="guardarEdicion(anuncio)">Guardar cambios</button>
           <p class="mensaje-error" *ngIf="errorEdicion">{{ errorEdicion }}</p>
         </div>
@@ -79,7 +123,7 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
           <div *ngFor="let clave of planesClaves" class="opcion-plan">
             <label>
               <input type="radio" name="plan-{{ anuncio.id }}" [value]="clave" [(ngModel)]="planSeleccionado" />
-              {{ clave }} dias - Bs. {{ planes[clave].precio }} ({{ planes[clave].fotosMax }} fotos{{
+              {{ clave }} días - Bs. {{ planes[clave].precio }} ({{ planes[clave].fotosMax }} fotos{{
                 planes[clave].portada ? ', portada y alertas por correo' : ''
               }})
             </label>
@@ -89,17 +133,74 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
             {{ enviando ? 'Enviando...' : 'Enviar solicitud' }}
           </button>
           <p class="texto-suave">
-            Sube el comprobante de tu deposito o transferencia. Se activa cuando el administrador confirme el pago,
-            por lo general el mismo dia habil.
+            Sube el comprobante de tu depósito o transferencia. Se activa cuando el administrador confirme el pago,
+            por lo general el mismo día hábil.
           </p>
           <p class="mensaje-error" *ngIf="error">{{ error }}</p>
         </div>
       </div>
-      <p class="texto-suave" *ngIf="!anuncios.length">Aun no tienes anuncios publicados.</p>
+
+      <div class="estado-vacio" *ngIf="cargado && !anuncios.length">
+        <h2>Todavía no tienes anuncios publicados</h2>
+        <p>Publica gratis tu cuarto, garzonier o departamento y permite que las personas interesadas lo encuentren cerca de la UAB y del centro de Vinto.</p>
+        <a routerLink="/publicar" class="boton-principal" *ngIf="verificado">Publicar mi primer aviso</a>
+        <p class="texto-suave" *ngIf="verificado === false">Primero verifica tu identidad para poder publicar.</p>
+      </div>
     </section>
   `,
   styles: [
     `
+      .mis-anuncios { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+      .cabecera-mis-anuncios { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+      .aviso-verificar-publicador, .estado-vacio {
+        background: var(--superficie-alt, #F7EFE3);
+        border: 1px solid var(--borde);
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin: 16px 0;
+      }
+      .aviso-verificar-publicador p, .estado-vacio p { margin: 6px 0 14px; }
+      .estado-vacio { text-align: center; padding: 32px 20px; }
+      .estado-vacio h2 { margin: 0; }
+      .resumen-publicador { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+      .resumen-publicador div {
+        background: #fff; border: 1px solid var(--borde); border-radius: 12px; padding: 12px 14px;
+        display: flex; flex-direction: column; gap: 2px;
+      }
+      .resumen-publicador span { font-size: 12px; color: var(--texto-suave); }
+      .resumen-publicador strong { font-size: 22px; color: var(--acento-oscuro); }
+      .tarjeta-publicador { margin-bottom: 16px; }
+      .cuerpo-publicador { display: flex; gap: 16px; }
+      .foto-publicador {
+        width: 140px; height: 105px; flex-shrink: 0; border-radius: 10px; overflow: hidden;
+        background: #F3ECE0; display: flex; align-items: center; justify-content: center;
+        font-size: 12px; color: var(--texto-suave);
+      }
+      .foto-publicador img { width: 100%; height: 100%; object-fit: cover; }
+      .datos-publicador { flex: 1; min-width: 0; }
+      .datos-publicador p { margin: 4px 0; }
+      .tipo-anuncio { text-transform: capitalize; }
+      .precio-linea { color: var(--acento-oscuro); }
+      .etiquetas-estado { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+      .etiquetas-estado .insignia-sello { position: static; }
+      .estado-anuncio { font: 700 11.5px 'Manrope', sans-serif; padding: 3px 10px; border-radius: 999px; }
+      .estado-disponible { background: #E3F4E8; color: #1F6B3A; }
+      .estado-ocupado { background: #EEF0F3; color: #4A5565; }
+      .estado-pausado { background: #FBF1E3; color: #8A5A12; }
+      .fechas-anuncio { font-size: 12.5px; }
+      .aviso-fotos { font-size: 12.5px; color: #8A5A12; }
+      .acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+      .boton-texto-peligro { background: none; border: none; color: var(--rojo, #B42318); font-weight: 600; cursor: pointer; padding: 8px 10px; }
+      .accion-impulso { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--borde); }
+      .boton-impulso {
+        background: linear-gradient(90deg, #F2C879, #C9622D); color: #fff; border: none;
+        border-radius: 999px; padding: 8px 16px; font-weight: 700; cursor: pointer;
+      }
+      @media (max-width: 560px) {
+        .cuerpo-publicador { flex-direction: column; }
+        .foto-publicador { width: 100%; height: 160px; }
+        .resumen-publicador { grid-template-columns: 1fr 1fr 1fr; }
+      }
       .miniaturas-fotos {
         display: flex;
         flex-wrap: wrap;
@@ -127,6 +228,8 @@ import { Impulso, ImpulsoService, PlanImpulsoInfo } from '../../servicios/impuls
 })
 export class MisAnunciosComponent implements OnInit {
   anuncios: Anuncio[] = [];
+  cargado = false;
+  verificado: boolean | null = null;
   impulsos: Impulso[] = [];
   planes: Record<string, PlanImpulsoInfo> = {};
   planesClaves: string[] = [];
@@ -151,10 +254,15 @@ export class MisAnunciosComponent implements OnInit {
   constructor(
     private readonly anuncioService: AnuncioService,
     private readonly impulsoService: ImpulsoService,
+    private readonly verificacionService: VerificacionService,
   ) {}
 
   ngOnInit(): void {
     this.cargarAnuncios();
+    this.verificacionService.estado().subscribe({
+      next: (res) => (this.verificado = res.verificado),
+      error: () => (this.verificado = false),
+    });
     this.impulsoService.misImpulsos().subscribe((res) => (this.impulsos = res));
     this.impulsoService.planes().subscribe((res) => {
       this.planes = res;
@@ -163,7 +271,25 @@ export class MisAnunciosComponent implements OnInit {
   }
 
   private cargarAnuncios(): void {
-    this.anuncioService.misAnuncios().subscribe((res) => (this.anuncios = res));
+    this.anuncioService.misAnuncios().subscribe({
+      next: (res) => {
+        this.anuncios = res;
+        this.cargado = true;
+      },
+      error: () => (this.cargado = true),
+    });
+  }
+
+  contar(estado: string): number {
+    return this.anuncios.filter((anuncio) => anuncio.estado === estado).length;
+  }
+
+  etiquetaEstado(estado?: string): string {
+    return ETIQUETAS_ESTADO[estado ?? ''] ?? estado ?? '';
+  }
+
+  sello(anuncio: Anuncio) {
+    return obtenerSelloImpulso(anuncio);
   }
 
   impulsoActivo(anuncioId: number): Impulso | undefined {
@@ -242,7 +368,7 @@ export class MisAnunciosComponent implements OnInit {
   }
 
   eliminar(anuncio: Anuncio): void {
-    if (!window.confirm(`¿Eliminar el anuncio "${anuncio.titulo}"? Esta accion no se puede deshacer.`)) return;
+    if (!window.confirm(`¿Eliminar el anuncio "${anuncio.titulo}"? Esta acción no se puede deshacer.`)) return;
     this.anuncioService.eliminar(anuncio.id).subscribe(() => this.cargarAnuncios());
   }
 

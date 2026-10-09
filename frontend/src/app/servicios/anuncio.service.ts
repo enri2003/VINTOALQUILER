@@ -12,6 +12,7 @@ export interface Anuncio {
   zona?: { id: number; nombre: string };
   fotos: { id: number; url: string }[];
   creadoEn?: string;
+  venceEn?: string;
   enPortada?: boolean;
   planImpulso?: 7 | 15 | 30 | null;
   estado?: string;
