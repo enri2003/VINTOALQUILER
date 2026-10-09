@@ -15,3 +15,33 @@ export const SIN_ENLACES = /^(?![\s\S]*(?:https?:\/\/|www\.))[\s\S]*$/i;
 export const MENSAJE_SIN_TELEFONO =
   'La descripción no puede incluir números de teléfono: las personas interesadas te contactan desde la plataforma.';
 export const MENSAJE_SIN_ENLACES = 'La descripción no puede incluir enlaces externos.';
+
+/**
+ * Valores permitidos en la columna `servicios` (text[]).
+ * - Servicio incluido en el precio: su código (ej. "agua").
+ * - Servicio que se paga por separado: código + ":aparte" (ej. "luz:aparte").
+ * - Características del inmueble: su código (ej. "amoblado").
+ * Debe coincidir con frontend/src/app/utilidades/catalogo-anuncio.ts.
+ */
+export const SERVICIOS = ['agua', 'luz', 'gas', 'wifi', 'cable', 'expensas', 'basura'] as const;
+export const CARACTERISTICAS = [
+  'amoblado',
+  'semiamoblado',
+  'cocina_privada',
+  'cocina_compartida',
+  'bano_privado',
+  'bano_compartido',
+  'agua_caliente',
+  'lavanderia',
+  'patio',
+  'balcon',
+  'garaje',
+  'acceso_independiente',
+  'iluminacion_natural',
+  'mascotas',
+  'cocinar',
+  'visitas',
+  'bicicleta',
+] as const;
+export const VALORES_SERVICIOS: string[] = [...SERVICIOS, ...SERVICIOS.map((s) => `${s}:aparte`), ...CARACTERISTICAS];
+export const MENSAJE_SERVICIO_INVALIDO = 'Hay un servicio o característica que no es válido.';

@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Anuncio, AnuncioService } from '../../servicios/anuncio.service';
 import { FavoritoService } from '../../servicios/favorito.service';
 import { AuthService } from '../../servicios/auth.service';
+import { clasificarServicios } from '../../utilidades/catalogo-anuncio';
 
 const ETIQUETAS_SENALES: Record<string, string> = {
   precio_atipico_para_la_zona: 'Precio fuera de lo habitual para la zona',
@@ -61,9 +62,20 @@ const ETIQUETAS_SENALES: Record<string, string> = {
         <span class="chip" *ngIf="anuncio.superficieM2">{{ anuncio.superficieM2 }} m²</span>
       </div>
 
-      <ul class="lista-servicios" *ngIf="anuncio.servicios?.length">
-        <li *ngFor="let servicio of anuncio.servicios">{{ servicio }}</li>
-      </ul>
+      <ng-container *ngIf="servicios as s">
+        <div class="grupo-detalle" *ngIf="s.incluidos.length">
+          <strong>Servicios incluidos en el precio</strong>
+          <div class="detalles-tecnicos"><span class="chip chip-incluido" *ngFor="let item of s.incluidos">✓ {{ item }}</span></div>
+        </div>
+        <div class="grupo-detalle" *ngIf="s.aparte.length">
+          <strong>Se pagan por separado</strong>
+          <div class="detalles-tecnicos"><span class="chip" *ngFor="let item of s.aparte">{{ item }}</span></div>
+        </div>
+        <div class="grupo-detalle" *ngIf="s.caracteristicas.length">
+          <strong>Características</strong>
+          <div class="detalles-tecnicos"><span class="chip" *ngFor="let item of s.caracteristicas">{{ item }}</span></div>
+        </div>
+      </ng-container>
 
       <div class="condiciones">
         <p *ngIf="anuncio.garantia"><strong>Garantía:</strong> {{ anuncio.garantia }}</p>
@@ -123,10 +135,9 @@ const ETIQUETAS_SENALES: Record<string, string> = {
         margin: 12px 0;
         flex-wrap: wrap;
       }
-      .lista-servicios {
-        margin: 8px 0;
-        padding-left: 18px;
-      }
+      .grupo-detalle { margin: 12px 0; font-size: 0.9rem; }
+      .grupo-detalle .detalles-tecnicos { margin: 6px 0 0; }
+      .chip-incluido { border-color: #9CCBA9; color: #1F6B3A; }
       .condiciones p {
         margin: 4px 0;
       }
@@ -220,6 +231,10 @@ export class DetalleComponent implements OnInit {
         error: (err) => (this.errorFavorito = err?.error?.message || 'No se pudo guardar en favoritos.'),
       });
     }
+  }
+
+  get servicios() {
+    return clasificarServicios(this.anuncio?.servicios);
   }
 
   etiqueta(senal: string): string {

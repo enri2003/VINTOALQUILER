@@ -8,6 +8,12 @@ import { Usuario } from '../usuario/usuario.entity';
 
 const PUNTAJE_MINIMO = 3;
 
+/** Del publicador solo se expone si está verificado; nunca su nombre, correo u otros datos personales. */
+function soloDatosPublicos(anuncio: Anuncio) {
+  if (!anuncio.publicador) return anuncio;
+  return { ...anuncio, publicador: { id: anuncio.publicador.id, verificado: anuncio.publicador.verificado } as Usuario };
+}
+
 const LIMITE_PRESUPUESTO: Record<string, number> = {
   hasta_500: 500,
   '501_800': 800,
@@ -60,20 +66,22 @@ export class RecomendacionService {
     const sinHistorial = anunciosVistos.length === 0;
     const sinPreferencias = !usuario?.tipoPreferido && !usuario?.zonaInteres && presupuestoMax === undefined;
     if (sinHistorial && sinPreferencias) {
-      return this.anuncioRepo.find({
+      const recientes = await this.anuncioRepo.find({
         where: { estado: 'disponible' },
-        order: { creadoEn: 'DESC' },
+        order: { creadoEn: 'DESC', fotos: { orden: 'ASC' } },
         take: 10,
         relations: ['zona', 'fotos', 'publicador'],
       });
+      return recientes.map((anuncio) => soloDatosPublicos(anuncio));
     }
 
     const candidatos = await this.anuncioRepo.find({
       where: { estado: 'disponible' },
+      order: { fotos: { orden: 'ASC' } },
       relations: ['zona', 'fotos', 'publicador'],
     });
 
-    return candidatos
+    const recomendados = candidatos
       .filter((anuncio) => !idsVistos.has(anuncio.id))
       .filter((anuncio) => anuncio.publicador?.id !== usuarioId)
       .filter((anuncio) => Number(anuncio.precio) > 0)
@@ -85,6 +93,7 @@ export class RecomendacionService {
       .sort((a, b) => b.puntaje - a.puntaje)
       .slice(0, 10)
       .map((resultado) => resultado.anuncio);
+    return recomendados.map((anuncio) => soloDatosPublicos(anuncio));
   }
 
   private puntuar(

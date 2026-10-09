@@ -17,6 +17,7 @@ export class FavoritoService {
     const favoritos = await this.favoritoRepo.find({
       where: { usuarioId },
       relations: ['anuncio', 'anuncio.zona', 'anuncio.fotos', 'anuncio.publicador'],
+      order: { anuncio: { fotos: { orden: 'ASC' } } },
     });
     return favoritos.map((favorito) => {
       const publicador = favorito.anuncio?.publicador;

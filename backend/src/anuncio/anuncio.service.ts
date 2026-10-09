@@ -72,6 +72,7 @@ export class AnuncioService {
       .where('anuncio.estado = :estado', { estado: 'disponible' })
       .orderBy('orden_impulso', 'ASC')
       .addOrderBy('anuncio.creadoEn', 'DESC')
+      .addOrderBy('fotos.orden', 'ASC') // la primera foto es la portada
       .skip((pagina - 1) * porPagina)
       .take(porPagina);
 
@@ -113,6 +114,7 @@ export class AnuncioService {
       .leftJoinAndSelect('anuncio.fotos', 'fotos')
       .leftJoinAndSelect('anuncio.publicador', 'publicador')
       .where('anuncio.id = :id', { id })
+      .orderBy('fotos.orden', 'ASC')
       .getOne();
     if (!anuncio) {
       throw new NotFoundException('Anuncio no encontrado');
@@ -236,6 +238,7 @@ export class AnuncioService {
       .leftJoinAndSelect('anuncio.fotos', 'fotos')
       .where('anuncio.publicadorId = :publicadorId', { publicadorId })
       .orderBy('anuncio.creadoEn', 'DESC')
+      .addOrderBy('fotos.orden', 'ASC')
       .getMany();
   }
 

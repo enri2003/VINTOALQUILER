@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayUnique,
   IsArray,
   IsIn,
   IsInt,
@@ -18,6 +19,7 @@ import { TipoAnuncio } from '../anuncio.entity';
 import {
   DESCRIPCION_MAX,
   DESCRIPCION_MIN,
+  MENSAJE_SERVICIO_INVALIDO,
   MENSAJE_SIN_ENLACES,
   MENSAJE_SIN_TELEFONO,
   PRECIO_MAX,
@@ -26,6 +28,7 @@ import {
   SIN_TELEFONO,
   TITULO_MAX,
   TITULO_MIN,
+  VALORES_SERVICIOS,
 } from './reglas-anuncio';
 
 export class CrearAnuncioDto {
@@ -77,8 +80,9 @@ export class CrearAnuncioDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayMaxSize(15)
-  @IsString({ each: true })
+  @ArrayMaxSize(VALORES_SERVICIOS.length)
+  @ArrayUnique()
+  @IsIn(VALORES_SERVICIOS, { each: true, message: MENSAJE_SERVICIO_INVALIDO })
   servicios?: string[];
 
   @IsString()
