@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Post, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { VerificacionService } from './verificacion.service';
@@ -19,12 +19,13 @@ export class VerificacionController {
     FileFieldsInterceptor([{ name: 'anverso' }, { name: 'reverso' }, { name: 'selfie' }]),
   )
   async selfie(@Req() req: any, @UploadedFiles() archivos: ArchivosVerificacion) {
-    return this.verificacionService.procesarSelfie(
-      req.user.id,
-      archivos.anverso[0].buffer,
-      archivos.reverso[0].buffer,
-      archivos.selfie[0].buffer,
-    );
+    const anverso = archivos?.anverso?.[0];
+    const reverso = archivos?.reverso?.[0];
+    const selfie = archivos?.selfie?.[0];
+    if (!anverso || !reverso || !selfie) {
+      throw new BadRequestException('Faltan imágenes: se requieren el anverso, el reverso de la cédula y la selfie.');
+    }
+    return this.verificacionService.procesarSelfie(req.user.id, anverso.buffer, reverso.buffer, selfie.buffer);
   }
 
   @Get('estado')
