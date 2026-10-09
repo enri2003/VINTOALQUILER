@@ -30,7 +30,7 @@ const LIMITE_FOTOS_GRATIS = 15;
         </div>
         <p>
           Para publicar un inmueble debes verificar tu identidad. Este proceso es gratuito, ayuda a reducir publicaciones falsas y
-          protege a quienes buscan alquiler en Vinto. Tus anuncios mostrarán el sello de publicador verificado.
+          protege a quienes buscan alquiler en Vinto. Tus anuncios mostrarán el sello «Publicador verificado».
         </p>
         <a class="boton-principal" routerLink="/verificacion">Verificar mi identidad</a>
         <details class="detalle-verificacion">
@@ -39,7 +39,7 @@ const LIMITE_FOTOS_GRATIS = 15;
             <li><strong>Qué se solicita:</strong> una foto del anverso y del reverso de tu Cédula de Identidad y una selfie tomada en el momento.</li>
             <li><strong>Cómo se verifica:</strong> se extraen los datos de la cédula y se compara tu rostro con la foto del documento de forma automática.</li>
             <li><strong>Cómo se protege:</strong> las imágenes se procesan en memoria y no se almacenan. Solo se guarda tu número de cédula cifrado.</li>
-            <li><strong>Qué se muestra públicamente:</strong> únicamente el sello de publicador verificado. Tu cédula y tu correo nunca son visibles para otros usuarios.</li>
+            <li><strong>Qué se muestra públicamente:</strong> únicamente el sello «Publicador verificado». Tu cédula y tu correo nunca son visibles para otros usuarios.</li>
             <li><strong>Si no se aprueba:</strong> puedes intentarlo hasta tres veces sin costo. Después, debes contactar a soporte para revisar tu caso.</li>
           </ul>
         </details>

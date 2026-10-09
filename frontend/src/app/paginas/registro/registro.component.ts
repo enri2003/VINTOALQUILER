@@ -216,7 +216,7 @@ const RANGOS_PRESUPUESTO = [
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2 20 7v6c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7Z" /><path d="m9 12 2 2 4-4" />
             </svg>
-            <span>Después de crear tu cuenta, verifica tu identidad gratis para empezar a publicar. Tus anuncios mostrarán el sello de publicador verificado.</span>
+            <span>Después de crear tu cuenta, verifica tu identidad gratis para empezar a publicar. Tus anuncios mostrarán el sello «Publicador verificado».</span>
           </div>
 
           <p class="pie">
@@ -261,6 +261,7 @@ export class RegistroComponent implements OnInit {
     this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
   }
 
+  // Seguro: los íconos son constantes definidas en este componente, nunca contenido ingresado por usuarios.
   iconoSeguro(svgInterno: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(svgInterno);
   }

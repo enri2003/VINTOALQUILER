@@ -125,7 +125,7 @@ const RANGOS_PRECIO = [
             <div class="contenedor-imagen">
               <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" [alt]="'Foto de ' + anuncio.tipo + ' en ' + (anuncio.zona?.nombre ?? 'Vinto')" (error)="$any($event.target).hidden = true" />
               <span class="insignia-sello" *ngIf="sello(anuncio) as s" [ngClass]="s.clase">{{ s.texto }}</span>
-              <span class="insignia-verificado" *ngIf="anuncio.publicador?.verificado">✓ Verificado</span>
+              <span class="insignia-verificado" *ngIf="anuncio.publicador?.verificado">✓ Publicador verificado</span>
               <span class="insignia-pendiente" *ngIf="anuncio.publicador && !anuncio.publicador.verificado">Publicador no verificado</span>
             </div>
             <h2>{{ anuncio.titulo }}</h2>
@@ -163,7 +163,7 @@ const RANGOS_PRECIO = [
           <div class="contenedor-imagen">
             <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" [alt]="'Foto de ' + anuncio.tipo + ' en ' + (anuncio.zona?.nombre ?? 'Vinto')" (error)="$any($event.target).hidden = true" />
             <span class="insignia-sello" *ngIf="sello(anuncio) as s" [ngClass]="s.clase">{{ s.texto }}</span>
-            <span class="insignia-verificado" *ngIf="anuncio.publicador?.verificado">✓ Verificado</span>
+            <span class="insignia-verificado" *ngIf="anuncio.publicador?.verificado">✓ Publicador verificado</span>
             <span class="insignia-pendiente" *ngIf="anuncio.publicador && !anuncio.publicador.verificado">Publicador no verificado</span>
           </div>
           <h2>{{ anuncio.titulo }}</h2>

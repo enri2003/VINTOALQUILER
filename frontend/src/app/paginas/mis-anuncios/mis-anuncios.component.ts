@@ -26,8 +26,22 @@ const ETIQUETAS_ESTADO: Record<string, string> = {
 
       <div class="aviso-verificar-publicador" *ngIf="verificado === false">
         <strong>Identidad pendiente</strong>
-        <p>Para publicar anuncios debes verificar tu identidad. La verificación es gratuita y tus anuncios mostrarán el sello de publicador verificado.</p>
+        <p>
+          Para publicar anuncios debes verificar tu identidad. La verificación es gratuita, ayuda a generar confianza entre quienes
+          buscan y ofrecen alquileres, y permitirá que tus anuncios muestren el sello «Publicador verificado».
+        </p>
         <a routerLink="/verificacion" class="boton-principal">Verificar mi identidad</a>
+        <p class="nota-datos">
+          La verificación solo se usa para confirmar tu identidad. Tu cédula y tu correo no se muestran públicamente en los anuncios.
+        </p>
+        <div class="beneficios-verificacion">
+          <strong>¿Por qué verificar tu identidad?</strong>
+          <ul>
+            <li>Tus anuncios muestran el sello «Publicador verificado».</li>
+            <li>Aumenta la confianza de las personas interesadas.</li>
+            <li>Ayuda a reducir los anuncios falsos en la plataforma.</li>
+          </ul>
+        </div>
       </div>
 
       <div class="resumen-publicador" *ngIf="anuncios.length">
@@ -142,9 +156,14 @@ const ETIQUETAS_ESTADO: Record<string, string> = {
 
       <div class="estado-vacio" *ngIf="cargado && !anuncios.length">
         <h2>Todavía no tienes anuncios publicados</h2>
-        <p>Publica gratis tu cuarto, garzonier o departamento y permite que las personas interesadas lo encuentren cerca de la UAB y del centro de Vinto.</p>
+        <p *ngIf="verificado">
+          Publica gratis tu cuarto, garzonier o departamento y permite que las personas interesadas lo encuentren cerca de la UAB y del centro de Vinto.
+        </p>
+        <p *ngIf="verificado === false">
+          Después de verificar tu identidad, podrás publicar gratis tu cuarto, garzonier o departamento y permitir que las personas
+          interesadas lo encuentren cerca de la UAB y del centro de Vinto.
+        </p>
         <a routerLink="/publicar" class="boton-principal" *ngIf="verificado">Publicar mi primer aviso</a>
-        <p class="texto-suave" *ngIf="verificado === false">Primero verifica tu identidad para poder publicar.</p>
       </div>
     </section>
   `,
@@ -160,6 +179,9 @@ const ETIQUETAS_ESTADO: Record<string, string> = {
         margin: 16px 0;
       }
       .aviso-verificar-publicador p, .estado-vacio p { margin: 6px 0 14px; }
+      .nota-datos { font-size: 12.5px; color: var(--texto-suave); margin-top: 12px !important; }
+      .beneficios-verificacion { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--borde); font-size: 13.5px; }
+      .beneficios-verificacion ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.6; }
       .estado-vacio { text-align: center; padding: 32px 20px; }
       .estado-vacio h2 { margin: 0; }
       .resumen-publicador { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }

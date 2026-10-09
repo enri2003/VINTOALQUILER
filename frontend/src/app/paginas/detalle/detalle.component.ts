@@ -24,7 +24,7 @@ const ETIQUETAS_SENALES: Record<string, string> = {
 
       <h1>{{ anuncio.titulo }}</h1>
       <span class="insignia-estado-publicador" [class.insignia-estado-verificado]="anuncio.publicador?.verificado">
-        {{ anuncio.publicador?.verificado ? '✓ Identidad verificada' : 'Publicador no verificado' }}
+        {{ anuncio.publicador?.verificado ? '✓ Publicador verificado' : 'Publicador no verificado' }}
       </span>
       <p class="precio">Bs. {{ anuncio.precio }}/mes</p>
       <p class="texto-suave">📍 {{ anuncio.referencia }} · {{ anuncio.zona?.nombre }}</p>

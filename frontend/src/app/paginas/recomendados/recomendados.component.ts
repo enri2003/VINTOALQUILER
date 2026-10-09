@@ -22,7 +22,7 @@ import { Anuncio, AnuncioService } from '../../servicios/anuncio.service';
           <a [routerLink]="['/anuncio', anuncio.id]">
             <div class="contenedor-imagen">
               <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" [alt]="anuncio.titulo" (error)="$any($event.target).hidden = true" />
-              <span class="insignia-verificado" *ngIf="anuncio.publicador?.verificado">✓ Verificado</span>
+              <span class="insignia-verificado" *ngIf="anuncio.publicador?.verificado">✓ Publicador verificado</span>
               <span class="insignia-pendiente" *ngIf="anuncio.publicador && !anuncio.publicador.verificado">Publicador no verificado</span>
             </div>
             <div class="fila-tarjeta">
