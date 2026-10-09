@@ -6,6 +6,8 @@ import { Router, RouterLink } from '@angular/router';
 import { VerificacionService } from '../../servicios/verificacion.service';
 import { AnuncioService } from '../../servicios/anuncio.service';
 import { clasificarServicios, GRUPOS_CARACTERISTICAS, SERVICIOS } from '../../utilidades/catalogo-anuncio';
+import { SelectorCampoComponent } from '../../componentes/selector-campo.component';
+import { OpcionSelector } from '../../componentes/selector-buscador.component';
 
 interface Zona {
   id: number;
@@ -42,7 +44,7 @@ const PRECIO_INUSUAL_ALTO = 10000;
 @Component({
   selector: 'app-publicar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, SelectorCampoComponent],
   template: `
     <section class="publicar">
       <h1>Publicar anuncio</h1>
@@ -79,19 +81,26 @@ const PRECIO_INUSUAL_ALTO = 10000;
             <legend><span class="numero-seccion">1</span> Información básica</legend>
             <label>
               Zona
-              <select name="zonaId" [(ngModel)]="zonaId">
-                <option [ngValue]="null" disabled>Selecciona una zona</option>
-                <option *ngFor="let zona of zonas" [ngValue]="zona.id">{{ zona.nombre }}</option>
-              </select>
+              <app-selector-campo name="zonaId" [(ngModel)]="zonaId" [opciones]="opcionesZona" marcador="Selecciona una zona"></app-selector-campo>
             </label>
-            <label>
-              Tipo de inmueble
-              <select name="tipo" [(ngModel)]="tipo">
-                <option value="cuarto">Cuarto</option>
-                <option value="garzonier">Garzonier</option>
-                <option value="departamento">Departamento</option>
-              </select>
-            </label>
+            <div class="campo-tipo">
+              <span class="etiqueta-tipo">Tipo de inmueble</span>
+              <div class="tarjetas-tipo" role="radiogroup" aria-label="Tipo de inmueble">
+                <button type="button" *ngFor="let opcion of opcionesTipo" class="tarjeta-tipo" role="radio"
+                  [class.activa]="tipo === opcion.valor" [attr.aria-checked]="tipo === opcion.valor" (click)="tipo = opcion.valor">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <ng-container [ngSwitch]="opcion.valor">
+                      <g *ngSwitchCase="'cuarto'"><path d="M3 20V8l9-5 9 5v12" /><path d="M7 20v-6h10v6" /><path d="M7 14V11h4v3" /></g>
+                      <g *ngSwitchCase="'garzonier'"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 7h3M13 7h3M8 11h3M13 11h3" /><path d="M10 21v-5h4v5" /></g>
+                      <g *ngSwitchDefault><rect x="3" y="3" width="8" height="18" rx="1.5" /><rect x="13" y="8" width="8" height="13" rx="1.5" /><path d="M6 7h2M6 11h2M6 15h2M16 12h2M16 16h2" /></g>
+                    </ng-container>
+                  </svg>
+                  <strong>{{ opcion.texto }}</strong>
+                  <small>{{ opcion.ayuda }}</small>
+                  <span class="marca-tipo" *ngIf="tipo === opcion.valor" aria-hidden="true">✓</span>
+                </button>
+              </div>
+            </div>
             <label>
               Título del anuncio
               <input type="text" name="titulo" [maxlength]="reglas.tituloMax" placeholder="Ej: Garzonier amoblado cerca de la UAB" [(ngModel)]="titulo" />
@@ -334,6 +343,24 @@ const PRECIO_INUSUAL_ALTO = 10000;
       }
       .chip-seleccion.activo { border-color: var(--acento); background: var(--superficie-alt, #F7EFE3); color: var(--acento-oscuro); font-weight: 700; }
       .fila-numeros { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .campo-tipo { display: flex; flex-direction: column; gap: 8px; }
+      .etiqueta-tipo { font-weight: 700; font-size: 15px; }
+      .tarjetas-tipo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .tarjeta-tipo {
+        position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+        padding: 18px 10px 16px; border: 1.5px solid var(--borde, #ECE1D2); border-radius: 14px; background: #fff;
+        cursor: pointer; color: var(--texto); transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+      }
+      .tarjeta-tipo:hover { border-color: var(--borde-fuerte, #C9B9A2); transform: translateY(-1px); }
+      .tarjeta-tipo svg { width: 34px; height: 34px; color: var(--texto-suave); }
+      .tarjeta-tipo strong { font-size: 15px; }
+      .tarjeta-tipo small { font-size: 12.5px; color: var(--texto-suave); line-height: 1.35; }
+      .tarjeta-tipo.activa { border-color: var(--acento); background: #FBF4EA; box-shadow: 0 0 0 3px rgba(201, 98, 45, 0.15); }
+      .tarjeta-tipo.activa svg, .tarjeta-tipo.activa strong { color: var(--acento-oscuro); }
+      .marca-tipo {
+        position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%;
+        background: var(--acento); color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center;
+      }
 
       .caja-portada {
         position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden;
@@ -382,6 +409,9 @@ const PRECIO_INUSUAL_ALTO = 10000;
       @media (max-width: 560px) {
         .fila-servicio { flex-direction: column; align-items: flex-start; }
         .fila-numeros { grid-template-columns: 1fr; }
+        .tarjetas-tipo { gap: 8px; }
+        .tarjeta-tipo { padding: 14px 6px 12px; }
+        .tarjeta-tipo small { display: none; }
       }
     `,
   ],
@@ -390,6 +420,12 @@ export class PublicarComponent implements OnInit, OnDestroy {
   readonly reglas = REGLAS;
   readonly catalogoServicios = SERVICIOS;
   readonly gruposCaracteristicas = GRUPOS_CARACTERISTICAS;
+  readonly opcionesTipo = [
+    { valor: 'cuarto', texto: 'Cuarto', ayuda: 'Habitación individual' },
+    { valor: 'garzonier', texto: 'Garzonier', ayuda: 'Ambiente con baño y cocina' },
+    { valor: 'departamento', texto: 'Departamento', ayuda: 'Varios ambientes' },
+  ];
+  opcionesZona: OpcionSelector<number>[] = [];
   private readonly apiUrl = '/api';
   zonas: Zona[] = [];
   zonaId: number | null = null;
@@ -421,7 +457,10 @@ export class PublicarComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
+    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => {
+      this.zonas = res;
+      this.opcionesZona = res.map((zona) => ({ valor: zona.id, texto: zona.nombre }));
+    });
     this.verificacionService.estado().subscribe({
       next: (res) => (this.verificado = res.verificado),
       error: () => (this.verificado = false),

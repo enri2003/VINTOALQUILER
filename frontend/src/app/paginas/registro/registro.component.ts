@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../servicios/auth.service';
+import { SelectorCampoComponent } from '../../componentes/selector-campo.component';
+import { OpcionSelector } from '../../componentes/selector-buscador.component';
 
 interface Zona {
   id: number;
@@ -64,7 +66,7 @@ const RANGOS_PRESUPUESTO = [
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, SelectorCampoComponent],
   template: `
     <section class="pagina-dividida">
       <div class="panel-marca">
@@ -179,10 +181,7 @@ const RANGOS_PRESUPUESTO = [
 
             <div *ngIf="rol === 'interesado'" class="campo-perfil">
               <span class="etiqueta">¿En qué zona te interesa buscar?</span>
-              <select name="zonaInteres" class="selector-zona" [(ngModel)]="zonaInteresId">
-                <option [ngValue]="null">Cualquier zona</option>
-                <option *ngFor="let zona of zonas" [ngValue]="zona.id">{{ zona.nombre }}</option>
-              </select>
+              <app-selector-campo name="zonaInteres" [(ngModel)]="zonaInteresId" [opciones]="opcionesZona"></app-selector-campo>
             </div>
 
             <label class="fila-terminos">
@@ -234,6 +233,7 @@ export class RegistroComponent implements OnInit {
   tiposLugar = TIPOS_LUGAR;
   rangosPresupuesto = RANGOS_PRESUPUESTO;
   zonas: Zona[] = [];
+  opcionesZona: OpcionSelector<number | null>[] = [{ valor: null, texto: 'Cualquier zona' }];
 
   nombre = '';
   correo = '';
@@ -258,7 +258,10 @@ export class RegistroComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
+    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => {
+      this.zonas = res;
+      this.opcionesZona = [{ valor: null, texto: 'Cualquier zona' }, ...res.map((zona) => ({ valor: zona.id, texto: zona.nombre }))];
+    });
   }
 
   // Seguro: los íconos son constantes definidas en este componente, nunca contenido ingresado por usuarios.

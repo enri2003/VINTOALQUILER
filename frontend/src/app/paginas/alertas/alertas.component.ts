@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../servicios/auth.service';
+import { SelectorCampoComponent } from '../../componentes/selector-campo.component';
+import { OpcionSelector } from '../../componentes/selector-buscador.component';
 
 interface Zona {
   id: number;
@@ -26,7 +28,7 @@ const NOMBRES_TIPO: Record<string, string> = {
 @Component({
   selector: 'app-alertas',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe],
+  imports: [CommonModule, FormsModule, DecimalPipe, SelectorCampoComponent],
   template: `
     <section class="alertas">
       <h1>Alertas de búsqueda</h1>
@@ -40,19 +42,11 @@ const NOMBRES_TIPO: Record<string, string> = {
         <form (ngSubmit)="crear()" #formulario="ngForm">
           <label>
             <span class="etiqueta">Tipo de inmueble</span>
-            <select name="tipo" [(ngModel)]="tipo">
-              <option value="">Todos los tipos</option>
-              <option value="cuarto">Cuarto</option>
-              <option value="garzonier">Garzonier</option>
-              <option value="departamento">Departamento</option>
-            </select>
+            <app-selector-campo name="tipo" [(ngModel)]="tipo" [opciones]="opcionesTipo"></app-selector-campo>
           </label>
           <label>
             <span class="etiqueta">Zona</span>
-            <select name="zonaId" [(ngModel)]="zonaId">
-              <option [ngValue]="null">Todas las zonas</option>
-              <option *ngFor="let zona of zonas" [ngValue]="zona.id">{{ zona.nombre }}</option>
-            </select>
+            <app-selector-campo name="zonaId" [(ngModel)]="zonaId" [opciones]="opcionesZona"></app-selector-campo>
           </label>
           <label>
             <span class="etiqueta">Precio máximo mensual (Bs.)</span>
@@ -142,6 +136,13 @@ export class AlertasComponent implements OnInit {
   private readonly apiUrl = '/api';
   alertas: Alerta[] = [];
   zonas: Zona[] = [];
+  readonly opcionesTipo: OpcionSelector<string>[] = [
+    { valor: '', texto: 'Todos los tipos' },
+    { valor: 'cuarto', texto: 'Cuarto' },
+    { valor: 'garzonier', texto: 'Garzonier' },
+    { valor: 'departamento', texto: 'Departamento' },
+  ];
+  opcionesZona: OpcionSelector<number | null>[] = [{ valor: null, texto: 'Todas las zonas' }];
   tipo = '';
   zonaId: number | null = null;
   precioMax: number | null = null;
@@ -154,7 +155,10 @@ export class AlertasComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargar();
-    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => (this.zonas = res));
+    this.http.get<Zona[]>(`${this.apiUrl}/zonas`).subscribe((res) => {
+      this.zonas = res;
+      this.opcionesZona = [{ valor: null, texto: 'Todas las zonas' }, ...res.map((zona) => ({ valor: zona.id, texto: zona.nombre }))];
+    });
   }
 
   private cabeceras(): HttpHeaders {
