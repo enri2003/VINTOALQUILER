@@ -371,19 +371,25 @@ export class MisAnunciosComponent implements OnInit {
 
   guardarEdicion(anuncio: Anuncio): void {
     this.errorEdicion = '';
+    // Solo se envían los campos que cambiaron, para no revalidar lo que el publicador no tocó.
+    const cambios: { titulo?: string; precio?: number; descripcion?: string } = {};
+    if (this.edicionTitulo.trim() !== anuncio.titulo) cambios.titulo = this.edicionTitulo.trim();
+    if (this.edicionDescripcion.trim() !== anuncio.descripcion) cambios.descripcion = this.edicionDescripcion.trim();
+    if (this.edicionPrecio !== null && Number(this.edicionPrecio) !== Number(anuncio.precio)) cambios.precio = Number(this.edicionPrecio);
+    if (!Object.keys(cambios).length) {
+      this.anuncioEditando = null;
+      return;
+    }
     this.anuncioService
-      .actualizar(anuncio.id, {
-        titulo: this.edicionTitulo,
-        precio: this.edicionPrecio ?? undefined,
-        descripcion: this.edicionDescripcion,
-      })
+      .actualizar(anuncio.id, cambios)
       .subscribe({
         next: () => {
           this.anuncioEditando = null;
           this.cargarAnuncios();
         },
         error: (err) => {
-          this.errorEdicion = err?.error?.message || 'No se pudo guardar los cambios.';
+          const mensaje = err?.error?.message;
+          this.errorEdicion = Array.isArray(mensaje) ? mensaje.join(' ') : mensaje || 'No se pudieron guardar los cambios.';
         },
       });
   }
