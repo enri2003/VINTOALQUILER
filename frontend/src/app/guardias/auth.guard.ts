@@ -1,14 +1,14 @@
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../servicios/auth.service';
 
-export function authGuard(): boolean {
+export const authGuard: CanActivateFn = (_route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
   if (authService.estaAutenticado()) {
     return true;
   }
-  router.navigate(['/login']);
-  return false;
-}
+  // Recuerda la página pedida para volver a ella después de iniciar sesión.
+  return router.createUrlTree(['/login'], { queryParams: { volver: state.url } });
+};

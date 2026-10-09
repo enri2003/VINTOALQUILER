@@ -960,6 +960,14 @@ textarea {
 input:focus, select:focus, textarea:focus {
   border-color: var(--plomo-oscuro);
 }
+.aviso-sesion {
+  background: var(--superficie-alt, #F7EFE3);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-campo);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--acento-oscuro);
+}
 .mensaje-error {
   background: #FBF1F1;
   color: var(--rojo);
@@ -1000,6 +1008,20 @@ input:focus, select:focus, textarea:focus {
 }
 .tarjeta:hover {
   border-color: var(--acento);
+  box-shadow: 0 6px 18px rgba(169, 79, 34, 0.12);
+}
+.tarjeta:focus-visible {
+  outline: 3px solid var(--acento);
+  outline-offset: 2px;
+}
+.tarjeta .ver-anuncio {
+  display: inline-block;
+  margin-top: 12px;
+  font: 700 13px 'Manrope', sans-serif;
+  color: var(--acento-oscuro);
+}
+.tarjeta:hover .ver-anuncio {
+  text-decoration: underline;
 }
 .tarjeta > img {
   width: calc(100% + 44px);
@@ -1010,6 +1032,10 @@ input:focus, select:focus, textarea:focus {
 .tarjeta h2 {
   font-size: 18px;
   margin: 0 0 4px;
+}
+/* Los títulos los escribe el publicador; se muestra la primera letra en mayúscula. */
+.tarjeta h2::first-letter {
+  text-transform: uppercase;
 }
 .tarjeta .precio {
   font-size: 20px;
@@ -1064,6 +1090,10 @@ input:focus, select:focus, textarea:focus {
 .tarjeta-carrusel {
   flex: 0 0 260px;
   scroll-snap-align: start;
+}
+/* Con un solo destacado, la tarjeta es más ancha para no dejar la fila vacía. */
+.carrusel-unico .tarjeta-carrusel {
+  flex: 0 1 420px;
 }
 
 /* Pantalla de bienvenida */

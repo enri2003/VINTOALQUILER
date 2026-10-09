@@ -92,9 +92,9 @@ const RANGOS_PRECIO = [
               <path d="M9 15h6" />
             </svg>
             <div class="texto-segmento">
-              <span class="etiqueta-segmento">Precio en Bs</span>
+              <span class="etiqueta-segmento">Precio mensual</span>
               <select [(ngModel)]="precioMax" name="precioMax">
-                <option [ngValue]="null">Rango de precio</option>
+                <option [ngValue]="null">Selecciona un rango</option>
                 <option *ngFor="let rango of rangosPrecio" [ngValue]="rango.valor">{{ rango.etiqueta }}</option>
               </select>
             </div>
@@ -114,11 +114,13 @@ const RANGOS_PRECIO = [
       <ng-container *ngIf="destacados.length">
         <div class="encabezado-seccion">
           <div>
-            <h2>Destacados</h2>
-            <p class="subtitulo">Anuncios con mayor visibilidad en este momento.</p>
+            <h2>{{ destacados.length === 1 ? 'Anuncio destacado' : 'Destacados' }}</h2>
+            <p class="subtitulo">
+              {{ destacados.length === 1 ? 'Hay 1 anuncio destacado actualmente.' : 'Hay ' + destacados.length + ' anuncios destacados actualmente.' }}
+            </p>
           </div>
         </div>
-        <div class="carrusel-destacados">
+        <div class="carrusel-destacados" [class.carrusel-unico]="destacados.length === 1">
           <a *ngFor="let anuncio of destacados" [routerLink]="['/anuncio', anuncio.id]" class="tarjeta tarjeta-carrusel">
             <div class="contenedor-imagen">
               <img *ngIf="anuncio.fotos?.length" [src]="anuncio.fotos[0].url" [alt]="'Foto de ' + anuncio.tipo + ' en ' + (anuncio.zona?.nombre ?? 'Vinto')" (error)="$any($event.target).hidden = true" />
@@ -135,6 +137,7 @@ const RANGOS_PRECIO = [
               <p class="precio">Bs. {{ anuncio.precio | number: '1.0-0' }}<span class="por-mes">/mes</span></p>
               <span class="chip">{{ anuncio.tipo }}</span>
             </div>
+            <span class="ver-anuncio">Ver anuncio →</span>
           </a>
         </div>
       </ng-container>
@@ -172,10 +175,11 @@ const RANGOS_PRECIO = [
             <p class="precio">Bs. {{ anuncio.precio | number: '1.0-0' }}<span class="por-mes">/mes</span></p>
             <span class="chip">{{ anuncio.tipo }}</span>
           </div>
+          <span class="ver-anuncio">Ver anuncio →</span>
         </a>
       </div>
       <ng-template #sinResultados>
-        <p class="texto-suave">No hay anuncios que coincidan con la busqueda.</p>
+        <p class="texto-suave">No hay anuncios que coincidan con la búsqueda.</p>
       </ng-template>
     </section>
   `,
@@ -252,7 +256,10 @@ export class ExplorarComponent implements OnInit, AfterViewInit {
       })
       .subscribe((res) => {
         this.anuncios = res;
-        this.destacados = res.filter((anuncio) => anuncio.enPortada);
+        // Los impulsados siempre aparecen (es lo que paga el publicador), pero los que tienen foto van primero.
+        this.destacados = res
+          .filter((anuncio) => anuncio.enPortada)
+          .sort((a, b) => Number(!!b.fotos?.length) - Number(!!a.fotos?.length));
         this.pintarMarcadores();
       });
   }

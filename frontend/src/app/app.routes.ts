@@ -27,7 +27,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'registro', component: RegistroComponent },
   { path: 'explorar', component: ExplorarComponent },
-  { path: 'anuncio/:id', component: DetalleComponent },
+  { path: 'anuncio/:id', component: DetalleComponent, canActivate: [authGuard] },
   { path: 'publicar', component: PublicarComponent, canActivate: [authGuard, publicadorGuard] },
   { path: 'mis-anuncios', component: MisAnunciosComponent, canActivate: [authGuard, publicadorGuard] },
   { path: 'verificacion', component: VerificacionComponent, canActivate: [authGuard] },
