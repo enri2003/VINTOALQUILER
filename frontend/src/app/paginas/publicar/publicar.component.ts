@@ -21,11 +21,28 @@ const LIMITE_FOTOS_GRATIS = 15;
     <section class="publicar">
       <h1>Publicar anuncio</h1>
       <div class="aviso-verificar" *ngIf="verificado === false">
-        <h2>Verifica tu identidad para publicar</h2>
-        <p class="texto-suave">
-          La verificación es gratuita y protege a quienes buscan alquiler. Tus anuncios mostrarán el sello de publicador verificado.
+        <div class="titulo-aviso-verificar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-escudo" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+          <h2>Verificación necesaria para publicar</h2>
+        </div>
+        <p>
+          Para publicar un inmueble debes verificar tu identidad. Este proceso es gratuito, ayuda a reducir publicaciones falsas y
+          protege a quienes buscan alquiler en Vinto. Tus anuncios mostrarán el sello de publicador verificado.
         </p>
         <a class="boton-principal" routerLink="/verificacion">Verificar mi identidad</a>
+        <details class="detalle-verificacion">
+          <summary>¿Por qué debo verificar mi identidad?</summary>
+          <ul>
+            <li><strong>Qué se solicita:</strong> una foto del anverso y del reverso de tu Cédula de Identidad y una selfie tomada en el momento.</li>
+            <li><strong>Cómo se verifica:</strong> se extraen los datos de la cédula y se compara tu rostro con la foto del documento de forma automática.</li>
+            <li><strong>Cómo se protege:</strong> las imágenes se procesan en memoria y no se almacenan. Solo se guarda tu número de cédula cifrado.</li>
+            <li><strong>Qué se muestra públicamente:</strong> únicamente el sello de publicador verificado. Tu cédula y tu correo nunca son visibles para otros usuarios.</li>
+            <li><strong>Si no se aprueba:</strong> puedes intentarlo hasta tres veces sin costo. Después, debes contactar a soporte para revisar tu caso.</li>
+          </ul>
+        </details>
       </div>
       <form (ngSubmit)="enviar()" *ngIf="verificado">
         <label>
@@ -143,8 +160,8 @@ const LIMITE_FOTOS_GRATIS = 15;
   styles: [
     `
       .aviso-verificar {
-        max-width: 480px;
-        margin: 32px auto 0;
+        max-width: 560px;
+        margin: 16px auto 0;
         background: #fff;
         border: 1px solid var(--borde, #ECE1D2);
         border-radius: 18px;
@@ -157,6 +174,15 @@ const LIMITE_FOTOS_GRATIS = 15;
       }
       .aviso-verificar h2 { margin: 0; font-size: 19px; }
       .aviso-verificar p { margin: 0 0 6px; }
+      .titulo-aviso-verificar { display: flex; align-items: center; gap: 8px; }
+      .icono-escudo { width: 26px; height: 26px; color: var(--acento-oscuro); flex-shrink: 0; }
+      .detalle-verificacion { width: 100%; text-align: left; margin-top: 6px; font-size: 13.5px; }
+      .detalle-verificacion summary { cursor: pointer; color: var(--acento-oscuro); font-weight: 600; text-align: center; }
+      .detalle-verificacion ul { margin: 10px 0 0; padding-left: 18px; line-height: 1.55; }
+      .detalle-verificacion li { margin-bottom: 6px; }
+      @media (max-width: 560px) {
+        .aviso-verificar { padding: 20px 16px; }
+      }
       form {
         display: flex;
         flex-direction: column;
