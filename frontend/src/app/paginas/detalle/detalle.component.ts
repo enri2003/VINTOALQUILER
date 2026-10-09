@@ -39,11 +39,6 @@ const ETIQUETAS_SENALES: Record<string, string> = {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="icono-pin" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
         {{ anuncio.referencia }} · {{ anuncio.zona?.nombre }}
       </p>
-      <p *ngIf="anuncio.direccionExacta" class="texto-suave">Dirección exacta: {{ anuncio.direccionExacta }}</p>
-      <p *ngIf="!anuncio.direccionExacta" class="texto-suave nota-privacidad">
-        Ubicación aproximada por privacidad. La dirección exacta solo es visible para interesados con identidad verificada.
-      </p>
-
       <div class="acciones">
         <ng-container *ngIf="authService.esInteresado()">
           <a class="boton-principal" [routerLink]="['/anuncio', anuncio.id, 'contacto']">Contactar al publicador</a>

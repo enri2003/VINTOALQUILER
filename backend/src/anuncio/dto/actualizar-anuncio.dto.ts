@@ -82,11 +82,6 @@ export class ActualizarAnuncioDto {
   referencia?: string;
 
   @IsOptional()
-  @IsString()
-  @MinLength(3)
-  direccionExacta?: string;
-
-  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(LIMITES_VINTO.latMin, { message: 'La ubicación marcada debe estar en Vinto o sus alrededores.' })

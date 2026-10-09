@@ -75,10 +75,6 @@ export class CrearAnuncioDto {
   @MinLength(3)
   referencia: string;
 
-  @IsString()
-  @MinLength(3)
-  direccionExacta: string;
-
   @Type(() => Number)
   @IsNumber({}, { message: 'Marca en el mapa la ubicación del inmueble.' })
   @Min(LIMITES_VINTO.latMin, { message: 'La ubicación marcada debe estar en Vinto o sus alrededores.' })

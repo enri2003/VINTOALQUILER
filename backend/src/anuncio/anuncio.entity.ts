@@ -50,9 +50,10 @@ export class Anuncio {
   @Column()
   referencia: string;
 
-  // Nunca se carga por defecto: solo el detalle (con permisos) y el propio publicador la piden.
-  @Column({ select: false })
-  direccionExacta: string;
+  // Campo heredado de anuncios antiguos: ya no se pide al publicar, porque el punto exacto del
+  // mapa cumple ese rol. Nunca se carga por defecto; solo el detalle (con permisos) la pide.
+  @Column({ nullable: true, select: false })
+  direccionExacta: string | null;
 
   // Ubicación exacta marcada por el publicador en el mapa. Igual que la dirección exacta, no se carga
   // por defecto: el público solo recibe una ubicación aproximada calculada en el servidor.

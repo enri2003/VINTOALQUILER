@@ -166,12 +166,6 @@ const PRECIO_INUSUAL_ALTO = 10000;
               <span class="ayuda-campo">Un punto conocido cercano, para que la gente se ubique. Aparece escrito en tu anuncio.</span>
               <input type="text" name="referencia" placeholder="Ej: A dos cuadras del Mercado de Vinto" [(ngModel)]="referencia" />
             </label>
-
-            <label>
-              <span class="fila-etiqueta">Dirección exacta <span class="visibilidad privada">🔒 Solo interesados verificados</span></span>
-              <span class="ayuda-campo">Calle y número para que puedan llegar a visitar. Se guarda protegida y no aparece en el mapa ni en tu anuncio público.</span>
-              <input type="text" name="direccionExacta" placeholder="Ej: Calle Bolívar #123, a media cuadra de la plaza" [(ngModel)]="direccionExacta" />
-            </label>
           </fieldset>
 
           <!-- 3. Servicios -->
@@ -565,7 +559,6 @@ export class PublicarComponent implements OnInit, OnDestroy {
   avisoGps = '';
   ambientes: number | null = null;
   referencia = '';
-  direccionExacta = '';
   garantia = '';
   contratoMinimo = '';
   fotos: FotoSeleccionada[] = [];
@@ -628,7 +621,6 @@ export class PublicarComponent implements OnInit, OnDestroy {
       !this.errorDescripcion &&
       !this.errorPrecio &&
       this.referencia.trim().length >= 3 &&
-      this.direccionExacta.trim().length >= 3 &&
       this.latitud !== null &&
       this.longitud !== null &&
       this.garantia.trim().length >= 2 &&
@@ -807,7 +799,6 @@ export class PublicarComponent implements OnInit, OnDestroy {
         superficieM2: this.superficieM2 ? Math.round(Number(this.superficieM2)) : undefined,
         ambientes: this.ambientes ? Math.round(Number(this.ambientes)) : undefined,
         referencia: this.referencia.trim(),
-        direccionExacta: this.direccionExacta.trim(),
         latitud: this.latitud,
         longitud: this.longitud,
         garantia: this.garantia.trim(),
