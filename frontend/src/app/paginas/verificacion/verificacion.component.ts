@@ -216,6 +216,7 @@ const PASOS: PasoCaptura[] = [
                   <line *ngFor="let encendido of segmentos; let i = index" x1="0" y1="-50" x2="0" y2="-58"
                         [attr.transform]="'rotate(' + i * (360 / segmentos.length) + ')'" [class.encendido]="encendido" />
                 </svg>
+                <span class="pista-rostro" *ngIf="esperandoAnillo && !fotoActual">Preparando la guía facial…</span>
                 <span class="pista-rostro" *ngIf="modoAnillo && pistaRostro && !fotoActual">{{ pistaRostro }}</span>
                 <span class="destello-captura" *ngIf="destello"></span>
                 <!-- Chispas que salen del marco al tomar la foto -->
@@ -317,7 +318,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   segmentos: boolean[] = new Array(SEGMENTOS_ANILLO).fill(false);
   etapaRostro: 'girando' | 'frente' = 'girando';
   pistaRostro = '';
-  private esperandoAnillo = false;
+  esperandoAnillo = false;
   private modeloRostro?: FaceLandmarker;
   private cuadroAnimacion: number | null = null;
   private basePitch: number | null = null;
@@ -350,8 +351,12 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   private readonly seguirRostro = (): void => {
     const video = this.videoRef?.nativeElement;
     if (!this.modeloRostro || !video || !this.stream || this.fotoActual) return;
-    if (video.readyState >= 2) {
-      this.procesarLectura(leerRostro(this.modeloRostro, video, performance.now()));
+    try {
+      if (video.readyState >= 2) {
+        this.procesarLectura(leerRostro(this.modeloRostro, video, performance.now()));
+      }
+    } catch {
+      // Un cuadro que no se pudo analizar no debe detener el seguimiento.
     }
     this.cuadroAnimacion = requestAnimationFrame(this.seguirRostro);
   };

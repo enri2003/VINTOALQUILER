@@ -27,7 +27,17 @@ const RUTA_MODELO = '/assets/mediapipe/face_landmarker.task';
 
 let seguidor: Promise<FaceLandmarker> | null = null;
 
-/** Carga el modelo una sola vez (intenta con GPU y, si no está disponible, con CPU). */
+// En iPhone/iPad (Safari y todos los navegadores de iOS) el modo GPU puede quedarse colgado sin dar error.
+const ES_IOS =
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+const ESPERA_GPU_MS = 6000;
+
+function conLimiteDeTiempo<T>(promesa: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([promesa, new Promise<T>((_, rechazar) => setTimeout(() => rechazar(new Error('tiempo agotado')), ms))]);
+}
+
+/** Carga el modelo una sola vez: CPU en iOS; en el resto, GPU con respaldo a CPU si falla o tarda demasiado. */
 export function cargarSeguidorRostro(): Promise<FaceLandmarker> {
   if (!seguidor) {
     seguidor = (async () => {
@@ -38,8 +48,9 @@ export function cargarSeguidorRostro(): Promise<FaceLandmarker> {
         runningMode: 'VIDEO' as const,
         numFaces: 2,
       });
+      if (ES_IOS) return FaceLandmarker.createFromOptions(archivos, opciones('CPU'));
       try {
-        return await FaceLandmarker.createFromOptions(archivos, opciones('GPU'));
+        return await conLimiteDeTiempo(FaceLandmarker.createFromOptions(archivos, opciones('GPU')), ESPERA_GPU_MS);
       } catch {
         return FaceLandmarker.createFromOptions(archivos, opciones('CPU'));
       }
