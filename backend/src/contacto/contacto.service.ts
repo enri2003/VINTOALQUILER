@@ -23,10 +23,13 @@ export class ContactoService {
     if (!interesado?.verificado) {
       throw new ForbiddenException('Debes verificar tu identidad para contactar');
     }
-    const anuncio = await this.anuncioRepo.findOne({
-      where: { id: anuncioId },
-      relations: ['publicador'],
-    });
+    // El celular solo se lee aquí para armar el enlace de WhatsApp; nunca se devuelve al cliente.
+    const anuncio = await this.anuncioRepo
+      .createQueryBuilder('anuncio')
+      .leftJoin('anuncio.publicador', 'publicador')
+      .addSelect(['publicador.id', 'publicador.celular'])
+      .where('anuncio.id = :anuncioId', { anuncioId })
+      .getOne();
     if (!anuncio) {
       throw new NotFoundException('Anuncio no encontrado');
     }

@@ -69,7 +69,12 @@ export class AnuncioController {
     if (usuario?.rol === 'interesado') {
       this.recomendacionService.registrarVista(usuario.id, anuncio.id).catch(() => undefined);
     }
-    return ocultarDireccion(anuncio, !!usuario?.verificado);
+    // La dirección exacta la ven el propio publicador, el administrador y los interesados verificados.
+    const puedeVerDireccion =
+      anuncio.publicador?.id === usuario?.id ||
+      usuario?.rol === 'admin' ||
+      (usuario?.rol === 'interesado' && !!usuario.verificado);
+    return ocultarDireccion(anuncio, puedeVerDireccion);
   }
 
   @UseGuards(AuthGuard('jwt'))

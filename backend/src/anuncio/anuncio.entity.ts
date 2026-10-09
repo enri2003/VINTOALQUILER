@@ -50,7 +50,8 @@ export class Anuncio {
   @Column()
   referencia: string;
 
-  @Column()
+  // Nunca se carga por defecto: solo el detalle (con permisos) y el propio publicador la piden.
+  @Column({ select: false })
   direccionExacta: string;
 
   @Column('text', { array: true, default: () => "'{}'" })

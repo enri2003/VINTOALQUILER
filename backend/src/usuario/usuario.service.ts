@@ -10,8 +10,13 @@ export class UsuarioService {
     private readonly usuarioRepo: Repository<Usuario>,
   ) {}
 
+  /** Incluye claveHash porque se usa para iniciar sesión y validar el registro. */
   buscarPorCorreo(correo: string) {
-    return this.usuarioRepo.findOne({ where: { correo } });
+    return this.usuarioRepo
+      .createQueryBuilder('usuario')
+      .addSelect('usuario.claveHash')
+      .where('usuario.correo = :correo', { correo })
+      .getOne();
   }
 
   buscarPorId(id: number) {

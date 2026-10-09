@@ -12,10 +12,19 @@ export class FavoritoService {
     private readonly usuarioService: UsuarioService,
   ) {}
 
-  listar(usuarioId: number) {
-    return this.favoritoRepo.find({
+  /** Del publicador solo se expone si está verificado; nunca sus datos personales. */
+  async listar(usuarioId: number) {
+    const favoritos = await this.favoritoRepo.find({
       where: { usuarioId },
       relations: ['anuncio', 'anuncio.zona', 'anuncio.fotos', 'anuncio.publicador'],
+    });
+    return favoritos.map((favorito) => {
+      const publicador = favorito.anuncio?.publicador;
+      if (!publicador) return favorito;
+      return {
+        ...favorito,
+        anuncio: { ...favorito.anuncio, publicador: { id: publicador.id, verificado: publicador.verificado } },
+      };
     });
   }
 

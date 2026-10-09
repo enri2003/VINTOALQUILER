@@ -104,11 +104,16 @@ export class AnuncioService {
     return { datos, total, pagina, porPagina };
   }
 
+  /** Incluye la dirección exacta: el controlador decide si el usuario puede verla. */
   async buscarPorId(id: number) {
-    const anuncio = await this.anuncioRepo.findOne({
-      where: { id },
-      relations: ['zona', 'fotos', 'publicador'],
-    });
+    const anuncio = await this.anuncioRepo
+      .createQueryBuilder('anuncio')
+      .addSelect('anuncio.direccionExacta')
+      .leftJoinAndSelect('anuncio.zona', 'zona')
+      .leftJoinAndSelect('anuncio.fotos', 'fotos')
+      .leftJoinAndSelect('anuncio.publicador', 'publicador')
+      .where('anuncio.id = :id', { id })
+      .getOne();
     if (!anuncio) {
       throw new NotFoundException('Anuncio no encontrado');
     }
@@ -222,12 +227,16 @@ export class AnuncioService {
     await this.anuncioRepo.remove(anuncio);
   }
 
+  /** El publicador ve la dirección exacta de sus propios anuncios. */
   listarPorPublicador(publicadorId: number) {
-    return this.anuncioRepo.find({
-      where: { publicador: { id: publicadorId } as any },
-      relations: ['zona', 'fotos'],
-      order: { creadoEn: 'DESC' },
-    });
+    return this.anuncioRepo
+      .createQueryBuilder('anuncio')
+      .addSelect('anuncio.direccionExacta')
+      .leftJoinAndSelect('anuncio.zona', 'zona')
+      .leftJoinAndSelect('anuncio.fotos', 'fotos')
+      .where('anuncio.publicadorId = :publicadorId', { publicadorId })
+      .orderBy('anuncio.creadoEn', 'DESC')
+      .getMany();
   }
 
   async pausarVencidos(): Promise<number> {

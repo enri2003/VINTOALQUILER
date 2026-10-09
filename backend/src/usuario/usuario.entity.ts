@@ -16,10 +16,12 @@ export class Usuario {
   @Column({ unique: true })
   correo: string;
 
-  @Column()
+  // Nunca se carga por defecto: solo el inicio de sesión lo pide explícitamente.
+  @Column({ select: false })
   claveHash: string;
 
-  @Column()
+  // Nunca se carga por defecto: solo se usa para armar el enlace de WhatsApp y en el panel de administración.
+  @Column({ select: false })
   celular: string;
 
   @Column()
