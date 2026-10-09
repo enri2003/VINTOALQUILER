@@ -4,9 +4,14 @@ import { VerificacionService } from '../../servicios/verificacion.service';
 
 type Fase = 'resumen' | 'captura' | 'enviando' | 'aprobado' | 'rechazado';
 
-// Captura automática: la luz se mide cada 550 ms; con 2 mediciones buenas seguidas empieza la cuenta de 3 segundos.
+// Captura automática: la luz se mide cada 550 ms; con 2 mediciones buenas seguidas
+// un trazo de luz recorre el marco y, al completar la vuelta, se toma la foto.
 const MUESTRAS_ESTABLES = 2;
-const SEGUNDOS_CUENTA = 3;
+const BRILLO_MINIMO = 55;
+const BRILLO_MAXIMO = 225;
+const DURACION_TRAZO_MS = 1800;
+const PASO_TRAZO_MS = 30;
+const DURACION_DESTELLO_MS = 600;
 const ESPERA_CAPTURA_MANUAL_MS = 15000;
 
 interface PasoCaptura {
@@ -72,6 +77,14 @@ const PASOS: PasoCaptura[] = [
           <span class="etiqueta-aura" *ngIf="fase === 'enviando'">
             <i></i><i></i><i></i> Verificando
           </span>
+        </div>
+
+        <!-- Mientras se analiza: las tres fotos flotan y una luz de escaneo pasa por cada una -->
+        <div class="fotos-analisis" *ngIf="fase === 'enviando'" aria-hidden="true">
+          <div class="foto-analisis" *ngFor="let paso of pasos; let i = index" [style.animation-delay.ms]="i * 220">
+            <img *ngIf="vistasPrevias[paso.clave] as src" [src]="src" alt="" [class.espejo]="paso.marco === 'rostro'" />
+            <span class="escaneo-foto" [style.animation-delay.ms]="i * 450"></span>
+          </div>
         </div>
 
         <ng-container *ngIf="fase !== 'captura'">
@@ -152,23 +165,43 @@ const PASOS: PasoCaptura[] = [
             <div class="visor-camara">
               <div class="visor-interior" [class.marco-documento]="pasoActual.marco === 'documento'">
                 <video #video autoplay playsinline muted *ngIf="!fotoActual"></video>
-                <img *ngIf="fotoActual" [src]="fotoActual" alt="Captura" />
+                <img *ngIf="fotoActual" [src]="fotoActual" alt="Captura" class="foto-materializada" />
                 <span class="linea-escaneo linea-escaneo-camara" *ngIf="!fotoActual"></span>
-                <span class="marco-guia" [class.rostro]="pasoActual.marco === 'rostro'" *ngIf="!fotoActual"></span>
+                <span
+                  class="marco-guia"
+                  [class.rostro]="pasoActual.marco === 'rostro'"
+                  [class.capturando]="progresoCaptura !== null"
+                  *ngIf="!fotoActual"
+                >
+                  <!-- Trazo de luz que recorre el borde del marco mientras se prepara la captura -->
+                  <svg class="aura-captura" *ngIf="progresoCaptura !== null"
+                       [attr.viewBox]="pasoActual.marco === 'rostro' ? '0 0 100 100' : '0 0 158.6 100'" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="degradado-aura" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#FFF4D6" />
+                        <stop offset="50%" stop-color="#F2C879" />
+                        <stop offset="100%" stop-color="#C9622D" />
+                      </linearGradient>
+                    </defs>
+                    <circle *ngIf="pasoActual.marco === 'rostro'" cx="50" cy="50" r="49" pathLength="100"
+                            class="trazo-aura" [attr.stroke-dashoffset]="100 - progresoCaptura * 100" />
+                    <rect *ngIf="pasoActual.marco !== 'rostro'" x="1" y="1" width="156.6" height="98" rx="9" pathLength="100"
+                          class="trazo-aura" [attr.stroke-dashoffset]="100 - progresoCaptura * 100" />
+                  </svg>
+                </span>
+                <span class="destello-captura" *ngIf="destello"></span>
+                <!-- Chispas que salen del marco al tomar la foto -->
+                <span class="chispas-captura" *ngIf="destello" aria-hidden="true">
+                  <i *ngFor="let c of chispas" [style.--angulo]="c + 'deg'"></i>
+                </span>
                 <span class="esquina esquina-tl"></span>
                 <span class="esquina esquina-tr"></span>
                 <span class="esquina esquina-bl"></span>
                 <span class="esquina esquina-br"></span>
-                <span class="cuenta-regresiva" *ngIf="cuentaRegresiva !== null && !fotoActual">{{ cuentaRegresiva }}</span>
-                <span class="frase-magica" *ngIf="camaraLista && !fotoActual">
-                  {{ cuentaRegresiva !== null ? 'No te muevas…' : fraseMagica }}
-                </span>
+                <span class="frase-magica" *ngIf="camaraLista && !fotoActual && fraseMagica">{{ fraseMagica }}</span>
               </div>
             </div>
             <p class="instruccion-captura">{{ pasoActual.instruccion }}</p>
-            <p class="instruccion-captura nota-automatica" *ngIf="!fotoActual">
-              {{ camaraLista ? 'La foto se toma sola cuando la luz es adecuada.' : 'Activando cámara...' }}
-            </p>
             <p class="error-camara" *ngIf="errorCamara">{{ errorCamara }}</p>
             <button class="boton-texto-verif" *ngIf="mostrarCapturaManual && !fotoActual" (click)="capturar()">
               Tomar la foto de todos modos
@@ -225,16 +258,22 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   indice = 0;
   fotoActual: string | null = null;
   archivos: Partial<Record<PasoCaptura['clave'], File>> = {};
+  /** Imágenes ya capturadas, solo para mostrarlas mientras se analizan; nunca se envían ni guardan aparte. */
+  vistasPrevias: Partial<Record<PasoCaptura['clave'], string>> = {};
   camaraLista = false;
   errorCamara = '';
   error = '';
   fraseMagica = '';
-  cuentaRegresiva: number | null = null;
+  /** Avance del trazo de luz alrededor del marco (0 a 1); null cuando no se está capturando. */
+  progresoCaptura: number | null = null;
+  destello = false;
+  /** Ángulos de las chispas que salen al tomar la foto (una cada 30 grados). */
+  readonly chispas = Array.from({ length: 12 }, (_, i) => i * 30);
   mostrarCapturaManual = false;
 
   private stream: MediaStream | null = null;
   private muestreoLuz: ReturnType<typeof setInterval> | null = null;
-  private temporizadorCuenta: ReturnType<typeof setInterval> | null = null;
+  private temporizadorTrazo: ReturnType<typeof setInterval> | null = null;
   private temporizadorManual: ReturnType<typeof setTimeout> | null = null;
   private muestrasConBuenaLuz = 0;
 
@@ -254,7 +293,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
 
   ngAfterViewChecked(): void {
     if (this.fase === 'captura' && this.usaCamara() && this.videoRef && !this.stream && !this.fotoActual) {
-      this.iniciarCamara();
+      void this.iniciarCamara();
     }
   }
 
@@ -297,16 +336,17 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     this.muestreoLuz = setInterval(() => this.evaluarLuz(), 550);
   }
 
-  private evaluarLuz(): void {
+  /** Brillo promedio (0 a 255) de una versión reducida del cuadro actual de la cámara. */
+  private medirBrillo(): number | null {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
-    if (!video || !canvas || !video.videoWidth) return;
+    if (!video || !canvas || !video.videoWidth) return null;
 
     const lado = 32;
     canvas.width = lado;
     canvas.height = lado;
     const contexto = canvas.getContext('2d');
-    if (!contexto) return;
+    if (!contexto) return null;
     contexto.drawImage(video, 0, 0, lado, lado);
 
     const datos = contexto.getImageData(0, 0, lado, lado).data;
@@ -314,45 +354,52 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     for (let i = 0; i < datos.length; i += 4) {
       total += (datos[i] + datos[i + 1] + datos[i + 2]) / 3;
     }
-    const brillo = total / (datos.length / 4);
+    return total / (datos.length / 4);
+  }
+
+  /** Aviso solo cuando la luz es mala; con buena luz no hay texto, el trazo del marco lo indica. */
+  private avisoDeLuz(brillo: number): string {
     const esDocumento = this.pasoActual.marco === 'documento';
-    const luzAdecuada = brillo >= 55 && brillo <= 225;
-
-    if (brillo < 55) {
-      this.fraseMagica = 'Muy oscuro. Busca mejor luz.';
-    } else if (brillo > 225) {
-      this.fraseMagica = esDocumento ? 'Demasiado reflejo. Inclina el documento.' : 'Demasiada luz. Aléjate un poco de la fuente de luz.';
-    } else {
-      this.fraseMagica = esDocumento ? 'Buena luz. Mantén el documento dentro del marco.' : 'Buena luz. Mira a la cámara.';
+    if (brillo < BRILLO_MINIMO) return 'Muy oscuro. Busca mejor luz.';
+    if (brillo > BRILLO_MAXIMO) {
+      return esDocumento ? 'Demasiado reflejo. Inclina el documento.' : 'Demasiada luz. Aléjate un poco de la fuente de luz.';
     }
+    return '';
+  }
 
-    // Captura automática: con buena luz estable empieza la cuenta; si la luz empeora, se cancela.
+  private evaluarLuz(): void {
+    const brillo = this.medirBrillo();
+    if (brillo === null) return;
+    const luzAdecuada = brillo >= BRILLO_MINIMO && brillo <= BRILLO_MAXIMO;
+    this.fraseMagica = this.avisoDeLuz(brillo);
+
+    // Captura automática: con buena luz estable el trazo recorre el marco; si la luz empeora, se reinicia.
     if (luzAdecuada) {
       this.muestrasConBuenaLuz += 1;
-      if (this.muestrasConBuenaLuz >= MUESTRAS_ESTABLES && this.cuentaRegresiva === null) {
-        this.iniciarCuentaRegresiva();
+      if (this.muestrasConBuenaLuz >= MUESTRAS_ESTABLES && this.progresoCaptura === null) {
+        this.iniciarTrazo();
       }
     } else {
       this.muestrasConBuenaLuz = 0;
-      this.cancelarCuentaRegresiva();
+      this.cancelarTrazo();
     }
   }
 
-  private iniciarCuentaRegresiva(): void {
-    this.cuentaRegresiva = SEGUNDOS_CUENTA;
-    this.temporizadorCuenta = setInterval(() => {
-      if (this.cuentaRegresiva === null) return;
-      this.cuentaRegresiva -= 1;
-      if (this.cuentaRegresiva <= 0) this.capturar();
-    }, 1000);
+  private iniciarTrazo(): void {
+    this.progresoCaptura = 0;
+    this.temporizadorTrazo = setInterval(() => {
+      if (this.progresoCaptura === null) return;
+      this.progresoCaptura = Math.min(1, this.progresoCaptura + PASO_TRAZO_MS / DURACION_TRAZO_MS);
+      if (this.progresoCaptura >= 1) this.capturar();
+    }, PASO_TRAZO_MS);
   }
 
-  private cancelarCuentaRegresiva(): void {
-    if (this.temporizadorCuenta) {
-      clearInterval(this.temporizadorCuenta);
-      this.temporizadorCuenta = null;
+  private cancelarTrazo(): void {
+    if (this.temporizadorTrazo) {
+      clearInterval(this.temporizadorTrazo);
+      this.temporizadorTrazo = null;
     }
-    this.cuentaRegresiva = null;
+    this.progresoCaptura = null;
   }
 
   private detenerMuestreoLuz(): void {
@@ -368,7 +415,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     this.stream = null;
     this.camaraLista = false;
     this.detenerMuestreoLuz();
-    this.cancelarCuentaRegresiva();
+    this.cancelarTrazo();
     if (this.temporizadorManual) {
       clearTimeout(this.temporizadorManual);
       this.temporizadorManual = null;
@@ -382,6 +429,10 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     const canvas = this.canvasRef?.nativeElement;
     if (!video || !canvas) return;
 
+    // Destello breve, como el flash de una cámara, al momento de tomar la foto.
+    this.destello = true;
+    setTimeout(() => (this.destello = false), DURACION_DESTELLO_MS);
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const contexto = canvas.getContext('2d');
@@ -389,6 +440,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
 
     this.fotoActual = canvas.toDataURL('image/jpeg');
     const clave = this.pasoActual.clave;
+    this.vistasPrevias[clave] = this.fotoActual;
     canvas.toBlob((blob) => {
       if (blob) this.archivos[clave] = new File([blob], `${clave}.jpg`, { type: 'image/jpeg' });
     }, 'image/jpeg');
@@ -399,7 +451,7 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   reintentar(): void {
     this.fotoActual = null;
     if (this.usaCamara()) {
-      this.iniciarCamara();
+      void this.iniciarCamara();
     }
   }
 
@@ -408,9 +460,13 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     const archivo = input.files?.[0];
     if (!archivo) return;
 
-    this.archivos[this.pasoActual.clave] = archivo;
+    const clave = this.pasoActual.clave;
+    this.archivos[clave] = archivo;
     const lector = new FileReader();
-    lector.onload = () => (this.fotoActual = lector.result as string);
+    lector.onload = () => {
+      this.fotoActual = lector.result as string;
+      this.vistasPrevias[clave] = this.fotoActual;
+    };
     lector.readAsDataURL(archivo);
   }
 
