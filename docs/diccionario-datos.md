@@ -71,7 +71,7 @@ donde son necesarios y nunca los envía a quien no tiene permiso.
 | superficie_m2 | int | NULLABLE | Superficie aproximada en m² |
 | ambientes | int | NULLABLE | Número de ambientes |
 | referencia | string | NOT NULL | Punto de referencia público |
-| direccion_exacta | string | NOT NULL, protegido | Dirección exacta (solo interesados verificados, el publicador y el admin) |
+| direccion_exacta | string | NULLABLE, protegido | Campo heredado de anuncios antiguos; ya no se pide al publicar, porque el punto exacto del mapa (latitud/longitud) cumple ese rol |
 | latitud | numeric | NULLABLE, protegido | Latitud exacta marcada en el mapa (el público recibe una ubicación aproximada) |
 | longitud | numeric | NULLABLE, protegido | Longitud exacta marcada en el mapa (el público recibe una ubicación aproximada) |
 | servicios | text_array | NOT NULL, DEFAULT '{}' | Servicios (incluidos en el precio o con pago aparte) y características del inmueble |
