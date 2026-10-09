@@ -79,7 +79,7 @@ const ETIQUETAS_SENALES: Record<string, string> = {
 
       <div class="condiciones">
         <p *ngIf="anuncio.garantia"><strong>Garantía:</strong> {{ anuncio.garantia }}</p>
-        <p *ngIf="anuncio.contratoMinimo"><strong>Contrato mínimo:</strong> {{ anuncio.contratoMinimo }}</p>
+        <p *ngIf="anuncio.contratoMinimo"><strong>Tiempo mínimo de alquiler:</strong> {{ anuncio.contratoMinimo }}</p>
       </div>
 
       <div class="resumen-seguridad" *ngIf="riesgo" [ngClass]="'nivel-' + riesgo.nivel">

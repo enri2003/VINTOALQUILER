@@ -7,11 +7,14 @@ import { VerificacionService } from '../../servicios/verificacion.service';
 import { AnuncioService } from '../../servicios/anuncio.service';
 import { clasificarServicios, GRUPOS_CARACTERISTICAS, SERVICIOS } from '../../utilidades/catalogo-anuncio';
 import { SelectorCampoComponent } from '../../componentes/selector-campo.component';
+import { MapaZonaComponent } from '../../componentes/mapa-zona.component';
 import { OpcionSelector } from '../../componentes/selector-buscador.component';
 
 interface Zona {
   id: number;
   nombre: string;
+  latitud?: string | number;
+  longitud?: string | number;
 }
 
 interface FotoSeleccionada {
@@ -44,7 +47,7 @@ const PRECIO_INUSUAL_ALTO = 10000;
 @Component({
   selector: 'app-publicar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SelectorCampoComponent],
+  imports: [CommonModule, FormsModule, RouterLink, SelectorCampoComponent, MapaZonaComponent],
   template: `
     <section class="publicar">
       <h1>Publicar anuncio</h1>
@@ -79,10 +82,6 @@ const PRECIO_INUSUAL_ALTO = 10000;
           <!-- 1. Información básica -->
           <fieldset class="seccion">
             <legend><span class="numero-seccion">1</span> Información básica</legend>
-            <label>
-              Zona
-              <app-selector-campo name="zonaId" [(ngModel)]="zonaId" [opciones]="opcionesZona" marcador="Selecciona una zona"></app-selector-campo>
-            </label>
             <div class="campo-tipo">
               <span class="etiqueta-tipo">Tipo de inmueble</span>
               <div class="tarjetas-tipo" role="radiogroup" aria-label="Tipo de inmueble">
@@ -125,23 +124,62 @@ const PRECIO_INUSUAL_ALTO = 10000;
             </label>
           </fieldset>
 
-          <!-- 2. Servicios -->
+          <!-- 2. Ubicación -->
           <fieldset class="seccion">
-            <legend><span class="numero-seccion">2</span> ¿Qué servicios incluye el alquiler?</legend>
-            <p class="ayuda-campo">Indica para cada servicio si está incluido en el precio o se paga por separado. Opcional.</p>
+            <legend><span class="numero-seccion">2</span> ¿Dónde está el inmueble?</legend>
+            <p class="ayuda-campo">
+              Por seguridad, el mapa público nunca muestra la dirección exacta: tu anuncio aparece en un área aproximada de la zona
+              que elijas. La dirección exacta solo la verán los interesados con identidad verificada.
+            </p>
+
+            <label>
+              <span class="fila-etiqueta">Zona <span class="visibilidad publica">👁 La ve todo el mundo</span></span>
+              <span class="ayuda-campo">Define en qué parte del mapa aparecerá tu anuncio.</span>
+              <app-selector-campo name="zonaId" [(ngModel)]="zonaId" [opciones]="opcionesZona" marcador="Selecciona una zona"></app-selector-campo>
+            </label>
+            <div class="vista-mapa">
+              <app-mapa-zona [latitud]="zonaElegida?.latitud" [longitud]="zonaElegida?.longitud"></app-mapa-zona>
+              <p class="nota-mapa" *ngIf="zonaElegida">Así aparecerá tu anuncio en el mapa: dentro de este círculo, no en tu casa exacta.</p>
+              <p class="nota-mapa" *ngIf="!zonaElegida">Elige una zona para ver dónde aparecerá tu anuncio.</p>
+            </div>
+
+            <label>
+              <span class="fila-etiqueta">Referencia <span class="visibilidad publica">👁 La ve todo el mundo</span></span>
+              <span class="ayuda-campo">Un punto conocido cercano, para que la gente se ubique. Aparece escrito en tu anuncio.</span>
+              <input type="text" name="referencia" placeholder="Ej: A dos cuadras del Mercado de Vinto" [(ngModel)]="referencia" />
+            </label>
+
+            <label>
+              <span class="fila-etiqueta">Dirección exacta <span class="visibilidad privada">🔒 Solo interesados verificados</span></span>
+              <span class="ayuda-campo">Calle y número para que puedan llegar a visitar. Se guarda protegida y no aparece en el mapa ni en tu anuncio público.</span>
+              <input type="text" name="direccionExacta" placeholder="Ej: Calle Bolívar #123, a media cuadra de la plaza" [(ngModel)]="direccionExacta" />
+            </label>
+          </fieldset>
+
+          <!-- 3. Servicios -->
+          <fieldset class="seccion">
+            <legend><span class="numero-seccion">3</span> ¿Qué incluye el precio?</legend>
+            <div class="explicacion-servicios">
+              <span><span class="muestra incluido">Incluido</span> el inquilino no paga nada extra por ese servicio.</span>
+              <span><span class="muestra aparte">Se paga aparte</span> el inquilino lo paga según lo que consume.</span>
+              <span>Si no tocas un servicio, no se muestra en el anuncio. Toca de nuevo una opción para quitarla.</span>
+            </div>
             <div class="fila-servicio" *ngFor="let servicio of catalogoServicios">
               <span>{{ servicio.nombre }}</span>
               <div class="selector-modo" role="radiogroup" [attr.aria-label]="servicio.nombre">
-                <button type="button" [class.activo]="modoServicio(servicio.codigo) === 'incluido'" (click)="cambiarServicio(servicio.codigo, 'incluido')">Incluido</button>
-                <button type="button" [class.activo]="modoServicio(servicio.codigo) === 'aparte'" (click)="cambiarServicio(servicio.codigo, 'aparte')">Pago aparte</button>
-                <button type="button" [class.activo]="modoServicio(servicio.codigo) === 'no'" (click)="cambiarServicio(servicio.codigo, 'no')">No aplica</button>
+                <button type="button" class="opcion-incluido" [class.activo]="modoServicio(servicio.codigo) === 'incluido'"
+                  [attr.aria-checked]="modoServicio(servicio.codigo) === 'incluido'" role="radio"
+                  (click)="cambiarServicio(servicio.codigo, 'incluido')">Incluido</button>
+                <button type="button" class="opcion-aparte" [class.activo]="modoServicio(servicio.codigo) === 'aparte'"
+                  [attr.aria-checked]="modoServicio(servicio.codigo) === 'aparte'" role="radio"
+                  (click)="cambiarServicio(servicio.codigo, 'aparte')">Se paga aparte</button>
               </div>
             </div>
           </fieldset>
 
-          <!-- 3. Características -->
+          <!-- 4. Características -->
           <fieldset class="seccion">
-            <legend><span class="numero-seccion">3</span> Características del inmueble</legend>
+            <legend><span class="numero-seccion">4</span> Características del inmueble</legend>
             <p class="ayuda-campo">Marca solo lo que realmente tiene el inmueble. Opcional.</p>
             <div class="grupo-caracteristicas" *ngFor="let grupo of gruposCaracteristicas">
               <span class="titulo-grupo">{{ grupo.titulo }}</span>
@@ -165,35 +203,33 @@ const PRECIO_INUSUAL_ALTO = 10000;
             </div>
           </fieldset>
 
-          <!-- 4. Condiciones -->
+          <!-- 5. Condiciones -->
           <fieldset class="seccion">
-            <legend><span class="numero-seccion">4</span> Condiciones del alquiler</legend>
-            <label>
-              Garantía o depósito
-              <span class="ayuda-campo">Lo que le pides al interesado como respaldo al firmar.</span>
-              <input type="text" name="garantia" placeholder="Ej: Un mes de alquiler por adelantado" [(ngModel)]="garantia" />
-            </label>
-            <label>
-              Plazo mínimo del contrato
-              <input type="text" name="contratoMinimo" placeholder="Ej: 6 meses" [(ngModel)]="contratoMinimo" />
-            </label>
-          </fieldset>
+            <legend><span class="numero-seccion">5</span> ¿Qué pides para alquilar?</legend>
 
-          <!-- 5. Ubicación -->
-          <fieldset class="seccion">
-            <legend><span class="numero-seccion">5</span> Ubicación y privacidad</legend>
-            <label>
-              Referencia pública
-              <span class="ayuda-campo">Zona o punto de referencia aproximado. Esta información se mostrará públicamente.</span>
-              <input type="text" name="referencia" placeholder="Ej: A dos cuadras del Mercado de Vinto" [(ngModel)]="referencia" />
-            </label>
-            <label>
-              Dirección exacta
-              <span class="ayuda-campo aviso-privado">
-                🔒 Se guarda de forma protegida y no se muestra públicamente. Solo la verán los interesados con identidad verificada.
+            <div class="campo-opciones">
+              <span class="etiqueta-tipo">Garantía</span>
+              <span class="ayuda-campo">
+                Dinero que el inquilino entrega al empezar y que recupera al irse, si deja el inmueble en buen estado.
               </span>
-              <input type="text" name="direccionExacta" placeholder="Ej: Calle Bolívar #123, a media cuadra de la plaza" [(ngModel)]="direccionExacta" />
-            </label>
+              <div class="chips-seleccion">
+                <button type="button" class="chip-seleccion" *ngFor="let opcion of opcionesGarantia"
+                  [class.activo]="garantia === opcion" (click)="garantia = opcion; garantiaOtra = false">{{ opcion }}</button>
+                <button type="button" class="chip-seleccion" [class.activo]="garantiaOtra" (click)="elegirOtraGarantia()">Otra</button>
+              </div>
+              <input *ngIf="garantiaOtra" type="text" name="garantia" placeholder="Ej: 1 mes de garantía y 1 mes adelantado" [(ngModel)]="garantia" />
+            </div>
+
+            <div class="campo-opciones">
+              <span class="etiqueta-tipo">Tiempo mínimo de alquiler</span>
+              <span class="ayuda-campo">Lo mínimo que la persona debe quedarse. Si se va antes, puede perder la garantía.</span>
+              <div class="chips-seleccion">
+                <button type="button" class="chip-seleccion" *ngFor="let opcion of opcionesPlazo"
+                  [class.activo]="contratoMinimo === opcion" (click)="contratoMinimo = opcion; plazoOtro = false">{{ opcion }}</button>
+                <button type="button" class="chip-seleccion" [class.activo]="plazoOtro" (click)="elegirOtroPlazo()">Otro</button>
+              </div>
+              <input *ngIf="plazoOtro" type="text" name="contratoMinimo" placeholder="Ej: 4 meses" [(ngModel)]="contratoMinimo" />
+            </div>
           </fieldset>
 
           <!-- 6. Fotografías -->
@@ -242,7 +278,7 @@ const PRECIO_INUSUAL_ALTO = 10000;
           </fieldset>
 
           <p class="motivo-deshabilitado" *ngIf="!formularioCompleto">
-            Completa los campos obligatorios de las secciones 1, 4 y 5 y agrega una foto de portada para continuar.
+            Completa los campos obligatorios de las secciones 1, 2 y 5 y agrega una foto de portada para continuar.
           </p>
           <button type="submit" class="boton-principal" [disabled]="!formularioCompleto">Revisar anuncio</button>
         </form>
@@ -273,7 +309,7 @@ const PRECIO_INUSUAL_ALTO = 10000;
                 <span *ngIf="superficieM2 && ambientes"> · </span>
                 <span *ngIf="ambientes">{{ ambientes }} {{ ambientes === 1 ? 'ambiente' : 'ambientes' }}</span>
               </p>
-              <p><strong>Garantía:</strong> {{ garantia.trim() }} · <strong>Contrato mínimo:</strong> {{ contratoMinimo.trim() }}</p>
+              <p><strong>Garantía:</strong> {{ garantia.trim() }} · <strong>Tiempo mínimo:</strong> {{ contratoMinimo.trim() }}</p>
             </div>
           </div>
           <p class="aviso-precio" *ngIf="precioInusual">
@@ -343,6 +379,22 @@ const PRECIO_INUSUAL_ALTO = 10000;
       }
       .chip-seleccion.activo { border-color: var(--acento); background: var(--superficie-alt, #F7EFE3); color: var(--acento-oscuro); font-weight: 700; }
       .fila-numeros { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .fila-etiqueta { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+      .visibilidad { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+      .visibilidad.publica { background: #EEF0F3; color: #4A5565; }
+      .visibilidad.privada { background: #E3F4E8; color: #1F6B3A; }
+      .vista-mapa { display: flex; flex-direction: column; gap: 6px; }
+      .nota-mapa { margin: 0; font-size: 13.5px; color: var(--acento-oscuro); font-weight: 600; }
+      .explicacion-servicios {
+        display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 12px;
+        background: #FBF7F1; font-size: 13.5px; line-height: 1.5; color: var(--texto-suave);
+      }
+      .muestra { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; margin-right: 4px; }
+      .muestra.incluido { background: #E3F4E8; color: #1F6B3A; }
+      .muestra.aparte { background: #FBEDE3; color: #A94F22; }
+      .selector-modo button.opcion-incluido.activo { background: #2E7D4F; color: #fff; }
+      .selector-modo button.opcion-aparte.activo { background: var(--acento); color: #fff; }
+      .campo-opciones { display: flex; flex-direction: column; gap: 8px; }
       .campo-tipo { display: flex; flex-direction: column; gap: 8px; }
       .etiqueta-tipo { font-weight: 700; font-size: 15px; }
       .tarjetas-tipo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -426,6 +478,11 @@ export class PublicarComponent implements OnInit, OnDestroy {
     { valor: 'departamento', texto: 'Departamento', ayuda: 'Varios ambientes' },
   ];
   opcionesZona: OpcionSelector<number>[] = [];
+  // Respuestas frecuentes como botones rápidos; «Otra» permite escribir cualquier condición.
+  readonly opcionesGarantia = ['Sin garantía', '1 mes', '2 meses'];
+  readonly opcionesPlazo = ['Sin tiempo mínimo', '3 meses', '6 meses', '1 año'];
+  garantiaOtra = false;
+  plazoOtro = false;
   private readonly apiUrl = '/api';
   zonas: Zona[] = [];
   zonaId: number | null = null;
@@ -541,8 +598,24 @@ export class PublicarComponent implements OnInit, OnDestroy {
     return this.servicios[codigo] ?? 'no';
   }
 
+  /** Tocar la opción ya elegida la quita: el servicio deja de mostrarse en el anuncio. */
   cambiarServicio(codigo: string, modo: ModoServicio): void {
-    this.servicios = { ...this.servicios, [codigo]: modo };
+    const nuevo = this.modoServicio(codigo) === modo ? 'no' : modo;
+    this.servicios = { ...this.servicios, [codigo]: nuevo };
+  }
+
+  get zonaElegida(): Zona | undefined {
+    return this.zonas.find((zona) => zona.id === this.zonaId);
+  }
+
+  elegirOtraGarantia(): void {
+    this.garantiaOtra = true;
+    if (this.opcionesGarantia.includes(this.garantia)) this.garantia = '';
+  }
+
+  elegirOtroPlazo(): void {
+    this.plazoOtro = true;
+    if (this.opcionesPlazo.includes(this.contratoMinimo)) this.contratoMinimo = '';
   }
 
   alternarCaracteristica(codigo: string): void {

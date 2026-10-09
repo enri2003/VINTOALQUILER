@@ -435,6 +435,25 @@ app-selector-buscador.abierto .disparador-selector {
   color: var(--acento);
   flex-shrink: 0;
 }
+/* Vista previa del área aproximada del anuncio en el formulario de publicar */
+.area-aproximada {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(201, 98, 45, 0.18);
+  border: 2px solid rgba(201, 98, 45, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.punto-area {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--acento, #C9622D);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9);
+}
+
 /* Lista desplegable de formularios (app-selector-campo): se ve como un campo de texto */
 app-selector-campo {
   position: relative;
