@@ -40,6 +40,8 @@ const SIN_ENLACES = /^(?![\s\S]*(?:https?:\/\/|www\.))[\s\S]*$/i;
 const TITULOS_GENERICOS = ['alquiler', 'alquilo', 'casa', 'cuarto', 'garzonier', 'departamento', 'anticretico', 'se alquila'];
 const FORMATOS_FOTO = ['image/jpeg', 'image/png', 'image/webp'];
 const TAMANO_MAXIMO_FOTO = 5 * 1024 * 1024;
+/** Mismos límites que valida el backend (anuncio/ubicacion.util.ts). */
+const LIMITES_VINTO = { latMin: -17.5, latMax: -17.3, lngMin: -66.45, lngMax: -66.2 };
 // Solo para advertir en la vista previa; no bloquean la publicación.
 const PRECIO_INUSUAL_BAJO = 150;
 const PRECIO_INUSUAL_ALTO = 10000;
@@ -140,12 +142,23 @@ const PRECIO_INUSUAL_ALTO = 10000;
 
             <div class="vista-mapa">
               <span class="fila-etiqueta etiqueta-tipo">Ubicación en el mapa <span class="visibilidad privada">🔒 Punto exacto: solo verificados</span></span>
-              <span class="ayuda-campo">Toca en el mapa dónde está tu inmueble. Puedes arrastrar el pin para ajustarlo.</span>
-              <app-mapa-ubicacion modo="elegir" [latitud]="latitud" [longitud]="longitud"
-                [centro]="zonaElegida ? { lat: zonaElegida.latitud!, lng: zonaElegida.longitud! } : null"
-                (ubicacionChange)="latitud = $event.lat; longitud = $event.lng"></app-mapa-ubicacion>
-              <p class="nota-mapa" *ngIf="latitud">✓ Ubicación marcada. En el mapa público aparecerá a unas cuadras de este punto.</p>
-              <p class="error-campo" *ngIf="!latitud && intentoEnviar">Marca en el mapa dónde está tu inmueble.</p>
+              <ng-container *ngIf="latitud && longitud; else sinUbicacion">
+                <app-mapa-ubicacion modo="exacta" alto="200px" [latitud]="latitud" [longitud]="longitud"></app-mapa-ubicacion>
+                <div class="fila-ubicacion-marcada">
+                  <p class="nota-mapa">✓ Ubicación marcada. En el mapa público aparecerá a unas cuadras de este punto.</p>
+                  <button type="button" class="boton-secundario" (click)="abrirMapa()">Cambiar</button>
+                </div>
+              </ng-container>
+              <ng-template #sinUbicacion>
+                <button type="button" class="boton-elegir-ubicacion" (click)="abrirMapa()">
+                  <span class="icono-elegir">📍</span>
+                  <span>
+                    <strong>Elegir ubicación en el mapa</strong>
+                    <small>Toca dónde está el inmueble o usa tu ubicación actual si estás ahí.</small>
+                  </span>
+                </button>
+                <p class="error-campo" *ngIf="intentoEnviar">Marca en el mapa dónde está tu inmueble.</p>
+              </ng-template>
             </div>
 
             <label>
@@ -331,6 +344,29 @@ const PRECIO_INUSUAL_ALTO = 10000;
       </ng-container>
       <p class="mensaje-error" *ngIf="error">{{ error }}</p>
     </section>
+
+    <!-- Paso para elegir la ubicación: mapa a pantalla completa -->
+    <div class="pantalla-mapa" *ngIf="mapaAbierto" role="dialog" aria-modal="true" aria-label="Elegir ubicación del inmueble">
+      <div class="cabecera-pantalla-mapa">
+        <div>
+          <h2>¿Dónde está el inmueble?</h2>
+          <p>Toca el lugar exacto en el mapa. Puedes arrastrar el pin para ajustarlo.</p>
+        </div>
+        <button type="button" class="cerrar-pantalla-mapa" (click)="cerrarMapa()" aria-label="Cerrar">✕</button>
+      </div>
+      <app-mapa-ubicacion class="mapa-grande" modo="elegir" alto="100%" [latitud]="latTemporal" [longitud]="lngTemporal"
+        [centro]="zonaElegida ? { lat: zonaElegida.latitud!, lng: zonaElegida.longitud! } : null"
+        (ubicacionChange)="latTemporal = $event.lat; lngTemporal = $event.lng; avisoGps = ''"></app-mapa-ubicacion>
+      <div class="pie-pantalla-mapa">
+        <button type="button" class="boton-secundario" (click)="usarMiUbicacion()" [disabled]="buscandoGps">
+          {{ buscandoGps ? 'Buscando tu ubicación…' : '◎ Usar mi ubicación actual' }}
+        </button>
+        <span class="aviso-gps" *ngIf="avisoGps">{{ avisoGps }}</span>
+        <button type="button" class="boton-principal" (click)="confirmarUbicacion()" [disabled]="!latTemporal">
+          Confirmar ubicación
+        </button>
+      </div>
+    </div>
   `,
   styles: [
     `
@@ -388,7 +424,28 @@ const PRECIO_INUSUAL_ALTO = 10000;
       .visibilidad { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
       .visibilidad.publica { background: #EEF0F3; color: #4A5565; }
       .visibilidad.privada { background: #E3F4E8; color: #1F6B3A; }
-      .vista-mapa { display: flex; flex-direction: column; gap: 6px; }
+      .vista-mapa { display: flex; flex-direction: column; gap: 8px; }
+      .fila-ubicacion-marcada { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+      .boton-elegir-ubicacion {
+        display: flex; align-items: center; gap: 14px; width: 100%; padding: 18px; text-align: left; cursor: pointer;
+        border: 2px dashed var(--acento); border-radius: 14px; background: #FBF4EA; color: var(--texto);
+        font: inherit; transition: background 0.15s ease;
+      }
+      .boton-elegir-ubicacion:hover { background: #F7EBDD; }
+      .boton-elegir-ubicacion strong { display: block; font-size: 16px; color: var(--acento-oscuro); }
+      .boton-elegir-ubicacion small { display: block; font-size: 13.5px; color: var(--texto-suave); margin-top: 2px; }
+      .icono-elegir { font-size: 28px; }
+      .pantalla-mapa {
+        position: fixed; inset: 0; z-index: 1000; background: #fff;
+        display: flex; flex-direction: column; padding: 16px; gap: 12px;
+      }
+      .cabecera-pantalla-mapa { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+      .cabecera-pantalla-mapa h2 { margin: 0; font-size: 20px; }
+      .cabecera-pantalla-mapa p { margin: 4px 0 0; font-size: 14px; color: var(--texto-suave); }
+      .cerrar-pantalla-mapa { border: none; background: #F3ECE0; border-radius: 50%; width: 38px; height: 38px; font-size: 16px; cursor: pointer; flex-shrink: 0; }
+      .mapa-grande { flex: 1; min-height: 0; }
+      .pie-pantalla-mapa { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+      .aviso-gps { flex: 1; font-size: 13.5px; color: var(--rojo, #B42318); }
       .nota-mapa { margin: 0; font-size: 13.5px; color: var(--acento-oscuro); font-weight: 600; }
       .explicacion-servicios {
         display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 12px;
@@ -500,6 +557,12 @@ export class PublicarComponent implements OnInit, OnDestroy {
   superficieM2: number | null = null;
   latitud: number | null = null;
   longitud: number | null = null;
+  // Paso del mapa a pantalla completa: se elige un punto temporal y se guarda solo al confirmar.
+  mapaAbierto = false;
+  latTemporal: number | null = null;
+  lngTemporal: number | null = null;
+  buscandoGps = false;
+  avisoGps = '';
   ambientes: number | null = null;
   referencia = '';
   direccionExacta = '';
@@ -611,6 +674,53 @@ export class PublicarComponent implements OnInit, OnDestroy {
   cambiarServicio(codigo: string, modo: ModoServicio): void {
     const nuevo = this.modoServicio(codigo) === modo ? 'no' : modo;
     this.servicios = { ...this.servicios, [codigo]: nuevo };
+  }
+
+  abrirMapa(): void {
+    this.latTemporal = this.latitud;
+    this.lngTemporal = this.longitud;
+    this.avisoGps = '';
+    this.mapaAbierto = true;
+  }
+
+  cerrarMapa(): void {
+    this.mapaAbierto = false;
+  }
+
+  confirmarUbicacion(): void {
+    if (this.latTemporal === null || this.lngTemporal === null) return;
+    this.latitud = this.latTemporal;
+    this.longitud = this.lngTemporal;
+    this.mapaAbierto = false;
+  }
+
+  /** Usa el GPS del dispositivo; útil si el publicador está en el inmueble al publicar. */
+  usarMiUbicacion(): void {
+    if (!navigator.geolocation) {
+      this.avisoGps = 'Tu navegador no permite obtener la ubicación. Marca el punto en el mapa.';
+      return;
+    }
+    this.buscandoGps = true;
+    this.avisoGps = '';
+    navigator.geolocation.getCurrentPosition(
+      (posicion) => {
+        this.buscandoGps = false;
+        const { latitude, longitude } = posicion.coords;
+        const dentroDeVinto = latitude >= LIMITES_VINTO.latMin && latitude <= LIMITES_VINTO.latMax
+          && longitude >= LIMITES_VINTO.lngMin && longitude <= LIMITES_VINTO.lngMax;
+        if (!dentroDeVinto) {
+          this.avisoGps = 'Tu ubicación actual está fuera de Vinto. Marca el inmueble tocando el mapa.';
+          return;
+        }
+        this.latTemporal = Number(latitude.toFixed(6));
+        this.lngTemporal = Number(longitude.toFixed(6));
+      },
+      () => {
+        this.buscandoGps = false;
+        this.avisoGps = 'No pudimos obtener tu ubicación. Revisa el permiso de ubicación o marca el punto en el mapa.';
+      },
+      { enableHighAccuracy: true, timeout: 15000 },
+    );
   }
 
   get zonaElegida(): Zona | undefined {

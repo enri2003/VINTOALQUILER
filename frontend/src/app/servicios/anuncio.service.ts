@@ -55,8 +55,10 @@ export class AnuncioService {
     if (filtros.pagina) params.push(`pagina=${filtros.pagina}`);
     if (filtros.porPagina) params.push(`porPagina=${filtros.porPagina}`);
     const query = params.length ? `?${params.join('&')}` : '';
+    // Con sesión iniciada, el servidor puede incluir la ubicación exacta (solo a interesados verificados).
+    const opciones = this.authService.estaAutenticado() ? { headers: this.cabeceras() } : {};
     return this.http
-      .get<{ datos: Anuncio[]; total: number }>(`${this.apiUrl}/anuncios${query}`)
+      .get<{ datos: Anuncio[]; total: number }>(`${this.apiUrl}/anuncios${query}`, opciones)
       .pipe(map((res) => res.datos));
   }
 

@@ -7,18 +7,25 @@
  * aproximada.
  */
 /**
- * Dónde dibujar un anuncio en el mapa público: su ubicación aproximada (calculada en el servidor a
- * unas cuadras del punto real) o, si es un anuncio antiguo sin punto marcado, el centro de su zona.
+ * Dónde dibujar un anuncio en el mapa:
+ * - el punto exacto, si el servidor lo envió (solo lo hace con interesados verificados);
+ * - si no, la ubicación aproximada (calculada en el servidor a unas cuadras del punto real);
+ * - y para anuncios antiguos sin punto marcado, el centro de su zona.
  */
 export function puntoEnMapa(anuncio: {
   id: number;
+  latitud?: number | string | null;
+  longitud?: number | string | null;
   ubicacionAprox?: { lat: number; lng: number } | null;
   zona?: { latitud?: number | string; longitud?: number | string } | null;
-}): { lat: number; lng: number } | null {
-  if (anuncio.ubicacionAprox) return anuncio.ubicacionAprox;
+}): { lat: number; lng: number; exacto: boolean } | null {
+  if (anuncio.latitud && anuncio.longitud) {
+    return { lat: Number(anuncio.latitud), lng: Number(anuncio.longitud), exacto: true };
+  }
+  if (anuncio.ubicacionAprox) return { ...anuncio.ubicacionAprox, exacto: false };
   const zona = anuncio.zona;
   if (!zona?.latitud || !zona?.longitud) return null;
-  return dispersarCoordenada(Number(zona.latitud), Number(zona.longitud), anuncio.id);
+  return { ...dispersarCoordenada(Number(zona.latitud), Number(zona.longitud), anuncio.id), exacto: false };
 }
 
 export function dispersarCoordenada(

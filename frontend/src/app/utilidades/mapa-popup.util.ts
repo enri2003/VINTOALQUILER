@@ -109,12 +109,15 @@ let tarjetaAbierta: maplibregl.Popup | null = null;
 export function crearMarcadorAnuncio(
   mapa: maplibregl.Map,
   anuncio: Anuncio,
-  punto: { lng: number; lat: number },
+  punto: { lng: number; lat: number; exacto?: boolean },
   acciones: AccionesMarcador,
 ): maplibregl.Marker {
   const elemento = document.createElement('div');
-  elemento.className = 'pin-anuncio';
-  elemento.innerHTML = ICONO_CASA;
+  // Punto exacto: pin normal. Ubicación aproximada: el ícono rodeado de un área suave que pulsa,
+  // para que se note que el inmueble está "por esta zona" y no exactamente ahí.
+  elemento.className = punto.exacto ? 'pin-anuncio pin-exacto' : 'pin-anuncio pin-aproximado';
+  elemento.innerHTML = punto.exacto ? ICONO_CASA : `<span class="halo-aproximado"></span>${ICONO_CASA}`;
+  elemento.title = punto.exacto ? 'Ubicación exacta' : 'Ubicación aproximada';
 
   const marcador = new maplibregl.Marker({ element: elemento }).setLngLat([punto.lng, punto.lat]).addTo(mapa);
 

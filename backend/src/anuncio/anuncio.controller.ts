@@ -19,6 +19,7 @@ import { CrearAnuncioDto } from './dto/crear-anuncio.dto';
 import { ActualizarAnuncioDto } from './dto/actualizar-anuncio.dto';
 import { ListarAnunciosDto } from './dto/listar-anuncios.dto';
 import { ubicacionAproximada } from './ubicacion.util';
+import { JwtOpcionalGuard } from '../auth/jwt-opcional.guard';
 
 function limpiarPublicador(anuncio: Anuncio): Anuncio {
   if (!anuncio.publicador) {
@@ -53,12 +54,23 @@ export class AnuncioController {
     private readonly recomendacionService: RecomendacionService,
   ) {}
 
+  /**
+   * Lista pública. Los visitantes reciben solo la ubicación aproximada; los interesados verificados
+   * (y el administrador) reciben además el punto exacto para verlo en el mapa.
+   */
+  @UseGuards(JwtOpcionalGuard)
   @Get()
-  async listar(@Query() filtros: ListarAnunciosDto) {
+  async listar(@Query() filtros: ListarAnunciosDto, @Req() req: any) {
     const resultado = await this.anuncioService.listar(filtros);
+    const usuario = req.user ? await this.usuarioService.buscarPorId(req.user.id) : null;
+    const puedeVerExacta = usuario?.rol === 'admin' || (usuario?.rol === 'interesado' && !!usuario.verificado);
     return {
       ...resultado,
-      datos: resultado.datos.map((anuncio) => ocultarDireccion(anuncio, false)),
+      // La dirección escrita nunca va en la lista; solo el punto exacto para el mapa, a quien corresponde.
+      datos: resultado.datos.map((anuncio) => {
+        const { direccionExacta, ...resto } = ocultarDireccion(anuncio, puedeVerExacta) as any;
+        return resto;
+      }),
     };
   }
 

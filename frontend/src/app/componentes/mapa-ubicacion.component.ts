@@ -27,17 +27,19 @@ export type ModoMapa = 'elegir' | 'exacta' | 'aproximada';
 @Component({
   selector: 'app-mapa-ubicacion',
   standalone: true,
-  template: `<div #contenedor class="mapa-ubicacion" [class.editable]="modo === 'elegir'"></div>`,
+  template: `<div #contenedor class="mapa-ubicacion" [class.editable]="modo === 'elegir'" [style.height]="alto"></div>`,
   styles: [
     `
       :host { display: block; }
-      .mapa-ubicacion { width: 100%; height: 260px; border-radius: 14px; overflow: hidden; border: 1px solid var(--borde, #ECE1D2); }
+      .mapa-ubicacion { width: 100%; border-radius: 14px; overflow: hidden; border: 1px solid var(--borde, #ECE1D2); }
       .mapa-ubicacion.editable { cursor: crosshair; }
     `,
   ],
 })
 export class MapaUbicacionComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() modo: ModoMapa = 'exacta';
+  /** Alto del mapa (cualquier medida CSS). */
+  @Input() alto = '260px';
   @Input() latitud?: number | string | null;
   @Input() longitud?: number | string | null;
   /** En modo "elegir", hacia dónde mover el mapa cuando todavía no hay pin (ej. la zona elegida). */
@@ -68,7 +70,11 @@ export class MapaUbicacionComponent implements AfterViewInit, OnChanges, OnDestr
 
   ngOnChanges(cambios: SimpleChanges): void {
     if (!this.mapa?.isStyleLoaded()) return;
-    if (cambios['latitud'] || cambios['longitud']) this.dibujar(false);
+    if (cambios['latitud'] || cambios['longitud']) {
+      this.dibujar(false);
+      // Si la ubicación llega desde afuera (ej. el GPS), el mapa se mueve para mostrarla.
+      if (this.tienePunto) this.mapa.easeTo({ center: [Number(this.longitud), Number(this.latitud)], zoom: Math.max(this.mapa.getZoom(), 16), duration: 600 });
+    }
     if (cambios['centro'] && !this.tienePunto) this.irAlCentro();
   }
 
