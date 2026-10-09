@@ -1,11 +1,13 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class VerificacionService {
   private readonly apiUrl = '/api';
+  /** Avisa a la cabecera que la identidad quedó verificada, sin esperar a cambiar de página. */
+  readonly aprobada$ = new Subject<void>();
 
   constructor(
     private readonly http: HttpClient,
@@ -29,7 +31,7 @@ export class VerificacionService {
       `${this.apiUrl}/verificacion/selfie`,
       formData,
       { headers: this.cabeceras() },
-    );
+    ).pipe(tap((res) => res.resultado === 'aprobado' && this.aprobada$.next()));
   }
 
   estado(): Observable<{ verificado: boolean }> {

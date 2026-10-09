@@ -84,6 +84,7 @@ export class AppComponent {
       this.ocultarNav = RUTAS_SIN_NAV.includes(this.router.url.split('?')[0]);
       this.actualizarVerificacion();
     });
+    this.verificacionService.aprobada$.subscribe(() => (this.verificado = true));
   }
 
   private actualizarVerificacion(): void {
