@@ -58,6 +58,13 @@ npm install
 npm start
 ```
 
+### Pruebas unitarias (backend)
+```
+cd backend
+npm test            # 42 pruebas con Jest: autenticación, verificación de identidad y detección de riesgo
+npm run test:cov    # con reporte de cobertura
+```
+
 ## Documentación técnica
 
 - [Diagrama y diccionario de datos](./docs/diccionario-datos.md)

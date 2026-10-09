@@ -6,6 +6,7 @@ dist/
 build/
 .angular/
 *.tsbuildinfo
+coverage/
 
 # Variables de entorno
 .env
