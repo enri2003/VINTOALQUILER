@@ -15,12 +15,17 @@ const MUESTRAS_BASE = 10; // cuadros iniciales para calibrar la posición natura
 
 type Fase = 'resumen' | 'captura' | 'enviando' | 'aprobado' | 'rechazado';
 
-// Captura automática: la luz se mide cada 550 ms; con 2 mediciones buenas seguidas
-// un trazo de luz recorre el marco y, al completar la vuelta, se toma la foto.
-const MUESTRAS_ESTABLES = 2;
+// Captura automática: cada 250 ms se miden la luz y el movimiento del cuadro. Cuando la imagen
+// está quieta y bien iluminada, un trazo de luz recorre el marco y, al completar la vuelta, se toma
+// la foto. Si la imagen se mueve, el trazo se borra y vuelve a empezar: así la foto nunca sale movida.
+const INTERVALO_MUESTREO_MS = 250;
+const PAUSA_INICIAL_MS = 1500; // tiempo para acomodar o dar vuelta la cédula antes de empezar
+const MUESTRAS_ESTABLES = 4; // ~1 segundo quieto antes de que empiece el trazo
+const MOVIMIENTO_MAXIMO = 7; // diferencia media de brillo entre cuadros (0 a 255) para considerarla quieta
 const BRILLO_MINIMO = 55;
 const BRILLO_MAXIMO = 225;
-const DURACION_TRAZO_MS = 1800;
+const DURACION_TRAZO_MS = 1600;
+const CALIDAD_JPEG = 0.95;
 const PASO_TRAZO_MS = 30;
 const DURACION_DESTELLO_MS = 600;
 const ESPERA_CAPTURA_MANUAL_MS = 15000;
@@ -301,6 +306,8 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   private temporizadorTrazo: ReturnType<typeof setInterval> | null = null;
   private temporizadorManual: ReturnType<typeof setTimeout> | null = null;
   private muestrasConBuenaLuz = 0;
+  private cuadroAnterior: Float32Array | null = null;
+  private pausaInicialHasta = 0;
 
   /** Detecta dispositivo tactil (celular/tablet) vs mouse (computadora). */
   private readonly esMovil = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
@@ -460,7 +467,8 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     this.errorCamara = '';
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: this.pasoActual.facing },
+        // Se pide la mejor resolución disponible: una cédula nítida se lee mejor.
+        video: { facingMode: this.pasoActual.facing, width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false,
       });
       if (this.videoRef) {
@@ -477,16 +485,19 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   }
 
   /**
-   * Mide el brillo promedio real del cuadro de video (no es texto guionado)
-   * para avisar si hay muy poca luz, demasiado reflejo, o si esta bien.
+   * Mide en cada muestra el brillo real del cuadro de video y cuánto cambió respecto del
+   * anterior, para avisar si hay mala luz y para tomar la foto solo cuando la imagen está quieta.
    */
   private iniciarMuestreoLuz(): void {
+    this.cuadroAnterior = null;
+    // Pausa para acomodar o dar vuelta la cédula antes de empezar a evaluar.
+    this.pausaInicialHasta = Date.now() + PAUSA_INICIAL_MS;
     this.evaluarLuz();
-    this.muestreoLuz = setInterval(() => this.evaluarLuz(), 550);
+    this.muestreoLuz = setInterval(() => this.evaluarLuz(), INTERVALO_MUESTREO_MS);
   }
 
-  /** Brillo promedio (0 a 255) de una versión reducida del cuadro actual de la cámara. */
-  private medirBrillo(): number | null {
+  /** Brillo promedio (0 a 255) y movimiento respecto del cuadro anterior, sobre una versión reducida. */
+  private medirCuadro(): { brillo: number; movimiento: number } | null {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
     if (!video || !canvas || !video.videoWidth) return null;
@@ -499,11 +510,20 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     contexto.drawImage(video, 0, 0, lado, lado);
 
     const datos = contexto.getImageData(0, 0, lado, lado).data;
+    const grises = new Float32Array(lado * lado);
     let total = 0;
-    for (let i = 0; i < datos.length; i += 4) {
-      total += (datos[i] + datos[i + 1] + datos[i + 2]) / 3;
+    for (let i = 0, j = 0; i < datos.length; i += 4, j++) {
+      grises[j] = (datos[i] + datos[i + 1] + datos[i + 2]) / 3;
+      total += grises[j];
     }
-    return total / (datos.length / 4);
+
+    let diferencia = 0;
+    if (this.cuadroAnterior) {
+      for (let j = 0; j < grises.length; j++) diferencia += Math.abs(grises[j] - this.cuadroAnterior[j]);
+    }
+    const movimiento = this.cuadroAnterior ? diferencia / grises.length : Infinity;
+    this.cuadroAnterior = grises;
+    return { brillo: total / grises.length, movimiento };
   }
 
   /** Aviso solo cuando la luz es mala; con buena luz no hay texto, el trazo del marco lo indica. */
@@ -517,17 +537,19 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
   }
 
   private evaluarLuz(): void {
-    const brillo = this.medirBrillo();
-    if (brillo === null) return;
-    const luzAdecuada = brillo >= BRILLO_MINIMO && brillo <= BRILLO_MAXIMO;
-    this.fraseMagica = this.avisoDeLuz(brillo);
+    const cuadro = this.medirCuadro();
+    if (!cuadro) return;
+    const luzAdecuada = cuadro.brillo >= BRILLO_MINIMO && cuadro.brillo <= BRILLO_MAXIMO;
+    this.fraseMagica = this.avisoDeLuz(cuadro.brillo);
     this.luzActualAdecuada = luzAdecuada;
 
     // En la selfie con anillo, la captura la decide el seguimiento del rostro, no el trazo de luz.
     if (this.pasoActual.marco === 'rostro' && (this.modoAnillo || this.esperandoAnillo)) return;
+    if (Date.now() < this.pausaInicialHasta) return;
 
-    // Captura automática: con buena luz estable el trazo recorre el marco; si la luz empeora, se reinicia.
-    if (luzAdecuada) {
+    // Captura automática: el trazo solo avanza con buena luz y la imagen quieta; si no, se reinicia.
+    const quieta = cuadro.movimiento <= MOVIMIENTO_MAXIMO;
+    if (luzAdecuada && quieta) {
       this.muestrasConBuenaLuz += 1;
       if (this.muestrasConBuenaLuz >= MUESTRAS_ESTABLES && this.progresoCaptura === null) {
         this.iniciarTrazo();
@@ -592,12 +614,12 @@ export class VerificacionComponent implements AfterViewChecked, OnDestroy {
     const contexto = canvas.getContext('2d');
     contexto?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    this.fotoActual = canvas.toDataURL('image/jpeg');
+    this.fotoActual = canvas.toDataURL('image/jpeg', CALIDAD_JPEG);
     const clave = this.pasoActual.clave;
     this.vistasPrevias[clave] = this.fotoActual;
     canvas.toBlob((blob) => {
       if (blob) this.archivos[clave] = new File([blob], `${clave}.jpg`, { type: 'image/jpeg' });
-    }, 'image/jpeg');
+    }, 'image/jpeg', CALIDAD_JPEG);
 
     this.detenerCamara();
   }
