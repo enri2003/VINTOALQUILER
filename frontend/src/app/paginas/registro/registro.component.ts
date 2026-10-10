@@ -116,11 +116,21 @@ const RANGOS_PRESUPUESTO = [
             </label>
             <label>
               <span class="etiqueta">Contraseña</span>
-              <input type="password" name="clave" placeholder="Crea tu contraseña" [(ngModel)]="clave" />
+              <div class="campo-clave">
+                <input [type]="verClave ? 'text' : 'password'" name="clave" placeholder="Crea tu contraseña" [(ngModel)]="clave" />
+                <button type="button" class="boton-ver-clave" (click)="verClave = !verClave" [attr.aria-label]="verClave ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  {{ verClave ? '🙈' : '👁️' }}
+                </button>
+              </div>
             </label>
             <label>
               <span class="etiqueta">Confirmar contraseña</span>
-              <input type="password" name="confirmarClave" placeholder="Repite tu contraseña" [(ngModel)]="confirmarClave" />
+              <div class="campo-clave">
+                <input [type]="verConfirmarClave ? 'text' : 'password'" name="confirmarClave" placeholder="Repite tu contraseña" [(ngModel)]="confirmarClave" />
+                <button type="button" class="boton-ver-clave" (click)="verConfirmarClave = !verConfirmarClave" [attr.aria-label]="verConfirmarClave ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  {{ verConfirmarClave ? '🙈' : '👁️' }}
+                </button>
+              </div>
             </label>
             <label>
               <span class="etiqueta">Celular / WhatsApp</span>
@@ -225,6 +235,30 @@ const RANGOS_PRESUPUESTO = [
       </div>
     </section>
   `,
+  styles: [
+    `
+      .campo-clave {
+        position: relative;
+        display: flex;
+      }
+      .campo-clave input {
+        flex: 1;
+        padding-right: 40px;
+      }
+      .boton-ver-clave {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0;
+        line-height: 1;
+      }
+    `,
+  ],
 })
 export class RegistroComponent implements OnInit {
   private readonly apiUrl = '/api';
@@ -239,6 +273,8 @@ export class RegistroComponent implements OnInit {
   correo = '';
   clave = '';
   confirmarClave = '';
+  verClave = false;
+  verConfirmarClave = false;
   celular = '';
   rol: 'interesado' | 'publicador' = 'interesado';
   motivoBusqueda = '';

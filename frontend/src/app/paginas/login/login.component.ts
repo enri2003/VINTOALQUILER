@@ -29,7 +29,12 @@ import { AuthService } from '../../servicios/auth.service';
             </label>
             <label>
               <span class="etiqueta">Contraseña</span>
-              <input type="password" name="clave" placeholder="Tu contraseña" [(ngModel)]="clave" required />
+              <div class="campo-clave">
+                <input [type]="verClave ? 'text' : 'password'" name="clave" placeholder="Tu contraseña" [(ngModel)]="clave" required />
+                <button type="button" class="boton-ver-clave" (click)="verClave = !verClave" [attr.aria-label]="verClave ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  {{ verClave ? '🙈' : '👁️' }}
+                </button>
+              </div>
             </label>
             <div class="fila-terminos fila-opciones-login">
               <label class="opcion-recordarme">
@@ -53,10 +58,35 @@ import { AuthService } from '../../servicios/auth.service';
       </div>
     </section>
   `,
+  styles: [
+    `
+      .campo-clave {
+        position: relative;
+        display: flex;
+      }
+      .campo-clave input {
+        flex: 1;
+        padding-right: 40px;
+      }
+      .boton-ver-clave {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0;
+        line-height: 1;
+      }
+    `,
+  ],
 })
 export class LoginComponent {
   correo = '';
   clave = '';
+  verClave = false;
   recordarme = true;
   error = '';
   ayudaClave = false;
